@@ -8,8 +8,9 @@ import {
   Search,
   Bot,
   Workflow,
-  Database
+  LayoutDashboard
 } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 interface ChatRoom {
   id: string;
@@ -36,6 +37,8 @@ interface ChatSidebarProps {
 
 export function ChatSidebar({ selectedChat, onSelectChat }: ChatSidebarProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const filteredRooms = mockChatRooms.filter(room =>
     room.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -56,6 +59,8 @@ export function ChatSidebar({ selectedChat, onSelectChat }: ChatSidebarProps) {
       default: return "bg-status-offline";
     }
   };
+
+  const isDashboard = location.pathname === "/dashboard";
 
   return (
     <aside className="w-80 h-full bg-sidebar flex flex-col border-r border-border">
@@ -81,6 +86,22 @@ export function ChatSidebar({ selectedChat, onSelectChat }: ChatSidebarProps) {
         </div>
       </div>
 
+      {/* Main Navigation */}
+      <div className="p-2 border-b border-border">
+        <button
+          onClick={() => navigate("/dashboard")}
+          className={cn(
+            "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all",
+            isDashboard 
+              ? "bg-primary/20 text-primary" 
+              : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+          )}
+        >
+          <LayoutDashboard className="w-5 h-5" />
+          <span className="font-medium">대시보드</span>
+        </button>
+      </div>
+
       {/* Nav Categories */}
       <div className="flex gap-1 p-2 border-b border-border">
         {[
@@ -103,11 +124,16 @@ export function ChatSidebar({ selectedChat, onSelectChat }: ChatSidebarProps) {
         {filteredRooms.map((room, index) => (
           <button
             key={room.id}
-            onClick={() => onSelectChat(room.id)}
+            onClick={() => {
+              onSelectChat(room.id);
+              if (location.pathname !== "/") {
+                navigate("/");
+              }
+            }}
             className={cn(
               "w-full p-3 rounded-xl text-left transition-all duration-200 animate-fade-in",
               "hover:bg-secondary/80",
-              selectedChat === room.id 
+              selectedChat === room.id && !isDashboard
                 ? "bg-secondary shadow-card border border-primary/20" 
                 : "bg-transparent"
             )}
