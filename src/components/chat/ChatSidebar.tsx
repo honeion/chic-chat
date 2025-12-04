@@ -113,7 +113,7 @@ export function ChatSidebar({
       <div className="flex border-b border-border">
         {[
           { view: "agent" as ViewType, icon: Bot, label: "SKI Agent" },
-          { view: "workflow" as ViewType, icon: Workflow, label: "Workflow" },
+          { view: "workflow" as ViewType, icon: Workflow, label: "My Agent" },
           { view: "assistant" as ViewType, icon: MessageSquare, label: "Assistant" },
         ].map(({ view, icon: Icon, label }) => (
           <button
