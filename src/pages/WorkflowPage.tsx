@@ -24,18 +24,33 @@ const mockTools: Tool[] = [
   { id: "3", name: "Log Analyzer", description: "로그를 분석하여 패턴을 찾습니다.", example: "analyze_logs(path='/var/log')" },
   { id: "4", name: "Alert Send", description: "알림을 전송합니다.", example: "send_alert(channel='slack', message='...')" },
   { id: "5", name: "Report Gen", description: "리포트를 생성합니다.", example: "generate_report(type='daily')" },
+  { id: "6", name: "API Request", description: "외부 API를 호출하고 응답을 처리합니다.", example: "api_request(url='https://api.example.com', method='GET')" },
+  { id: "7", name: "File Manager", description: "파일 읽기, 쓰기, 삭제 작업을 수행합니다.", example: "file_manage(action='read', path='/data/config.json')" },
+  { id: "8", name: "Email Sender", description: "이메일을 작성하고 발송합니다.", example: "send_email(to='user@example.com', subject='알림')" },
+  { id: "9", name: "Scheduler", description: "작업을 예약하고 스케줄링합니다.", example: "schedule_task(cron='0 9 * * *', task='backup')" },
+  { id: "10", name: "Data Transform", description: "데이터 형식을 변환합니다.", example: "transform_data(input='csv', output='json')" },
+  { id: "11", name: "Cache Manager", description: "캐시 데이터를 관리합니다.", example: "cache_manage(action='clear', key='user_sessions')" },
+  { id: "12", name: "Backup Tool", description: "데이터 백업을 생성하고 복원합니다.", example: "backup(source='/db', destination='/backup')" },
+  { id: "13", name: "Security Scan", description: "보안 취약점을 스캔합니다.", example: "security_scan(target='web_app', type='vulnerability')" },
+  { id: "14", name: "Metrics Collector", description: "시스템 메트릭을 수집합니다.", example: "collect_metrics(source='server', interval=60)" },
+  { id: "15", name: "Load Balancer", description: "트래픽을 분산 처리합니다.", example: "balance_load(servers=['s1','s2'], algorithm='round_robin')" },
+  { id: "16", name: "DNS Manager", description: "DNS 레코드를 관리합니다.", example: "manage_dns(action='add', record='A', value='192.168.1.1')" },
+  { id: "17", name: "Container Deploy", description: "컨테이너를 배포하고 관리합니다.", example: "deploy_container(image='nginx:latest', port=80)" },
+  { id: "18", name: "SSL Manager", description: "SSL 인증서를 관리합니다.", example: "manage_ssl(domain='example.com', action='renew')" },
+  { id: "19", name: "Webhook Handler", description: "웹훅 이벤트를 처리합니다.", example: "handle_webhook(source='github', event='push')" },
+  { id: "20", name: "Queue Manager", description: "메시지 큐를 관리합니다.", example: "manage_queue(action='send', queue='tasks', message='...')" },
 ];
 
-const recommendedWorkflows: WorkflowItem[] = [
-  { id: "r1", name: "서버 상태 점검", description: "서버 헬스체크 및 로그 분석", steps: ["Health Check", "Log Analyzer", "Alert Send"], status: "active" },
-  { id: "r2", name: "DB 백업 프로세스", description: "데이터베이스 백업 및 검증", steps: ["DB Connect", "Backup Create", "Verify", "Notify"], status: "active" },
-  { id: "r3", name: "배포 파이프라인", description: "자동화된 배포 워크플로우", steps: ["Build", "Test", "Deploy", "Health Check"], status: "active" },
-  { id: "r4", name: "로그 모니터링", description: "실시간 로그 수집 및 분석", steps: ["Log Collect", "Parse", "Analyze", "Alert"], status: "active" },
-  { id: "r5", name: "보안 스캔", description: "취약점 탐지 및 보고", steps: ["Scan Init", "Vulnerability Check", "Report Gen", "Notify"], status: "active" },
-  { id: "r6", name: "성능 테스트", description: "부하 테스트 및 성능 측정", steps: ["Load Test", "Metrics Collect", "Analyze", "Report"], status: "active" },
-  { id: "r7", name: "데이터 마이그레이션", description: "데이터 이전 및 검증", steps: ["Export", "Transform", "Import", "Verify"], status: "active" },
-  { id: "r8", name: "알림 설정", description: "다중 채널 알림 구성", steps: ["Config Load", "Channel Setup", "Test Send", "Activate"], status: "active" },
-  { id: "r9", name: "캐시 관리", description: "캐시 초기화 및 워밍", steps: ["Cache Clear", "Data Load", "Cache Warm", "Verify"], status: "active" },
+const recommendedAgents: WorkflowItem[] = [
+  { id: "r1", name: "서버 상태 점검 Agent", description: "서버 헬스체크 및 로그 분석", steps: ["Health Check", "Log Analyzer", "Alert Send"], status: "active" },
+  { id: "r2", name: "DB 백업 Agent", description: "데이터베이스 백업 및 검증", steps: ["DB Connect", "Backup Create", "Verify", "Notify"], status: "active" },
+  { id: "r3", name: "배포 자동화 Agent", description: "자동화된 배포 워크플로우", steps: ["Build", "Test", "Deploy", "Health Check"], status: "active" },
+  { id: "r4", name: "로그 모니터링 Agent", description: "실시간 로그 수집 및 분석", steps: ["Log Collect", "Parse", "Analyze", "Alert"], status: "active" },
+  { id: "r5", name: "보안 스캔 Agent", description: "취약점 탐지 및 보고", steps: ["Scan Init", "Vulnerability Check", "Report Gen", "Notify"], status: "active" },
+  { id: "r6", name: "성능 테스트 Agent", description: "부하 테스트 및 성능 측정", steps: ["Load Test", "Metrics Collect", "Analyze", "Report"], status: "active" },
+  { id: "r7", name: "데이터 마이그레이션 Agent", description: "데이터 이전 및 검증", steps: ["Export", "Transform", "Import", "Verify"], status: "active" },
+  { id: "r8", name: "알림 관리 Agent", description: "다중 채널 알림 구성", steps: ["Config Load", "Channel Setup", "Test Send", "Activate"], status: "active" },
+  { id: "r9", name: "캐시 관리 Agent", description: "캐시 초기화 및 워밍", steps: ["Cache Clear", "Data Load", "Cache Warm", "Verify"], status: "active" },
 ];
 
 const myAgentWorkflows: WorkflowItem[] = [
@@ -49,9 +64,9 @@ export function WorkflowPage() {
   const [selectedWorkflow, setSelectedWorkflow] = useState<WorkflowItem | null>(null);
   const [showAllRecommended, setShowAllRecommended] = useState(false);
 
-  const displayedRecommendedWorkflows = showAllRecommended 
-    ? recommendedWorkflows 
-    : recommendedWorkflows.slice(0, 3);
+  const displayedRecommendedAgents = showAllRecommended 
+    ? recommendedAgents 
+    : recommendedAgents.slice(0, 3);
 
   const getStatusStyle = (status: WorkflowItem["status"]) => {
     switch (status) {
@@ -80,29 +95,29 @@ export function WorkflowPage() {
               <Workflow className="w-6 h-6 text-accent" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">Workflow</h1>
-              <p className="text-sm text-muted-foreground">워크플로우를 관리하고 실행하세요</p>
+              <h1 className="text-2xl font-bold">My Agent</h1>
+              <p className="text-sm text-muted-foreground">에이전트를 관리하고 실행하세요</p>
             </div>
           </div>
           <button className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-2">
             <Plus className="w-4 h-4" />
-            새 워크플로우
+            + 새 에이전트
           </button>
         </div>
 
-        {/* Recommended Workflows */}
+        {/* Recommended Agents */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">추천 워크플로우</h2>
+            <h2 className="text-lg font-semibold">추천 Agent</h2>
             <button 
               onClick={() => setShowAllRecommended(!showAllRecommended)}
               className="text-sm text-primary hover:text-primary/80 transition-colors"
             >
-              {showAllRecommended ? "접기" : `전체보기 (${recommendedWorkflows.length})`}
+              {showAllRecommended ? "접기" : `전체보기 (${recommendedAgents.length})`}
             </button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {displayedRecommendedWorkflows.map((workflow) => (
+            {displayedRecommendedAgents.map((workflow) => (
               <div
                 key={workflow.id}
                 onClick={() => setSelectedWorkflow(workflow)}
