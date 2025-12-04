@@ -171,33 +171,41 @@ export function AgentDetail({
 
         {/* Status Summary */}
         <div className="grid grid-cols-4 gap-4 mb-6">
-          <div className="bg-chat-user/50 backdrop-blur-sm rounded-xl p-4 border border-border/50">
-            <div className="flex items-center gap-2 mb-2">
-              <Clock className="w-5 h-5 text-status-busy" />
-              <span className="text-sm text-secondary-foreground">대기 중</span>
+          <div className="rounded-xl overflow-hidden border border-status-busy/30">
+            <div className="px-4 py-2 bg-status-busy/20 flex items-center gap-2">
+              <Clock className="w-4 h-4 text-status-busy" />
+              <span className="text-sm font-medium text-foreground">대기 중</span>
             </div>
-            <p className="text-2xl font-bold">{pendingCount}건</p>
+            <div className="p-4 bg-background/80">
+              <p className="text-3xl font-bold text-foreground">{pendingCount}<span className="text-lg ml-1">건</span></p>
+            </div>
           </div>
-          <div className="bg-chat-user/50 backdrop-blur-sm rounded-xl p-4 border border-border/50">
-            <div className="flex items-center gap-2 mb-2">
-              <AlertTriangle className="w-5 h-5 text-primary" />
-              <span className="text-sm text-secondary-foreground">처리 중</span>
+          <div className="rounded-xl overflow-hidden border border-primary/30">
+            <div className="px-4 py-2 bg-primary/20 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-foreground">처리 중</span>
             </div>
-            <p className="text-2xl font-bold">{processingCount}건</p>
+            <div className="p-4 bg-background/80">
+              <p className="text-3xl font-bold text-foreground">{processingCount}<span className="text-lg ml-1">건</span></p>
+            </div>
           </div>
-          <div className="bg-chat-user/50 backdrop-blur-sm rounded-xl p-4 border border-border/50">
-            <div className="flex items-center gap-2 mb-2">
-              <CheckCircle className="w-5 h-5 text-status-online" />
-              <span className="text-sm text-secondary-foreground">오늘 완료</span>
+          <div className="rounded-xl overflow-hidden border border-status-online/30">
+            <div className="px-4 py-2 bg-status-online/20 flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-status-online" />
+              <span className="text-sm font-medium text-foreground">오늘 완료</span>
             </div>
-            <p className="text-2xl font-bold">{completedToday}건</p>
+            <div className="p-4 bg-background/80">
+              <p className="text-3xl font-bold text-foreground">{completedToday}<span className="text-lg ml-1">건</span></p>
+            </div>
           </div>
-          <div className="bg-chat-user/50 backdrop-blur-sm rounded-xl p-4 border border-border/50">
-            <div className="flex items-center gap-2 mb-2">
-              <FileText className="w-5 h-5 text-accent" />
-              <span className="text-sm text-secondary-foreground">일일 보고서</span>
+          <div className="rounded-xl overflow-hidden border border-accent/30">
+            <div className="px-4 py-2 bg-accent/20 flex items-center gap-2">
+              <FileText className="w-4 h-4 text-accent" />
+              <span className="text-sm font-medium text-foreground">일일 보고서</span>
             </div>
-            <button className="text-sm text-primary hover:underline">보기</button>
+            <div className="p-4 bg-background/80">
+              <button className="text-sm text-primary hover:underline font-medium">보기</button>
+            </div>
           </div>
         </div>
 
@@ -253,19 +261,23 @@ export function AgentDetail({
             <Clock className="w-5 h-5" />
             처리 이력
           </h3>
-          <div className="bg-chat-user/50 backdrop-blur-sm rounded-xl border border-border/50 overflow-hidden">
-            <div className="divide-y divide-border/50">
+          <div className="rounded-xl overflow-hidden border border-primary/30">
+            <div className="px-4 py-3 bg-primary/20 flex items-center gap-2">
+              <Clock className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-foreground">최근 처리 내역</span>
+            </div>
+            <div className="bg-background/80 divide-y divide-border/30">
               {history.slice(0, 5).map(item => <div key={item.id} className="p-3 flex items-center gap-3">
                   {getStatusIcon(item.status)}
                   <div className="flex-1">
-                    <p className="text-sm font-medium">{item.action}</p>
+                    <p className="text-sm font-medium text-foreground">{item.action}</p>
                     <p className="text-xs text-muted-foreground">{item.result}</p>
                   </div>
                   <span className="text-xs text-muted-foreground">{item.timestamp}</span>
                 </div>)}
             </div>
-            <div className="p-3 border-t border-border/50">
-              <button className="text-sm text-primary hover:underline w-full text-center">전체 이력 보기</button>
+            <div className="p-3 bg-background/60 border-t border-border/30">
+              <button className="text-sm text-primary hover:underline w-full text-center font-medium">전체 이력 보기</button>
             </div>
           </div>
         </div>
@@ -276,25 +288,31 @@ export function AgentDetail({
             <FileText className="w-5 h-5" />
             오늘의 요약 보고서
           </h3>
-          <div className="bg-chat-user/50 backdrop-blur-sm rounded-xl p-4 border border-border/50">
-            <div className="grid grid-cols-3 gap-4 mb-4">
-              <div className="p-3 rounded-lg bg-white/90 text-background">
-                <p className="text-xs text-background/70 mb-1">총 처리 건수</p>
-                <p className="text-xl font-bold">{completedToday}건</p>
-              </div>
-              <div className="p-3 rounded-lg bg-white/90 text-background">
-                <p className="text-xs text-background/70 mb-1">성공률</p>
-                <p className="text-xl font-bold text-status-online">92%</p>
-              </div>
-              <div className="p-3 rounded-lg bg-white/90 text-background">
-                <p className="text-xs text-background/70 mb-1">평균 처리 시간</p>
-                <p className="text-xl font-bold">2.3분</p>
-              </div>
+          <div className="rounded-xl overflow-hidden border border-accent/30">
+            <div className="px-4 py-3 bg-accent/20 flex items-center gap-2">
+              <FileText className="w-4 h-4 text-accent" />
+              <span className="text-sm font-medium text-foreground">오늘의 성과</span>
             </div>
-            <p className="text-sm text-muted-foreground">
-              오늘 {completedToday}건의 작업을 처리했습니다. 서버 상태는 전반적으로 안정적이며, 
-              CPU 사용률 관련 인시던트 1건이 대기 중입니다.
-            </p>
+            <div className="p-4 bg-background/80">
+              <div className="grid grid-cols-3 gap-4 mb-4">
+                <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+                  <p className="text-xs text-muted-foreground mb-1">총 처리 건수</p>
+                  <p className="text-xl font-bold text-foreground">{completedToday}건</p>
+                </div>
+                <div className="p-3 rounded-lg bg-status-online/10 border border-status-online/20">
+                  <p className="text-xs text-muted-foreground mb-1">성공률</p>
+                  <p className="text-xl font-bold text-status-online">92%</p>
+                </div>
+                <div className="p-3 rounded-lg bg-accent/10 border border-accent/20">
+                  <p className="text-xs text-muted-foreground mb-1">평균 처리 시간</p>
+                  <p className="text-xl font-bold text-foreground">2.3분</p>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                오늘 {completedToday}건의 작업을 처리했습니다. 서버 상태는 전반적으로 안정적이며, 
+                CPU 사용률 관련 인시던트 1건이 대기 중입니다.
+              </p>
+            </div>
           </div>
         </div>
       </div>
