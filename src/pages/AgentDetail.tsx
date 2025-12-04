@@ -208,32 +208,36 @@ export function AgentDetail({
             승인 대기 인시던트
           </h3>
           <div className="space-y-3">
-            {incidents.filter(i => i.status === "pending" || i.status === "processing").map(incident => <div key={incident.id} className="p-4 rounded-xl bg-chat-user/50 border border-border/50">
-                <div className="items-start justify-between mb-3 flex flex-row">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-medium">{incident.title}</h4>
-                      <span className={cn("px-2 py-0.5 rounded-full text-xs", getPriorityStyle(incident.priority))}>
-                        {incident.priority === "high" ? "긴급" : incident.priority === "medium" ? "보통" : "낮음"}
-                      </span>
-                      <span className="text-xs text-muted-foreground">{incident.timestamp}</span>
-                    </div>
-                    <p className="mb-2 text-[sidebar-primary-foreground] text-chat-system">{incident.description}</p>
-                    {incident.recommendation && <div className="p-2 rounded-lg bg-primary/10 border border-primary/20">
-                        <p className="text-sm"><span className="text-primary font-medium">AI 권장:</span> {incident.recommendation}</p>
-                      </div>}
+            {incidents.filter(i => i.status === "pending" || i.status === "processing").map(incident => <div key={incident.id} className="rounded-xl overflow-hidden border border-primary/30">
+                {/* Header */}
+                <div className="px-4 py-3 bg-primary/20 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <h4 className="font-semibold text-foreground">{incident.title}</h4>
+                    <span className={cn("px-2 py-0.5 rounded text-xs font-medium", getPriorityStyle(incident.priority))}>
+                      {incident.priority === "high" ? "긴급" : incident.priority === "medium" ? "보통" : "낮음"}
+                    </span>
+                    <span className="text-xs text-muted-foreground">{incident.timestamp}</span>
                   </div>
-                  {incident.status === "pending" && <div className="flex gap-2 ml-4">
-                      <button onClick={() => handleApprove(incident.id)} className="px-3 py-1.5 rounded-lg bg-status-online/20 text-status-online hover:bg-status-online/30 transition-colors text-sm font-medium flex items-center gap-1">
+                  <div className="flex gap-2">
+                    {incident.status === "pending" && <>
+                      <button onClick={() => handleApprove(incident.id)} className="px-3 py-1.5 rounded-lg bg-status-online text-white hover:bg-status-online/90 transition-colors text-sm font-medium flex items-center gap-1">
                         <CheckCircle className="w-4 h-4" />
                         승인
                       </button>
-                      <button onClick={() => handleReject(incident.id)} className="px-3 py-1.5 rounded-lg bg-destructive/20 text-destructive hover:bg-destructive/30 transition-colors text-sm font-medium flex items-center gap-1">
+                      <button onClick={() => handleReject(incident.id)} className="px-3 py-1.5 rounded-lg bg-destructive text-white hover:bg-destructive/90 transition-colors text-sm font-medium flex items-center gap-1">
                         <XCircle className="w-4 h-4" />
                         거부
                       </button>
+                    </>}
+                    {incident.status === "processing" && <span className="px-3 py-1.5 rounded-lg bg-primary/20 text-primary text-sm">처리 중...</span>}
+                  </div>
+                </div>
+                {/* Content */}
+                <div className="p-4 bg-background/80">
+                  <p className="mb-3 text-foreground">{incident.description}</p>
+                  {incident.recommendation && <div className="p-3 rounded-lg bg-status-online/20 border-l-4 border-status-online">
+                      <p className="text-sm"><span className="text-status-online font-semibold">AI 권장:</span> <span className="text-foreground">{incident.recommendation}</span></p>
                     </div>}
-                  {incident.status === "processing" && <span className="px-3 py-1.5 rounded-lg bg-primary/20 text-primary text-sm">처리 중...</span>}
                 </div>
               </div>)}
             {incidents.filter(i => i.status === "pending" || i.status === "processing").length === 0 && <div className="p-8 text-center text-muted-foreground">
