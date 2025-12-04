@@ -65,7 +65,12 @@ export function WorkflowPage() {
 
         {/* Recommended Workflows */}
         <div className="mb-8">
-          <h2 className="text-lg font-semibold mb-4">추천 워크플로우</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">추천 워크플로우</h2>
+            <button className="text-sm text-primary hover:text-primary/80 transition-colors">
+              전체보기
+            </button>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {recommendedWorkflows.map((workflow) => (
               <div
@@ -169,7 +174,15 @@ export function WorkflowPage() {
       {/* Workflow Detail Panel */}
       {selectedWorkflow && (
         <div className="w-96 border-l border-border bg-sidebar p-6 animate-slide-up overflow-y-auto">
-          <h3 className="text-lg font-semibold mb-4">{selectedWorkflow.name}</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold">{selectedWorkflow.name}</h3>
+            <button 
+              onClick={() => setSelectedWorkflow(null)}
+              className="p-1 rounded-lg hover:bg-secondary transition-colors"
+            >
+              <ChevronRight className="w-5 h-5 rotate-180" />
+            </button>
+          </div>
           
           <div className="space-y-4">
             <div className="p-4 rounded-xl bg-chat-user/50 border border-border/50">
