@@ -9,11 +9,13 @@ import Dashboard from "./Dashboard";
 type ViewType = "agent" | "workflow" | "assistant";
 
 const agentNames: Record<string, string> = {
-  "a1": "ITS Agent",
-  "a2": "SOP Agent",
-  "a3": "DB Agent",
-  "a4": "RAG Agent",
-  "a5": "Monitor Agent",
+  "a1": "Biz.Support Agent",
+  "a2": "ITS Agent",
+  "a3": "SOP Agent",
+  "a4": "DB Agent",
+  "a5": "모니터링 Agent",
+  "a6": "변경관리 Agent",
+  "a7": "보고서 Agent",
 };
 
 const Index = () => {
