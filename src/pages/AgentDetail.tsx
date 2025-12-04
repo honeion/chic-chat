@@ -57,16 +57,16 @@ export function AgentDetail({ agentId, agentName }: AgentDetailProps) {
           <div className="bg-chat-user/50 backdrop-blur-sm rounded-xl p-6 border border-border/50">
             <h3 className="text-lg font-semibold mb-4">사용현황</h3>
             <div className="space-y-3">
-              <div className="flex justify-between p-3 rounded-lg bg-background/50 border border-border/30">
-                <span className="text-muted-foreground">오늘 실행</span>
+              <div className="flex justify-between p-3 rounded-lg bg-white/90 text-background">
+                <span className="text-background/70">오늘 실행</span>
                 <span className="font-medium">24회</span>
               </div>
-              <div className="flex justify-between p-3 rounded-lg bg-background/50 border border-border/30">
-                <span className="text-muted-foreground">성공률</span>
+              <div className="flex justify-between p-3 rounded-lg bg-white/90 text-background">
+                <span className="text-background/70">성공률</span>
                 <span className="font-medium text-status-online">98.5%</span>
               </div>
-              <div className="flex justify-between p-3 rounded-lg bg-background/50 border border-border/30">
-                <span className="text-muted-foreground">평균 응답시간</span>
+              <div className="flex justify-between p-3 rounded-lg bg-white/90 text-background">
+                <span className="text-background/70">평균 응답시간</span>
                 <span className="font-medium">1.2초</span>
               </div>
             </div>
@@ -75,19 +75,19 @@ export function AgentDetail({ agentId, agentName }: AgentDetailProps) {
           <div className="bg-chat-user/50 backdrop-blur-sm rounded-xl p-6 border border-border/50">
             <h3 className="text-lg font-semibold mb-4">이력</h3>
             <div className="space-y-2 text-sm">
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-background/50 border border-border/30">
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-white/90 text-background">
                 <span className="w-2 h-2 rounded-full bg-status-online" />
-                <span className="text-muted-foreground">10:30</span>
+                <span className="text-background/70">10:30</span>
                 <span>Health Check 완료</span>
               </div>
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-background/50 border border-border/30">
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-white/90 text-background">
                 <span className="w-2 h-2 rounded-full bg-status-online" />
-                <span className="text-muted-foreground">10:25</span>
+                <span className="text-background/70">10:25</span>
                 <span>DB Connect 완료</span>
               </div>
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-background/50 border border-border/30">
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-white/90 text-background">
                 <span className="w-2 h-2 rounded-full bg-status-busy" />
-                <span className="text-muted-foreground">10:20</span>
+                <span className="text-background/70">10:20</span>
                 <span>Log 분석 경고</span>
               </div>
             </div>
@@ -96,13 +96,13 @@ export function AgentDetail({ agentId, agentName }: AgentDetailProps) {
           <div className="bg-chat-user/50 backdrop-blur-sm rounded-xl p-6 border border-border/50">
             <h3 className="text-lg font-semibold mb-4">RunBook</h3>
             <div className="space-y-2 text-sm">
-              <div className="p-3 rounded-lg bg-background/50 border border-border/30 hover:bg-secondary cursor-pointer transition-colors">
+              <div className="p-3 rounded-lg bg-white/90 text-background hover:bg-white cursor-pointer transition-colors">
                 장애 대응 매뉴얼
               </div>
-              <div className="p-3 rounded-lg bg-background/50 border border-border/30 hover:bg-secondary cursor-pointer transition-colors">
+              <div className="p-3 rounded-lg bg-white/90 text-background hover:bg-white cursor-pointer transition-colors">
                 배포 프로세스
               </div>
-              <div className="p-3 rounded-lg bg-background/50 border border-border/30 hover:bg-secondary cursor-pointer transition-colors">
+              <div className="p-3 rounded-lg bg-white/90 text-background hover:bg-white cursor-pointer transition-colors">
                 점검 체크리스트
               </div>
             </div>

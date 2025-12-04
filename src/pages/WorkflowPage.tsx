@@ -15,6 +15,12 @@ const recommendedWorkflows: WorkflowItem[] = [
   { id: "r1", name: "서버 상태 점검", description: "서버 헬스체크 및 로그 분석", steps: ["Health Check", "Log Analyzer", "Alert Send"], status: "active" },
   { id: "r2", name: "DB 백업 프로세스", description: "데이터베이스 백업 및 검증", steps: ["DB Connect", "Backup Create", "Verify", "Notify"], status: "active" },
   { id: "r3", name: "배포 파이프라인", description: "자동화된 배포 워크플로우", steps: ["Build", "Test", "Deploy", "Health Check"], status: "active" },
+  { id: "r4", name: "로그 모니터링", description: "실시간 로그 수집 및 분석", steps: ["Log Collect", "Parse", "Analyze", "Alert"], status: "active" },
+  { id: "r5", name: "보안 스캔", description: "취약점 탐지 및 보고", steps: ["Scan Init", "Vulnerability Check", "Report Gen", "Notify"], status: "active" },
+  { id: "r6", name: "성능 테스트", description: "부하 테스트 및 성능 측정", steps: ["Load Test", "Metrics Collect", "Analyze", "Report"], status: "active" },
+  { id: "r7", name: "데이터 마이그레이션", description: "데이터 이전 및 검증", steps: ["Export", "Transform", "Import", "Verify"], status: "active" },
+  { id: "r8", name: "알림 설정", description: "다중 채널 알림 구성", steps: ["Config Load", "Channel Setup", "Test Send", "Activate"], status: "active" },
+  { id: "r9", name: "캐시 관리", description: "캐시 초기화 및 워밍", steps: ["Cache Clear", "Data Load", "Cache Warm", "Verify"], status: "active" },
 ];
 
 const myWorkflows: WorkflowItem[] = [
@@ -25,6 +31,11 @@ const myWorkflows: WorkflowItem[] = [
 
 export function WorkflowPage() {
   const [selectedWorkflow, setSelectedWorkflow] = useState<WorkflowItem | null>(null);
+  const [showAllRecommended, setShowAllRecommended] = useState(false);
+
+  const displayedRecommendedWorkflows = showAllRecommended 
+    ? recommendedWorkflows 
+    : recommendedWorkflows.slice(0, 3);
 
   const getStatusStyle = (status: WorkflowItem["status"]) => {
     switch (status) {
@@ -67,12 +78,15 @@ export function WorkflowPage() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">추천 워크플로우</h2>
-            <button className="text-sm text-primary hover:text-primary/80 transition-colors">
-              전체보기
+            <button 
+              onClick={() => setShowAllRecommended(!showAllRecommended)}
+              className="text-sm text-primary hover:text-primary/80 transition-colors"
+            >
+              {showAllRecommended ? "접기" : `전체보기 (${recommendedWorkflows.length})`}
             </button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {recommendedWorkflows.map((workflow) => (
+            {displayedRecommendedWorkflows.map((workflow) => (
               <div
                 key={workflow.id}
                 onClick={() => setSelectedWorkflow(workflow)}
