@@ -1,20 +1,35 @@
 import { useState } from "react";
-import { Bot, Settings, Info, Play, X, ChevronRight } from "lucide-react";
+import { Bot, Settings, Info, Send, CheckCircle, XCircle, Clock, AlertTriangle, MessageSquare, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface Tool {
+interface Incident {
   id: string;
-  name: string;
+  title: string;
   description: string;
-  example: string;
+  status: "pending" | "processing" | "approved" | "rejected";
+  priority: "high" | "medium" | "low";
+  timestamp: string;
+  recommendation?: string;
 }
 
-const mockTools: Tool[] = [
-  { id: "1", name: "Health Check", description: "시스템 상태를 점검하고 이상 여부를 확인합니다.", example: "health_check(target='server1')" },
-  { id: "2", name: "DB Connect", description: "데이터베이스 연결을 설정합니다.", example: "db_connect(host='localhost', port=5432)" },
-  { id: "3", name: "Log Analyzer", description: "로그를 분석하여 패턴을 찾습니다.", example: "analyze_logs(path='/var/log')" },
-  { id: "4", name: "Alert Send", description: "알림을 전송합니다.", example: "send_alert(channel='slack', message='...')" },
-  { id: "5", name: "Report Gen", description: "리포트를 생성합니다.", example: "generate_report(type='daily')" },
+interface HistoryItem {
+  id: string;
+  action: string;
+  result: string;
+  timestamp: string;
+  status: "success" | "warning" | "error";
+}
+
+const mockIncidents: Incident[] = [
+  { id: "i1", title: "서버 CPU 사용률 90% 초과", description: "서버 A의 CPU 사용률이 임계치를 초과했습니다.", status: "pending", priority: "high", timestamp: "10:45", recommendation: "서버 재시작 또는 프로세스 정리 권장" },
+  { id: "i2", title: "DB 연결 지연 감지", description: "데이터베이스 응답 시간이 평소보다 3배 느립니다.", status: "pending", priority: "medium", timestamp: "10:30", recommendation: "쿼리 최적화 또는 인덱스 확인 권장" },
+  { id: "i3", title: "디스크 용량 80% 도달", description: "스토리지 공간이 부족해지고 있습니다.", status: "processing", priority: "low", timestamp: "09:15" },
+];
+
+const mockHistory: HistoryItem[] = [
+  { id: "h1", action: "메모리 정리 실행", result: "2GB 메모리 확보 완료", timestamp: "09:00", status: "success" },
+  { id: "h2", action: "로그 분석 수행", result: "이상 패턴 3건 발견", timestamp: "08:30", status: "warning" },
+  { id: "h3", action: "헬스체크 완료", result: "모든 서비스 정상", timestamp: "08:00", status: "success" },
 ];
 
 interface AgentDetailProps {
@@ -23,11 +38,61 @@ interface AgentDetailProps {
 }
 
 export function AgentDetail({ agentId, agentName }: AgentDetailProps) {
-  const [selectedTool, setSelectedTool] = useState<Tool | null>(null);
+  const [chatInput, setChatInput] = useState("");
+  const [incidents, setIncidents] = useState<Incident[]>(mockIncidents);
+  const [history, setHistory] = useState<HistoryItem[]>(mockHistory);
+  const [messages, setMessages] = useState<Array<{ role: "user" | "agent"; content: string }>>([
+    { role: "agent", content: "안녕하세요! 현재 3건의 인시던트가 대기 중입니다. 어떤 작업을 도와드릴까요?" }
+  ]);
+
+  const handleSendMessage = () => {
+    if (!chatInput.trim()) return;
+    setMessages([...messages, { role: "user", content: chatInput }]);
+    setChatInput("");
+    setTimeout(() => {
+      setMessages(prev => [...prev, { role: "agent", content: "요청을 처리하고 있습니다. 잠시만 기다려주세요." }]);
+    }, 500);
+  };
+
+  const handleApprove = (incidentId: string) => {
+    setIncidents(prev => prev.map(inc => 
+      inc.id === incidentId ? { ...inc, status: "approved" } : inc
+    ));
+    const incident = incidents.find(i => i.id === incidentId);
+    if (incident) {
+      setHistory(prev => [{ id: `h${Date.now()}`, action: `${incident.title} 승인`, result: "조치 실행 중", timestamp: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }), status: "success" }, ...prev]);
+      setMessages(prev => [...prev, { role: "agent", content: `"${incident.title}" 인시던트가 승인되었습니다. 권장 조치를 실행합니다.` }]);
+    }
+  };
+
+  const handleReject = (incidentId: string) => {
+    setIncidents(prev => prev.map(inc => 
+      inc.id === incidentId ? { ...inc, status: "rejected" } : inc
+    ));
+  };
+
+  const getPriorityStyle = (priority: Incident["priority"]) => {
+    switch (priority) {
+      case "high": return "bg-destructive/20 text-destructive";
+      case "medium": return "bg-status-busy/20 text-status-busy";
+      case "low": return "bg-muted text-muted-foreground";
+    }
+  };
+
+  const getStatusIcon = (status: HistoryItem["status"]) => {
+    switch (status) {
+      case "success": return <CheckCircle className="w-4 h-4 text-status-online" />;
+      case "warning": return <AlertTriangle className="w-4 h-4 text-status-busy" />;
+      case "error": return <XCircle className="w-4 h-4 text-destructive" />;
+    }
+  };
+
+  const pendingCount = incidents.filter(i => i.status === "pending").length;
+  const processingCount = incidents.filter(i => i.status === "processing").length;
+  const completedToday = history.length;
 
   return (
     <div className="flex-1 flex h-full overflow-hidden">
-      {/* Main Content */}
       <div className="flex-1 p-6 overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -52,203 +117,214 @@ export function AgentDetail({ agentId, agentName }: AgentDetailProps) {
           </div>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="bg-chat-user/50 backdrop-blur-sm rounded-xl p-6 border border-border/50">
-            <h3 className="text-lg font-semibold mb-4">사용현황</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between p-3 rounded-lg bg-white/90 text-background">
-                <span className="text-background/70">오늘 실행</span>
-                <span className="font-medium">24회</span>
-              </div>
-              <div className="flex justify-between p-3 rounded-lg bg-white/90 text-background">
-                <span className="text-background/70">성공률</span>
-                <span className="font-medium text-status-online">98.5%</span>
-              </div>
-              <div className="flex justify-between p-3 rounded-lg bg-white/90 text-background">
-                <span className="text-background/70">평균 응답시간</span>
-                <span className="font-medium">1.2초</span>
-              </div>
+        {/* Status Summary */}
+        <div className="grid grid-cols-4 gap-4 mb-6">
+          <div className="bg-chat-user/50 backdrop-blur-sm rounded-xl p-4 border border-border/50">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="w-5 h-5 text-status-busy" />
+              <span className="text-sm text-muted-foreground">대기 중</span>
             </div>
+            <p className="text-2xl font-bold">{pendingCount}건</p>
           </div>
-          
-          <div className="bg-chat-user/50 backdrop-blur-sm rounded-xl p-6 border border-border/50">
-            <h3 className="text-lg font-semibold mb-4">이력</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-white/90 text-background">
-                <span className="w-2 h-2 rounded-full bg-status-online" />
-                <span className="text-background/70">10:30</span>
-                <span>Health Check 완료</span>
-              </div>
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-white/90 text-background">
-                <span className="w-2 h-2 rounded-full bg-status-online" />
-                <span className="text-background/70">10:25</span>
-                <span>DB Connect 완료</span>
-              </div>
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-white/90 text-background">
-                <span className="w-2 h-2 rounded-full bg-status-busy" />
-                <span className="text-background/70">10:20</span>
-                <span>Log 분석 경고</span>
-              </div>
+          <div className="bg-chat-user/50 backdrop-blur-sm rounded-xl p-4 border border-border/50">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertTriangle className="w-5 h-5 text-primary" />
+              <span className="text-sm text-muted-foreground">처리 중</span>
             </div>
+            <p className="text-2xl font-bold">{processingCount}건</p>
           </div>
-          
-          <div className="bg-chat-user/50 backdrop-blur-sm rounded-xl p-6 border border-border/50">
-            <h3 className="text-lg font-semibold mb-4">RunBook</h3>
-            <div className="space-y-2 text-sm">
-              <div className="p-3 rounded-lg bg-white/90 text-background hover:bg-white cursor-pointer transition-colors">
-                장애 대응 매뉴얼
-              </div>
-              <div className="p-3 rounded-lg bg-white/90 text-background hover:bg-white cursor-pointer transition-colors">
-                배포 프로세스
-              </div>
-              <div className="p-3 rounded-lg bg-white/90 text-background hover:bg-white cursor-pointer transition-colors">
-                점검 체크리스트
-              </div>
+          <div className="bg-chat-user/50 backdrop-blur-sm rounded-xl p-4 border border-border/50">
+            <div className="flex items-center gap-2 mb-2">
+              <CheckCircle className="w-5 h-5 text-status-online" />
+              <span className="text-sm text-muted-foreground">오늘 완료</span>
             </div>
+            <p className="text-2xl font-bold">{completedToday}건</p>
+          </div>
+          <div className="bg-chat-user/50 backdrop-blur-sm rounded-xl p-4 border border-border/50">
+            <div className="flex items-center gap-2 mb-2">
+              <FileText className="w-5 h-5 text-accent" />
+              <span className="text-sm text-muted-foreground">일일 보고서</span>
+            </div>
+            <button className="text-sm text-primary hover:underline">보기</button>
           </div>
         </div>
 
-        {/* Tool List */}
+        {/* Incident List */}
         <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-4">Tool List</h3>
-          <div className="flex flex-wrap gap-3">
-            {mockTools.map((tool) => (
-              <button
-                key={tool.id}
-                onClick={() => setSelectedTool(selectedTool?.id === tool.id ? null : tool)}
-                className={cn(
-                  "px-4 py-2.5 rounded-lg text-sm font-medium transition-all",
-                  selectedTool?.id === tool.id
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-chat-user/50 hover:bg-chat-user border border-border/50"
-                )}
-              >
-                {tool.name}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Recommended Workflows */}
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-4">추천 워크플로우</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[
-              { id: "r1", name: "서버 상태 점검", description: "서버 헬스체크 및 로그 분석", steps: ["Health Check", "Log Analyzer", "Alert Send"] },
-              { id: "r2", name: "DB 백업 프로세스", description: "데이터베이스 백업 및 검증", steps: ["DB Connect", "Backup Create", "Verify"] },
-            ].map((workflow) => (
-              <div
-                key={workflow.id}
-                className="p-4 rounded-xl border cursor-pointer transition-all hover:border-primary/50 bg-chat-user/30 border-border/50"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <h4 className="font-medium">{workflow.name}</h4>
-                  <span className="px-2 py-0.5 rounded-full text-xs bg-status-online/20 text-status-online">활성</span>
-                </div>
-                <p className="text-sm text-muted-foreground mb-3">{workflow.description}</p>
-                <div className="flex items-center gap-1 overflow-x-auto">
-                  {workflow.steps.map((step, idx) => (
-                    <div key={idx} className="flex items-center">
-                      <span className="px-2 py-1 rounded bg-secondary/50 text-xs whitespace-nowrap">{step}</span>
-                      {idx < workflow.steps.length - 1 && (
-                        <ChevronRight className="w-3 h-3 text-muted-foreground mx-0.5" />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* My Workflows */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">My 워크플로우</h3>
-            <button className="px-4 py-2 rounded-lg bg-primary/20 text-primary hover:bg-primary/30 transition-colors text-sm font-medium">
-              워크플로우 추가하기
-            </button>
-          </div>
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-status-busy" />
+            승인 대기 인시던트
+          </h3>
           <div className="space-y-3">
-            {[
-              { id: "m1", name: "일일 점검 루틴", description: "매일 아침 자동 실행", steps: ["Health Check", "DB Connect", "Report Gen"], lastRun: "오늘 09:00" },
-            ].map((workflow) => (
-              <div
-                key={workflow.id}
-                className="p-4 rounded-xl border cursor-pointer transition-all hover:border-primary/50 bg-chat-user/30 border-border/50"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center">
-                      <Play className="w-5 h-5 text-accent" />
+            {incidents.filter(i => i.status === "pending" || i.status === "processing").map((incident) => (
+              <div key={incident.id} className="p-4 rounded-xl bg-chat-user/50 border border-border/50">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h4 className="font-medium">{incident.title}</h4>
+                      <span className={cn("px-2 py-0.5 rounded-full text-xs", getPriorityStyle(incident.priority))}>
+                        {incident.priority === "high" ? "긴급" : incident.priority === "medium" ? "보통" : "낮음"}
+                      </span>
+                      <span className="text-xs text-muted-foreground">{incident.timestamp}</span>
                     </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-medium">{workflow.name}</h4>
-                        <span className="px-2 py-0.5 rounded-full text-xs bg-status-online/20 text-status-online">활성</span>
+                    <p className="text-sm text-muted-foreground mb-2">{incident.description}</p>
+                    {incident.recommendation && (
+                      <div className="p-2 rounded-lg bg-primary/10 border border-primary/20">
+                        <p className="text-sm"><span className="text-primary font-medium">AI 권장:</span> {incident.recommendation}</p>
                       </div>
-                      <p className="text-sm text-muted-foreground">{workflow.description}</p>
-                    </div>
+                    )}
                   </div>
-                  <div className="flex items-center gap-4">
-                    <span className="text-xs text-muted-foreground">마지막 실행: {workflow.lastRun}</span>
-                    <button className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium flex items-center gap-1">
-                      <Play className="w-4 h-4" />
-                      실행
-                    </button>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1 mt-3 overflow-x-auto">
-                  {workflow.steps.map((step, idx) => (
-                    <div key={idx} className="flex items-center">
-                      <span className="px-2 py-1 rounded bg-secondary/50 text-xs whitespace-nowrap">{step}</span>
-                      {idx < workflow.steps.length - 1 && (
-                        <ChevronRight className="w-3 h-3 text-muted-foreground mx-0.5" />
-                      )}
+                  {incident.status === "pending" && (
+                    <div className="flex gap-2 ml-4">
+                      <button 
+                        onClick={() => handleApprove(incident.id)}
+                        className="px-3 py-1.5 rounded-lg bg-status-online/20 text-status-online hover:bg-status-online/30 transition-colors text-sm font-medium flex items-center gap-1"
+                      >
+                        <CheckCircle className="w-4 h-4" />
+                        승인
+                      </button>
+                      <button 
+                        onClick={() => handleReject(incident.id)}
+                        className="px-3 py-1.5 rounded-lg bg-destructive/20 text-destructive hover:bg-destructive/30 transition-colors text-sm font-medium flex items-center gap-1"
+                      >
+                        <XCircle className="w-4 h-4" />
+                        거부
+                      </button>
                     </div>
-                  ))}
+                  )}
+                  {incident.status === "processing" && (
+                    <span className="px-3 py-1.5 rounded-lg bg-primary/20 text-primary text-sm">처리 중...</span>
+                  )}
                 </div>
               </div>
             ))}
+            {incidents.filter(i => i.status === "pending" || i.status === "processing").length === 0 && (
+              <div className="p-8 text-center text-muted-foreground">
+                <CheckCircle className="w-12 h-12 mx-auto mb-2 text-status-online/50" />
+                <p>모든 인시던트가 처리되었습니다</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Processing History */}
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <Clock className="w-5 h-5" />
+            처리 이력
+          </h3>
+          <div className="bg-chat-user/50 backdrop-blur-sm rounded-xl border border-border/50 overflow-hidden">
+            <div className="divide-y divide-border/50">
+              {history.slice(0, 5).map((item) => (
+                <div key={item.id} className="p-3 flex items-center gap-3">
+                  {getStatusIcon(item.status)}
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">{item.action}</p>
+                    <p className="text-xs text-muted-foreground">{item.result}</p>
+                  </div>
+                  <span className="text-xs text-muted-foreground">{item.timestamp}</span>
+                </div>
+              ))}
+            </div>
+            <div className="p-3 border-t border-border/50">
+              <button className="text-sm text-primary hover:underline w-full text-center">전체 이력 보기</button>
+            </div>
+          </div>
+        </div>
+
+        {/* Daily Summary */}
+        <div>
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <FileText className="w-5 h-5" />
+            오늘의 요약 보고서
+          </h3>
+          <div className="bg-chat-user/50 backdrop-blur-sm rounded-xl p-4 border border-border/50">
+            <div className="grid grid-cols-3 gap-4 mb-4">
+              <div className="p-3 rounded-lg bg-white/90 text-background">
+                <p className="text-xs text-background/70 mb-1">총 처리 건수</p>
+                <p className="text-xl font-bold">{completedToday}건</p>
+              </div>
+              <div className="p-3 rounded-lg bg-white/90 text-background">
+                <p className="text-xs text-background/70 mb-1">성공률</p>
+                <p className="text-xl font-bold text-status-online">92%</p>
+              </div>
+              <div className="p-3 rounded-lg bg-white/90 text-background">
+                <p className="text-xs text-background/70 mb-1">평균 처리 시간</p>
+                <p className="text-xl font-bold">2.3분</p>
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              오늘 {completedToday}건의 작업을 처리했습니다. 서버 상태는 전반적으로 안정적이며, 
+              CPU 사용률 관련 인시던트 1건이 대기 중입니다.
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Tool Detail Panel */}
-      {selectedTool && (
-        <div className="w-80 border-l border-border bg-sidebar p-6 animate-slide-up">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold">Tool 이름</h3>
+      {/* Chat Panel */}
+      <div className="w-96 border-l border-border bg-sidebar flex flex-col">
+        <div className="p-4 border-b border-border">
+          <h3 className="font-semibold flex items-center gap-2">
+            <MessageSquare className="w-5 h-5" />
+            Agent 대화
+          </h3>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          {messages.map((msg, idx) => (
+            <div key={idx} className={cn(
+              "p-3 rounded-xl max-w-[85%]",
+              msg.role === "user" 
+                ? "bg-primary text-primary-foreground ml-auto" 
+                : "bg-chat-user/50 border border-border/50"
+            )}>
+              <p className="text-sm">{msg.content}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="p-3 border-t border-border/50">
+          <div className="flex flex-wrap gap-2 mb-3">
             <button 
-              onClick={() => setSelectedTool(null)}
-              className="p-1 rounded-lg hover:bg-secondary transition-colors"
+              onClick={() => setMessages(prev => [...prev, { role: "user", content: "현재 상태 확인해줘" }, { role: "agent", content: "현재 시스템 상태를 확인합니다. CPU 사용률: 45%, 메모리: 62%, 디스크: 78%. 전반적으로 안정적입니다." }])}
+              className="px-3 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 text-xs transition-colors"
             >
-              <X className="w-5 h-5" />
+              상태 확인
+            </button>
+            <button 
+              onClick={() => setMessages(prev => [...prev, { role: "user", content: "로그 분석해줘" }, { role: "agent", content: "최근 1시간 로그를 분석합니다. 경고 2건, 에러 0건 발견. 대부분 정상적인 요청 로그입니다." }])}
+              className="px-3 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 text-xs transition-colors"
+            >
+              로그 분석
+            </button>
+            <button 
+              onClick={() => setMessages(prev => [...prev, { role: "user", content: "일일 보고서 생성해줘" }, { role: "agent", content: "일일 보고서를 생성합니다. 총 처리 건수: 15건, 성공률: 92%, 주요 이슈: CPU 과부하 1건. 보고서가 준비되었습니다." }])}
+              className="px-3 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 text-xs transition-colors"
+            >
+              보고서 생성
             </button>
           </div>
-          
-          <div className="space-y-6">
-            <div className="p-4 rounded-xl bg-chat-user/50 border border-border/50">
-              <h4 className="font-medium text-primary mb-2">{selectedTool.name}</h4>
-            </div>
-            
-            <div>
-              <h4 className="text-sm font-medium text-muted-foreground mb-2">Tool 설명</h4>
-              <div className="p-4 rounded-xl bg-chat-user/50 border border-border/50">
-                <p className="text-sm">{selectedTool.description}</p>
-              </div>
-            </div>
-            
-            <div>
-              <h4 className="text-sm font-medium text-muted-foreground mb-2">사용 예제</h4>
-              <div className="p-4 rounded-xl bg-chat-user/50 border border-border/50">
-                <code className="text-sm font-mono text-primary">{selectedTool.example}</code>
-              </div>
-            </div>
+        </div>
+
+        <div className="p-4 border-t border-border">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+              placeholder="Agent에게 요청하세요..."
+              className="flex-1 px-3 py-2 rounded-lg bg-chat-user/50 border border-border/50 text-sm focus:outline-none focus:border-primary"
+            />
+            <button 
+              onClick={handleSendMessage}
+              className="px-3 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              <Send className="w-4 h-4" />
+            </button>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
