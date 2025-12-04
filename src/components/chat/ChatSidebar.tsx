@@ -31,11 +31,13 @@ interface ChatRoom {
 }
 
 const mockAgents: Agent[] = [
-  { id: "a1", name: "ITS Agent", status: "online" },
-  { id: "a2", name: "SOP Agent", status: "online" },
-  { id: "a3", name: "DB Agent", status: "busy" },
-  { id: "a4", name: "RAG Agent", status: "online" },
-  { id: "a5", name: "Monitor Agent", status: "offline" },
+  { id: "a1", name: "Biz.Support Agent", status: "online" },
+  { id: "a2", name: "ITS Agent", status: "online" },
+  { id: "a3", name: "SOP Agent", status: "online" },
+  { id: "a4", name: "DB Agent", status: "busy" },
+  { id: "a5", name: "모니터링 Agent", status: "online" },
+  { id: "a6", name: "변경관리 Agent", status: "online" },
+  { id: "a7", name: "보고서 Agent", status: "offline" },
 ];
 
 const mockChatRooms: ChatRoom[] = [
