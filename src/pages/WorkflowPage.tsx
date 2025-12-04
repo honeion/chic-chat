@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Workflow, Plus, Play, Save, Trash2, ChevronRight } from "lucide-react";
+import { Workflow, Plus, Play, Save, Trash2, ChevronRight, Wrench } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface WorkflowItem {
@@ -10,6 +10,21 @@ interface WorkflowItem {
   status: "active" | "draft" | "completed";
   lastRun?: string;
 }
+
+interface Tool {
+  id: string;
+  name: string;
+  description: string;
+  example: string;
+}
+
+const mockTools: Tool[] = [
+  { id: "1", name: "Health Check", description: "시스템 상태를 점검하고 이상 여부를 확인합니다.", example: "health_check(target='server1')" },
+  { id: "2", name: "DB Connect", description: "데이터베이스 연결을 설정합니다.", example: "db_connect(host='localhost', port=5432)" },
+  { id: "3", name: "Log Analyzer", description: "로그를 분석하여 패턴을 찾습니다.", example: "analyze_logs(path='/var/log')" },
+  { id: "4", name: "Alert Send", description: "알림을 전송합니다.", example: "send_alert(channel='slack', message='...')" },
+  { id: "5", name: "Report Gen", description: "리포트를 생성합니다.", example: "generate_report(type='daily')" },
+];
 
 const recommendedWorkflows: WorkflowItem[] = [
   { id: "r1", name: "서버 상태 점검", description: "서버 헬스체크 및 로그 분석", steps: ["Health Check", "Log Analyzer", "Alert Send"], status: "active" },
@@ -23,13 +38,14 @@ const recommendedWorkflows: WorkflowItem[] = [
   { id: "r9", name: "캐시 관리", description: "캐시 초기화 및 워밍", steps: ["Cache Clear", "Data Load", "Cache Warm", "Verify"], status: "active" },
 ];
 
-const myWorkflows: WorkflowItem[] = [
+const myAgentWorkflows: WorkflowItem[] = [
   { id: "m1", name: "일일 점검 루틴", description: "매일 아침 자동 실행", steps: ["Health Check", "DB Connect", "Report Gen"], status: "active", lastRun: "오늘 09:00" },
   { id: "m2", name: "장애 대응 플로우", description: "장애 감지 시 자동 대응", steps: ["Alert Detect", "Log Analyzer", "Notify", "Escalate"], status: "draft" },
   { id: "m3", name: "주간 리포트", description: "매주 월요일 리포트 생성", steps: ["Data Collect", "Analyze", "Report Gen", "Email Send"], status: "completed", lastRun: "지난주 월요일" },
 ];
 
 export function WorkflowPage() {
+  const [selectedTool, setSelectedTool] = useState<Tool | null>(null);
   const [selectedWorkflow, setSelectedWorkflow] = useState<WorkflowItem | null>(null);
   const [showAllRecommended, setShowAllRecommended] = useState(false);
 
@@ -122,11 +138,35 @@ export function WorkflowPage() {
           </div>
         </div>
 
-        {/* My Workflows */}
+        {/* Tool List */}
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <Wrench className="w-5 h-5" />
+            Tool List
+          </h2>
+          <div className="flex flex-wrap gap-3">
+            {mockTools.map((tool) => (
+              <button
+                key={tool.id}
+                onClick={() => setSelectedTool(selectedTool?.id === tool.id ? null : tool)}
+                className={cn(
+                  "px-4 py-2.5 rounded-lg text-sm font-medium transition-all",
+                  selectedTool?.id === tool.id
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-chat-user/50 hover:bg-chat-user border border-border/50"
+                )}
+              >
+                {tool.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* My Agent Workflows */}
         <div>
-          <h2 className="text-lg font-semibold mb-4">My 워크플로우</h2>
+          <h2 className="text-lg font-semibold mb-4">My Agent</h2>
           <div className="space-y-3">
-            {myWorkflows.map((workflow) => (
+            {myAgentWorkflows.map((workflow) => (
               <div
                 key={workflow.id}
                 onClick={() => setSelectedWorkflow(workflow)}
@@ -184,6 +224,41 @@ export function WorkflowPage() {
           </div>
         </div>
       </div>
+
+      {/* Tool Detail Panel */}
+      {selectedTool && !selectedWorkflow && (
+        <div className="w-80 border-l border-border bg-sidebar p-6 animate-slide-up">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold">Tool 이름</h3>
+            <button 
+              onClick={() => setSelectedTool(null)}
+              className="p-1 rounded-lg hover:bg-secondary transition-colors"
+            >
+              <ChevronRight className="w-5 h-5 rotate-180" />
+            </button>
+          </div>
+          
+          <div className="space-y-6">
+            <div className="p-4 rounded-xl bg-chat-user/50 border border-border/50">
+              <h4 className="font-medium text-primary mb-2">{selectedTool.name}</h4>
+            </div>
+            
+            <div>
+              <h4 className="text-sm font-medium text-muted-foreground mb-2">Tool 설명</h4>
+              <div className="p-4 rounded-xl bg-chat-user/50 border border-border/50">
+                <p className="text-sm">{selectedTool.description}</p>
+              </div>
+            </div>
+            
+            <div>
+              <h4 className="text-sm font-medium text-muted-foreground mb-2">사용 예제</h4>
+              <div className="p-4 rounded-xl bg-chat-user/50 border border-border/50">
+                <code className="text-sm font-mono text-primary">{selectedTool.example}</code>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Workflow Detail Panel */}
       {selectedWorkflow && (
