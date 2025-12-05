@@ -27,6 +27,7 @@ export function NewAgentModal({ isOpen, onClose, onSave, tools }: NewAgentModalP
   const [description, setDescription] = useState("");
   const [selectedTools, setSelectedTools] = useState<Tool[]>([]);
   const [instructions, setInstructions] = useState("");
+  const [hoveredTool, setHoveredTool] = useState<Tool | null>(null);
 
   if (!isOpen) return null;
 
@@ -95,25 +96,35 @@ export function NewAgentModal({ isOpen, onClose, onSave, tools }: NewAgentModalP
             </div>
           </div>
 
-          {/* Tool Selection */}
+          {/* Tool Selection with Description */}
           <div className="mb-6">
             <label className="block text-sm font-medium mb-3">{t("workflow.selectTools")}</label>
             <div className="flex flex-wrap gap-2 p-4 rounded-xl bg-chat-user/30 border border-border/50 max-h-48 overflow-y-auto">
               {tools.map((tool) => (
-                <button
-                  key={tool.id}
-                  onClick={() => handleToolClick(tool)}
-                  disabled={!!selectedTools.find((t) => t.id === tool.id)}
-                  className={cn(
-                    "px-3 py-1.5 rounded-lg text-sm transition-all",
-                    selectedTools.find((t) => t.id === tool.id)
-                      ? "bg-primary/20 text-primary/50 cursor-not-allowed"
-                      : "bg-secondary hover:bg-primary hover:text-primary-foreground"
+                <div key={tool.id} className="relative">
+                  <button
+                    onClick={() => handleToolClick(tool)}
+                    onMouseEnter={() => setHoveredTool(tool)}
+                    onMouseLeave={() => setHoveredTool(null)}
+                    disabled={!!selectedTools.find((t) => t.id === tool.id)}
+                    className={cn(
+                      "px-3 py-1.5 rounded-lg text-sm transition-all",
+                      selectedTools.find((t) => t.id === tool.id)
+                        ? "bg-primary/20 text-primary/50 cursor-not-allowed"
+                        : "bg-secondary hover:bg-primary hover:text-primary-foreground"
+                    )}
+                  >
+                    <Plus className="w-3 h-3 inline mr-1" />
+                    {tool.name}
+                  </button>
+                  {/* Tooltip */}
+                  {hoveredTool?.id === tool.id && !selectedTools.find((t) => t.id === tool.id) && (
+                    <div className="absolute bottom-full left-0 mb-2 w-64 p-3 rounded-lg bg-popover border border-border shadow-lg z-10 animate-fade-in">
+                      <p className="text-sm font-medium mb-1">{tool.name}</p>
+                      <p className="text-xs text-muted-foreground">{tool.description}</p>
+                    </div>
                   )}
-                >
-                  <Plus className="w-3 h-3 inline mr-1" />
-                  {tool.name}
-                </button>
+                </div>
               ))}
             </div>
           </div>
@@ -138,7 +149,10 @@ export function NewAgentModal({ isOpen, onClose, onSave, tools }: NewAgentModalP
                     <span className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-xs text-primary font-medium">
                       {idx + 1}
                     </span>
-                    <span className="flex-1 text-sm font-medium">{tool.name}</span>
+                    <div className="flex-1">
+                      <span className="text-sm font-medium">{tool.name}</span>
+                      <p className="text-xs text-muted-foreground">{tool.description}</p>
+                    </div>
                     {idx < selectedTools.length - 1 && (
                       <ChevronRight className="w-4 h-4 text-muted-foreground" />
                     )}

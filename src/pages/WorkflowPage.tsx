@@ -58,9 +58,6 @@ const agentMarketItems: WorkflowItem[] = [
   { id: "r4", name: "로그 모니터링 Agent", description: "실시간 로그 수집 및 분석", steps: ["Log Collect", "Parse", "Analyze", "Alert"], status: "active" },
   { id: "r5", name: "보안 스캔 Agent", description: "취약점 탐지 및 보고", steps: ["Scan Init", "Vulnerability Check", "Report Gen", "Notify"], status: "active" },
   { id: "r6", name: "성능 테스트 Agent", description: "부하 테스트 및 성능 측정", steps: ["Load Test", "Metrics Collect", "Analyze", "Report"], status: "active" },
-  { id: "r7", name: "데이터 마이그레이션 Agent", description: "데이터 이전 및 검증", steps: ["Export", "Transform", "Import", "Verify"], status: "active" },
-  { id: "r8", name: "알림 관리 Agent", description: "다중 채널 알림 구성", steps: ["Config Load", "Channel Setup", "Test Send", "Activate"], status: "active" },
-  { id: "r9", name: "캐시 관리 Agent", description: "캐시 초기화 및 워밍", steps: ["Cache Clear", "Data Load", "Cache Warm", "Verify"], status: "active" },
 ];
 
 const mockExecutionHistory: Record<string, ExecutionHistory[]> = {
@@ -137,6 +134,16 @@ export function WorkflowPage() {
     setMyAgents([...myAgents, newAgent]);
   };
 
+  const handleAddFromMarket = (marketAgent: WorkflowItem) => {
+    const newAgent: WorkflowItem = {
+      ...marketAgent,
+      id: `m${Date.now()}`,
+      status: "active",
+    };
+    setMyAgents([...myAgents, newAgent]);
+    setSelectedAgent(newAgent);
+  };
+
   return (
     <div className="flex-1 flex h-full overflow-hidden">
       {/* Main Content - 70% */}
@@ -148,7 +155,7 @@ export function WorkflowPage() {
               <Workflow className="w-6 h-6 text-accent" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">{t("workflow.title")}</h1>
+              <h1 className="text-2xl font-bold">{t("sidebar.myAgent")}</h1>
               <p className="text-sm text-muted-foreground">{t("workflow.subtitle")}</p>
             </div>
           </div>
@@ -160,7 +167,7 @@ export function WorkflowPage() {
           </button>
         </div>
 
-        {/* Agent Market */}
+        {/* Agent Market - Card Style */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -175,33 +182,28 @@ export function WorkflowPage() {
               <ChevronDown className={cn("w-4 h-4 transition-transform", expandedMarket && "rotate-180")} />
             </button>
           </div>
-          <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-3">
             {displayedMarketAgents.map((agent) => (
               <div
                 key={agent.id}
-                onClick={() => setSelectedAgent(agent)}
-                className={cn(
-                  "p-4 rounded-xl border cursor-pointer transition-all hover:border-primary/50",
-                  selectedAgent?.id === agent.id ? "bg-primary/10 border-primary/50" : "bg-chat-user/30 border-border/50"
-                )}
+                onClick={() => handleAddFromMarket(agent)}
+                className="p-4 rounded-xl bg-accent/10 border border-accent/30 cursor-pointer transition-all hover:border-accent hover:bg-accent/20"
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center">
-                      <Workflow className="w-5 h-5 text-accent" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium">{agent.name}</h3>
-                      <p className="text-sm text-muted-foreground">{agent.description}</p>
-                    </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center flex-shrink-0">
+                    <Workflow className="w-5 h-5 text-accent" />
                   </div>
-                  <div className="flex items-center gap-2">
-                    {agent.steps.slice(0, 3).map((step, idx) => (
-                      <span key={idx} className="px-2 py-1 rounded bg-secondary/50 text-xs">{step}</span>
-                    ))}
-                    {agent.steps.length > 3 && (
-                      <span className="text-xs text-muted-foreground">+{agent.steps.length - 3}</span>
-                    )}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-medium text-sm mb-1">{agent.name}</h3>
+                    <p className="text-xs text-muted-foreground mb-2">{agent.description}</p>
+                    <div className="flex flex-wrap gap-1">
+                      {agent.steps.slice(0, 3).map((step, idx) => (
+                        <span key={idx} className="px-2 py-0.5 rounded bg-secondary/50 text-xs">{step}</span>
+                      ))}
+                      {agent.steps.length > 3 && (
+                        <span className="text-xs text-muted-foreground">+{agent.steps.length - 3}</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

@@ -8,9 +8,10 @@ interface ChatInputProps {
   onSend: (message: string) => void;
   disabled?: boolean;
   showToolSelector?: boolean;
+  showQuickActions?: boolean;
 }
 
-export function ChatInput({ onSend, disabled, showToolSelector = false }: ChatInputProps) {
+export function ChatInput({ onSend, disabled, showToolSelector = false, showQuickActions = false }: ChatInputProps) {
   const { t } = useTranslation();
   const [message, setMessage] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -57,17 +58,19 @@ export function ChatInput({ onSend, disabled, showToolSelector = false }: ChatIn
         )}
 
         {/* Quick Actions */}
-        <div className="flex items-center gap-2 mb-3">
-          {quickActions.map((action) => (
-            <button
-              key={action}
-              onClick={() => setMessage(action)}
-              className="px-3 py-1.5 rounded-full text-xs font-medium bg-secondary text-secondary-foreground hover:bg-primary/20 hover:text-primary transition-colors"
-            >
-              {action}
-            </button>
-          ))}
-        </div>
+        {showQuickActions && (
+          <div className="flex items-center gap-2 mb-3">
+            {quickActions.map((action) => (
+              <button
+                key={action}
+                onClick={() => setMessage(action)}
+                className="px-3 py-1.5 rounded-full text-xs font-medium bg-secondary text-secondary-foreground hover:bg-primary/20 hover:text-primary transition-colors"
+              >
+                {action}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Input Area */}
         <div className="relative flex items-end gap-2 p-2 bg-secondary rounded-2xl border border-border focus-within:border-primary/50 focus-within:shadow-glow transition-all">
