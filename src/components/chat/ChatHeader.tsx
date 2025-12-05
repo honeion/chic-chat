@@ -1,6 +1,9 @@
+import { useTranslation } from "react-i18next";
 import { Bot, Phone, Video, MoreVertical, Workflow } from "lucide-react";
 
 export function ChatHeader() {
+  const { t } = useTranslation();
+
   return (
     <header className="flex items-center justify-between px-6 py-4 border-b border-border bg-card/50 backdrop-blur-sm">
       <div className="flex items-center gap-3">
@@ -11,10 +14,10 @@ export function ChatHeader() {
           <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-status-online border-2 border-card" />
         </div>
         <div>
-          <h2 className="font-semibold text-foreground">AI 어시스턴트</h2>
+          <h2 className="font-semibold text-foreground">{t("chat.aiAssistant")}</h2>
           <p className="text-xs text-muted-foreground flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-status-online" />
-            온라인 • 평균 응답 시간 &lt;1초
+            {t("common.online")} • {t("chat.responseTime")}
           </p>
         </div>
       </div>

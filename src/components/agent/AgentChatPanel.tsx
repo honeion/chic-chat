@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { MessageSquare, Send, CheckCircle, Clock, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -30,6 +31,7 @@ export function AgentChatPanel({
   onQuickAction,
   quickActions 
 }: AgentChatPanelProps) {
+  const { t } = useTranslation();
   const [chatInput, setChatInput] = useState("");
 
   const handleSend = () => {
@@ -51,7 +53,7 @@ export function AgentChatPanel({
       <div className="p-4 border-b border-border">
         <h3 className="font-semibold flex items-center gap-2">
           <MessageSquare className="w-5 h-5" />
-          {agentName} 대화
+          {agentName} {t("agentChat.conversation")}
         </h3>
       </div>
       
@@ -70,7 +72,6 @@ export function AgentChatPanel({
               <p className="text-sm">{msg.content}</p>
             </div>
             
-            {/* 처리 과정 표시 */}
             {msg.processingSteps && msg.processingSteps.length > 0 && (
               <div className="mt-2 space-y-1 animate-fade-in">
                 {msg.processingSteps.map((step, stepIdx) => (
@@ -124,7 +125,7 @@ export function AgentChatPanel({
             value={chatInput}
             onChange={e => setChatInput(e.target.value)}
             onKeyDown={e => e.key === "Enter" && handleSend()}
-            placeholder="Agent에게 요청하세요..."
+            placeholder={t("agentChat.placeholder")}
             className="flex-1 px-3 py-2 rounded-lg bg-chat-user/50 border border-border/50 text-sm focus:outline-none focus:border-primary"
           />
           <button 
