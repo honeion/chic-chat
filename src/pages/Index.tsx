@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { ChatSidebar } from "@/components/chat/ChatSidebar";
 import { ChatArea } from "@/components/chat/ChatArea";
 import { AgentDetail } from "./AgentDetail";
@@ -8,22 +9,23 @@ import Dashboard from "./Dashboard";
 
 type ViewType = "agent" | "workflow" | "assistant";
 
-const agentNames: Record<string, string> = {
-  "a1": "Biz.Support Agent",
-  "a2": "ITS Agent",
-  "a3": "SOP Agent",
-  "a4": "DB Agent",
-  "a5": "모니터링 Agent",
-  "a6": "변경관리 Agent",
-  "a7": "보고서 Agent",
-};
-
 const Index = () => {
   const [selectedChat, setSelectedChat] = useState<string | null>("1");
   const [currentView, setCurrentView] = useState<ViewType>("assistant");
   const [selectedAgent, setSelectedAgent] = useState<string | null>("a1");
   const location = useLocation();
   const isDashboard = location.pathname === "/dashboard";
+  const { t } = useTranslation();
+
+  const agentNames: Record<string, string> = {
+    "a1": t("agent.bizSupport"),
+    "a2": t("agent.its"),
+    "a3": t("agent.sop"),
+    "a4": t("agent.db"),
+    "a5": t("agent.monitoring"),
+    "a6": t("agent.changeManagement"),
+    "a7": t("agent.report"),
+  };
 
   const renderContent = () => {
     if (isDashboard) {
@@ -39,7 +41,7 @@ const Index = () => {
           />
         ) : (
           <div className="flex-1 flex items-center justify-center text-muted-foreground">
-            Agent를 선택하세요
+            {t("common.selectAgent")}
           </div>
         );
       case "workflow":
