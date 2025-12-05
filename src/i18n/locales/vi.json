@@ -199,6 +199,7 @@
     "example": "Ví dụ sử dụng",
     "agentMarket": "Chợ Agent",
     "executionHistory": "Lịch sử thực thi",
+    "recommendedAgent": "Agent đề xuất",
     "createNewAgent": "Tạo Agent mới",
     "agentName": "Tên Agent",
     "agentNamePlaceholder": "Nhập tên agent",

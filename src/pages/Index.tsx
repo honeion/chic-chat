@@ -9,10 +9,36 @@ import Dashboard from "./Dashboard";
 
 type ViewType = "agent" | "workflow" | "assistant";
 
+export interface WorkflowItem {
+  id: string;
+  name: string;
+  description: string;
+  steps: string[];
+  status: "active" | "draft" | "completed";
+  lastRun?: string;
+}
+
+export const agentMarketItems: WorkflowItem[] = [
+  { id: "r1", name: "서버 상태 점검 Agent", description: "서버 헬스체크 및 로그 분석", steps: ["Health Check", "Log Analyzer", "Alert Send"], status: "active" },
+  { id: "r2", name: "DB 백업 Agent", description: "데이터베이스 백업 및 검증", steps: ["DB Connect", "Backup Create", "Verify", "Notify"], status: "active" },
+  { id: "r3", name: "배포 자동화 Agent", description: "자동화된 배포 워크플로우", steps: ["Build", "Test", "Deploy", "Health Check"], status: "active" },
+  { id: "r4", name: "로그 모니터링 Agent", description: "실시간 로그 수집 및 분석", steps: ["Log Collect", "Parse", "Analyze", "Alert"], status: "active" },
+  { id: "r5", name: "보안 스캔 Agent", description: "취약점 탐지 및 보고", steps: ["Scan Init", "Vulnerability Check", "Report Gen", "Notify"], status: "active" },
+  { id: "r6", name: "성능 테스트 Agent", description: "부하 테스트 및 성능 측정", steps: ["Load Test", "Metrics Collect", "Analyze", "Report"], status: "active" },
+];
+
+export const initialMyAgents: WorkflowItem[] = [
+  { id: "m1", name: "일일 점검 루틴", description: "매일 아침 자동 실행", steps: ["Health Check", "DB Connect", "Report Gen"], status: "active", lastRun: "오늘 09:00" },
+  { id: "m2", name: "장애 대응 플로우", description: "장애 감지 시 자동 대응", steps: ["Alert Detect", "Log Analyzer", "Notify", "Escalate"], status: "draft" },
+  { id: "m3", name: "주간 리포트", description: "매주 월요일 리포트 생성", steps: ["Data Collect", "Analyze", "Report Gen", "Email Send"], status: "completed", lastRun: "지난주 월요일" },
+];
+
 const Index = () => {
   const [selectedChat, setSelectedChat] = useState<string | null>("1");
   const [currentView, setCurrentView] = useState<ViewType>("assistant");
   const [selectedAgent, setSelectedAgent] = useState<string | null>("a1");
+  const [myAgents, setMyAgents] = useState<WorkflowItem[]>(initialMyAgents);
+  const [selectedWorkflowAgent, setSelectedWorkflowAgent] = useState<WorkflowItem | null>(null);
   const location = useLocation();
   const isDashboard = location.pathname === "/dashboard";
   const { t } = useTranslation();
@@ -25,6 +51,27 @@ const Index = () => {
     "a5": t("agent.monitoring"),
     "a6": t("agent.changeManagement"),
     "a7": t("agent.report"),
+  };
+
+  const handleAddFromMarket = (marketAgent: WorkflowItem) => {
+    const newAgent: WorkflowItem = {
+      ...marketAgent,
+      id: `m${Date.now()}`,
+      status: "active",
+    };
+    setMyAgents([...myAgents, newAgent]);
+    setSelectedWorkflowAgent(newAgent);
+  };
+
+  const handleAddNewAgent = (agent: { name: string; description: string; steps: string[]; instructions: string }) => {
+    const newAgent: WorkflowItem = {
+      id: `m${Date.now()}`,
+      name: agent.name,
+      description: agent.description,
+      steps: agent.steps,
+      status: "draft",
+    };
+    setMyAgents([...myAgents, newAgent]);
   };
 
   const renderContent = () => {
@@ -45,7 +92,16 @@ const Index = () => {
           </div>
         );
       case "workflow":
-        return <WorkflowPage />;
+        return (
+          <WorkflowPage 
+            myAgents={myAgents}
+            setMyAgents={setMyAgents}
+            selectedAgent={selectedWorkflowAgent}
+            setSelectedAgent={setSelectedWorkflowAgent}
+            onAddFromMarket={handleAddFromMarket}
+            onAddNewAgent={handleAddNewAgent}
+          />
+        );
       case "assistant":
       default:
         return <ChatArea selectedChatId={selectedChat} />;
@@ -61,6 +117,10 @@ const Index = () => {
         onViewChange={setCurrentView}
         selectedAgent={selectedAgent}
         onSelectAgent={setSelectedAgent}
+        myAgents={myAgents}
+        selectedWorkflowAgent={selectedWorkflowAgent}
+        onSelectWorkflowAgent={setSelectedWorkflowAgent}
+        onAddFromMarket={handleAddFromMarket}
       />
       {renderContent()}
     </div>
