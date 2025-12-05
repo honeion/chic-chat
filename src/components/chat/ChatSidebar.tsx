@@ -8,17 +8,28 @@ import {
   Search,
   Bot,
   Workflow,
-  LayoutDashboard
+  LayoutDashboard,
+  ChevronDown,
+  ChevronRight
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 type ViewType = "agent" | "workflow" | "assistant";
 
+interface AgentChatHistory {
+  id: string;
+  title: string;
+  lastMessage: string;
+  timestamp: string;
+  unread: number;
+}
+
 interface Agent {
   id: string;
   name: string;
   status: "online" | "offline" | "busy";
+  chatHistory: AgentChatHistory[];
 }
 
 interface ChatRoom {
@@ -32,21 +43,68 @@ interface ChatRoom {
 }
 
 const mockAgents: Agent[] = [
-  { id: "a1", name: "Biz.Support Agent", status: "online" },
-  { id: "a2", name: "ITS Agent", status: "online" },
-  { id: "a3", name: "SOP Agent", status: "online" },
-  { id: "a4", name: "DB Agent", status: "busy" },
-  { id: "a5", name: "모니터링 Agent", status: "online" },
-  { id: "a6", name: "변경관리 Agent", status: "online" },
-  { id: "a7", name: "보고서 Agent", status: "offline" },
+  { 
+    id: "a1", 
+    name: "Biz.Support Agent", 
+    status: "online",
+    chatHistory: [
+      { id: "a1-c1", title: "업무 지원 요청", lastMessage: "작업이 완료되었습니다.", timestamp: "5분 전", unread: 1 },
+      { id: "a1-c2", title: "보고서 작성 도움", lastMessage: "보고서 초안을 확인해주세요.", timestamp: "1시간 전", unread: 0 },
+    ]
+  },
+  { 
+    id: "a2", 
+    name: "ITS Agent", 
+    status: "online",
+    chatHistory: [
+      { id: "a2-c1", title: "티켓 #2024-001", lastMessage: "티켓 처리가 완료되었습니다.", timestamp: "10분 전", unread: 2 },
+      { id: "a2-c2", title: "시스템 점검 요청", lastMessage: "점검 일정을 확인해주세요.", timestamp: "3시간 전", unread: 0 },
+    ]
+  },
+  { 
+    id: "a3", 
+    name: "SOP Agent", 
+    status: "online",
+    chatHistory: [
+      { id: "a3-c1", title: "SOP 문서 조회", lastMessage: "관련 SOP를 찾았습니다.", timestamp: "30분 전", unread: 0 },
+    ]
+  },
+  { 
+    id: "a4", 
+    name: "DB Agent", 
+    status: "busy",
+    chatHistory: [
+      { id: "a4-c1", title: "데이터 조회 요청", lastMessage: "쿼리 실행 중입니다.", timestamp: "방금", unread: 1 },
+    ]
+  },
+  { 
+    id: "a5", 
+    name: "모니터링 Agent", 
+    status: "online",
+    chatHistory: [
+      { id: "a5-c1", title: "시스템 상태 확인", lastMessage: "시스템 상태 정상입니다.", timestamp: "1시간 전", unread: 0 },
+      { id: "a5-c2", title: "알림 설정", lastMessage: "알림이 설정되었습니다.", timestamp: "어제", unread: 0 },
+    ]
+  },
+  { 
+    id: "a6", 
+    name: "변경관리 Agent", 
+    status: "online",
+    chatHistory: []
+  },
+  { 
+    id: "a7", 
+    name: "보고서 Agent", 
+    status: "offline",
+    chatHistory: [
+      { id: "a7-c1", title: "월간 보고서", lastMessage: "보고서 생성 완료", timestamp: "2시간 전", unread: 0 },
+    ]
+  },
 ];
 
 const mockChatRooms: ChatRoom[] = [
   { id: "1", name: "AI 어시스턴트", lastMessage: "안녕하세요! 무엇을 도와드릴까요?", timestamp: "방금", unread: 2, type: "agent", status: "online" },
-  { id: "2", name: "Biz.Support Agent", lastMessage: "작업이 완료되었습니다.", timestamp: "5분 전", unread: 0, type: "agent", status: "online" },
-  { id: "3", name: "ITS Agent", lastMessage: "티켓 처리가 완료되었습니다.", timestamp: "10분 전", unread: 1, type: "agent", status: "online" },
-  { id: "4", name: "모니터링 Agent", lastMessage: "시스템 상태 정상입니다.", timestamp: "1시간 전", unread: 0, type: "agent", status: "online" },
-  { id: "5", name: "데이터 분석 Agent", lastMessage: "보고서 생성 완료", timestamp: "2시간 전", unread: 0, type: "workflow", status: "online" },
+  { id: "2", name: "데이터 분석 Agent", lastMessage: "보고서 생성 완료", timestamp: "2시간 전", unread: 0, type: "workflow", status: "online" },
 ];
 
 interface ChatSidebarProps {
@@ -166,36 +224,81 @@ export function ChatSidebar({
             <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Agent List
             </div>
-            {filteredAgents.map((agent, index) => (
-              <button
-                key={agent.id}
-                onClick={() => {
-                  onSelectAgent(agent.id);
-                  if (location.pathname !== "/") {
-                    navigate("/");
-                  }
-                }}
-                className={cn(
-                  "w-full p-3 rounded-xl text-left transition-all duration-200 animate-fade-in flex items-center gap-3",
-                  "hover:bg-secondary/80",
-                  selectedAgent === agent.id && !isDashboard
-                    ? "bg-primary/20 border border-primary/30" 
-                    : "bg-transparent"
-                )}
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                <div className="relative">
-                  <div className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center">
-                    <Bot className="w-4 h-4 text-primary" />
-                  </div>
-                  <span className={cn(
-                    "absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-sidebar",
-                    getStatusColor(agent.status)
-                  )} />
+            {filteredAgents.map((agent, index) => {
+              const isExpanded = selectedAgent === agent.id;
+              const totalUnread = agent.chatHistory.reduce((sum, chat) => sum + chat.unread, 0);
+              
+              return (
+                <div key={agent.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
+                  <button
+                    onClick={() => {
+                      onSelectAgent(isExpanded ? "" : agent.id);
+                      if (location.pathname !== "/") {
+                        navigate("/");
+                      }
+                    }}
+                    className={cn(
+                      "w-full p-3 rounded-xl text-left transition-all duration-200 flex items-center gap-3",
+                      "hover:bg-secondary/80",
+                      isExpanded && !isDashboard
+                        ? "bg-primary/20 border border-primary/30" 
+                        : "bg-transparent"
+                    )}
+                  >
+                    <div className="relative">
+                      <div className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center">
+                        <Bot className="w-4 h-4 text-primary" />
+                      </div>
+                      <span className={cn(
+                        "absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-sidebar",
+                        getStatusColor(agent.status)
+                      )} />
+                    </div>
+                    <span className="font-medium text-sm flex-1">{agent.name}</span>
+                    {totalUnread > 0 && (
+                      <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold flex items-center justify-center">
+                        {totalUnread}
+                      </span>
+                    )}
+                    {agent.chatHistory.length > 0 && (
+                      isExpanded ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                    )}
+                  </button>
+                  
+                  {/* Chat History Sub-list */}
+                  {isExpanded && agent.chatHistory.length > 0 && (
+                    <div className="ml-6 mt-1 space-y-1 border-l-2 border-border pl-3">
+                      {agent.chatHistory.map((chat) => (
+                        <button
+                          key={chat.id}
+                          onClick={() => onSelectChat(chat.id)}
+                          className={cn(
+                            "w-full p-2 rounded-lg text-left transition-all duration-200",
+                            "hover:bg-secondary/80",
+                            selectedChat === chat.id
+                              ? "bg-secondary border border-primary/20"
+                              : "bg-transparent"
+                          )}
+                        >
+                          <div className="flex items-center justify-between mb-0.5">
+                            <span className="text-sm font-medium truncate">{chat.title}</span>
+                            <span className="text-xs text-muted-foreground">{chat.timestamp}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <p className="text-xs text-muted-foreground truncate pr-2">{chat.lastMessage}</p>
+                            {chat.unread > 0 && (
+                              <span className="min-w-[18px] h-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold flex items-center justify-center">
+                                {chat.unread}
+                              </span>
+                            )}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                <span className="font-medium text-sm">{agent.name}</span>
-              </button>
-            ))}
+              );
+            })}
           </>
         )}
 
