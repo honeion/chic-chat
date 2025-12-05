@@ -45,16 +45,8 @@ interface ChatRoom {
   status?: "online" | "offline" | "busy";
 }
 
+// ITS Agent is pinned at the top
 const mockAgents: Agent[] = [
-  { 
-    id: "a1", 
-    name: "Biz.Support Agent", 
-    status: "online",
-    chatHistory: [
-      { id: "a1-c1", title: "업무 지원 요청", lastMessage: "작업이 완료되었습니다.", timestamp: "5분 전", unread: 1 },
-      { id: "a1-c2", title: "보고서 작성 도움", lastMessage: "보고서 초안을 확인해주세요.", timestamp: "1시간 전", unread: 0 },
-    ]
-  },
   { 
     id: "a2", 
     name: "ITS Agent", 
@@ -62,6 +54,15 @@ const mockAgents: Agent[] = [
     chatHistory: [
       { id: "a2-c1", title: "티켓 #2024-001", lastMessage: "티켓 처리가 완료되었습니다.", timestamp: "10분 전", unread: 2 },
       { id: "a2-c2", title: "시스템 점검 요청", lastMessage: "점검 일정을 확인해주세요.", timestamp: "3시간 전", unread: 0 },
+    ]
+  },
+  { 
+    id: "a1", 
+    name: "Biz.Support Agent", 
+    status: "online",
+    chatHistory: [
+      { id: "a1-c1", title: "업무 지원 요청", lastMessage: "작업이 완료되었습니다.", timestamp: "5분 전", unread: 1 },
+      { id: "a1-c2", title: "보고서 작성 도움", lastMessage: "보고서 초안을 확인해주세요.", timestamp: "1시간 전", unread: 0 },
     ]
   },
   { 
@@ -199,6 +200,22 @@ export function ChatSidebar({
         </div>
       </div>
 
+      {/* Dashboard Navigation - Above Tabs */}
+      <div className="p-2 border-b border-border">
+        <button
+          onClick={() => navigate("/dashboard")}
+          className={cn(
+            "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all",
+            isDashboard 
+              ? "bg-primary/20 text-primary" 
+              : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+          )}
+        >
+          <LayoutDashboard className="w-5 h-5" />
+          <span className="font-medium">{t("sidebar.dashboard")}</span>
+        </button>
+      </div>
+
       {/* Main View Tabs */}
       <div className="flex border-b border-border">
         {[
@@ -216,7 +233,7 @@ export function ChatSidebar({
             }}
             className={cn(
               "flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-medium transition-colors border-b-2",
-              currentView === view
+              currentView === view && !isDashboard
                 ? "border-primary text-primary"
                 : "border-transparent text-muted-foreground hover:text-foreground"
             )}
@@ -225,22 +242,6 @@ export function ChatSidebar({
             {label}
           </button>
         ))}
-      </div>
-
-      {/* Dashboard Navigation */}
-      <div className="p-2 border-b border-border">
-        <button
-          onClick={() => navigate("/dashboard")}
-          className={cn(
-            "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all",
-            isDashboard 
-              ? "bg-primary/20 text-primary" 
-              : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-          )}
-        >
-          <LayoutDashboard className="w-5 h-5" />
-          <span className="font-medium">{t("sidebar.dashboard")}</span>
-        </button>
       </div>
 
       {/* Content based on view */}
