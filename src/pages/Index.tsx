@@ -9,6 +9,9 @@ import Dashboard from "./Dashboard";
 
 type ViewType = "agent" | "workflow" | "assistant";
 
+export const OPERATING_SYSTEMS = ["e-총무", "BiOn", "SATIS", "ITS"] as const;
+export type OperatingSystem = typeof OPERATING_SYSTEMS[number];
+
 export interface WorkflowItem {
   id: string;
   name: string;
@@ -16,6 +19,7 @@ export interface WorkflowItem {
   steps: string[];
   status: "active" | "draft" | "completed";
   lastRun?: string;
+  system?: OperatingSystem;
 }
 
 export const agentMarketItems: WorkflowItem[] = [
@@ -28,9 +32,10 @@ export const agentMarketItems: WorkflowItem[] = [
 ];
 
 export const initialMyAgents: WorkflowItem[] = [
-  { id: "m1", name: "일일 점검 루틴", description: "매일 아침 자동 실행", steps: ["Health Check", "DB Connect", "Report Gen"], status: "active", lastRun: "오늘 09:00" },
-  { id: "m2", name: "장애 대응 플로우", description: "장애 감지 시 자동 대응", steps: ["Alert Detect", "Log Analyzer", "Notify", "Escalate"], status: "draft" },
-  { id: "m3", name: "주간 리포트", description: "매주 월요일 리포트 생성", steps: ["Data Collect", "Analyze", "Report Gen", "Email Send"], status: "completed", lastRun: "지난주 월요일" },
+  { id: "m1", name: "일일 점검 루틴", description: "매일 아침 자동 실행", steps: ["Health Check", "DB Connect", "Report Gen"], status: "active", lastRun: "오늘 09:00", system: "e-총무" },
+  { id: "m2", name: "장애 대응 플로우", description: "장애 감지 시 자동 대응", steps: ["Alert Detect", "Log Analyzer", "Notify", "Escalate"], status: "draft", system: "BiOn" },
+  { id: "m3", name: "주간 리포트", description: "매주 월요일 리포트 생성", steps: ["Data Collect", "Analyze", "Report Gen", "Email Send"], status: "completed", lastRun: "지난주 월요일", system: "SATIS" },
+  { id: "m4", name: "ITS 티켓 자동화", description: "티켓 자동 분류 및 할당", steps: ["Ticket Parse", "Classify", "Assign", "Notify"], status: "active", system: "ITS" },
 ];
 
 const Index = () => {
