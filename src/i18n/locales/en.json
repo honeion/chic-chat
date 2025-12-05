@@ -209,7 +209,9 @@
     "instructions": "Instructions",
     "instructionsPlaceholder": "Enter agent execution instructions",
     "agentChat": "Agent Chat",
-    "chatGreeting": "Hello! Please enter your questions or requests about the agent."
+    "chatGreeting": "Hello! Please enter your questions or requests about the agent.",
+    "addToMyAgent": "Add to My Agent",
+    "addToMyAgentDesc": "Add this agent to My Agent to start using and customizing it."
   },
   "assistant": {
     "toolSelect": "Tool Select",

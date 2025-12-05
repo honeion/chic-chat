@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Workflow, Plus, Play, Save, Trash2, ChevronRight, ChevronDown, Store, Clock, History } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NewAgentModal } from "@/components/workflow/NewAgentModal";
+import { AgentDetailModal } from "@/components/workflow/AgentDetailModal";
 import { WorkflowChatPanel } from "@/components/workflow/WorkflowChatPanel";
 import { WorkflowItem, agentMarketItems } from "@/pages/Index";
 
@@ -79,6 +80,7 @@ export function WorkflowPage({
   const [expandedMarket, setExpandedMarket] = useState(false);
   const [expandedMyAgent, setExpandedMyAgent] = useState<string | null>(null);
   const [isNewAgentModalOpen, setIsNewAgentModalOpen] = useState(false);
+  const [selectedMarketAgent, setSelectedMarketAgent] = useState<WorkflowItem | null>(null);
 
   const displayedMarketAgents = expandedMarket ? agentMarketItems : agentMarketItems.slice(0, 4);
 
@@ -112,6 +114,15 @@ export function WorkflowPage({
       case "failed": return t("common.failed");
       case "running": return t("common.running");
     }
+  };
+
+  const handleMarketAgentClick = (agent: WorkflowItem) => {
+    setSelectedMarketAgent(agent);
+  };
+
+  const handleAddFromMarketModal = (agent: WorkflowItem) => {
+    onAddFromMarket(agent);
+    setSelectedMarketAgent(null);
   };
 
   return (
@@ -156,7 +167,7 @@ export function WorkflowPage({
             {displayedMarketAgents.map((agent) => (
               <div
                 key={agent.id}
-                onClick={() => onAddFromMarket(agent)}
+                onClick={() => handleMarketAgentClick(agent)}
                 className="p-4 rounded-xl bg-accent/10 border border-accent/30 cursor-pointer transition-all hover:border-accent hover:bg-accent/20"
               >
                 <div className="flex items-start gap-3">
@@ -298,6 +309,14 @@ export function WorkflowPage({
         onClose={() => setIsNewAgentModalOpen(false)}
         onSave={onAddNewAgent}
         tools={mockTools}
+      />
+
+      {/* Agent Detail Modal (for Market Agents) */}
+      <AgentDetailModal
+        isOpen={!!selectedMarketAgent}
+        onClose={() => setSelectedMarketAgent(null)}
+        agent={selectedMarketAgent}
+        onAddToMyAgent={handleAddFromMarketModal}
       />
     </div>
   );

@@ -209,7 +209,9 @@
     "instructions": "지침",
     "instructionsPlaceholder": "에이전트 실행 지침을 입력하세요",
     "agentChat": "Agent 대화",
-    "chatGreeting": "안녕하세요! 에이전트 관련 질문이나 요청을 입력해주세요."
+    "chatGreeting": "안녕하세요! 에이전트 관련 질문이나 요청을 입력해주세요.",
+    "addToMyAgent": "My Agent에 추가",
+    "addToMyAgentDesc": "이 에이전트를 My Agent에 추가하면 바로 사용하고 커스터마이징할 수 있습니다."
   },
   "assistant": {
     "toolSelect": "도구선택",
