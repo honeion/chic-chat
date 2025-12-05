@@ -10,11 +10,13 @@ import {
   Workflow,
   LayoutDashboard,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Store
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { WorkflowItem, agentMarketItems } from "@/pages/Index";
 
 type ViewType = "agent" | "workflow" | "assistant";
 
@@ -115,6 +117,10 @@ interface ChatSidebarProps {
   onViewChange: (view: ViewType) => void;
   selectedAgent: string | null;
   onSelectAgent: (id: string) => void;
+  myAgents: WorkflowItem[];
+  selectedWorkflowAgent: WorkflowItem | null;
+  onSelectWorkflowAgent: (agent: WorkflowItem | null) => void;
+  onAddFromMarket: (agent: WorkflowItem) => void;
 }
 
 export function ChatSidebar({ 
@@ -123,9 +129,14 @@ export function ChatSidebar({
   currentView, 
   onViewChange,
   selectedAgent,
-  onSelectAgent 
+  onSelectAgent,
+  myAgents,
+  selectedWorkflowAgent,
+  onSelectWorkflowAgent,
+  onAddFromMarket
 }: ChatSidebarProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [expandedMyAgent, setExpandedMyAgent] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
@@ -138,11 +149,27 @@ export function ChatSidebar({
     agent.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const filteredMyAgents = myAgents.filter(agent =>
+    agent.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredMarketAgents = agentMarketItems.filter(agent =>
+    agent.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const getStatusColor = (status?: "online" | "offline" | "busy") => {
     switch (status) {
       case "online": return "bg-status-online";
       case "busy": return "bg-status-busy";
       default: return "bg-status-offline";
+    }
+  };
+
+  const getWorkflowStatusColor = (status: WorkflowItem["status"]) => {
+    switch (status) {
+      case "active": return "bg-status-online";
+      case "draft": return "bg-status-busy";
+      case "completed": return "bg-muted-foreground";
     }
   };
 
@@ -305,10 +332,79 @@ export function ChatSidebar({
         )}
 
         {currentView === "workflow" && (
-          <div className="p-4 text-center text-muted-foreground">
-            <Workflow className="w-8 h-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">{t("sidebar.workflowDesc")}</p>
-          </div>
+          <>
+            {/* My Agent Section */}
+            <div className="px-2 py-1.5 text-xs font-semibold text-primary uppercase tracking-wider">
+              {t("sidebar.myAgent")}
+            </div>
+            {filteredMyAgents.map((agent, index) => {
+              const isSelected = selectedWorkflowAgent?.id === agent.id;
+              const isExpanded = expandedMyAgent === agent.id;
+              
+              return (
+                <div key={agent.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
+                  <button
+                    onClick={() => {
+                      onSelectWorkflowAgent(agent);
+                      if (location.pathname !== "/") {
+                        navigate("/");
+                      }
+                    }}
+                    className={cn(
+                      "w-full p-3 rounded-xl text-left transition-all duration-200 flex items-center gap-3",
+                      "hover:bg-secondary/80",
+                      isSelected && !isDashboard
+                        ? "bg-primary/20 border border-primary/30" 
+                        : "bg-transparent"
+                    )}
+                  >
+                    <div className="relative">
+                      <div className="w-9 h-9 rounded-lg bg-accent/20 flex items-center justify-center">
+                        <Workflow className="w-4 h-4 text-accent" />
+                      </div>
+                      <span className={cn(
+                        "absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-sidebar",
+                        getWorkflowStatusColor(agent.status)
+                      )} />
+                    </div>
+                    <span className="font-medium text-sm flex-1 truncate">{agent.name}</span>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                </div>
+              );
+            })}
+
+            {/* Recommended Agent Section */}
+            <div className="px-2 py-1.5 mt-4 text-xs font-semibold text-primary uppercase tracking-wider flex items-center gap-2">
+              <Store className="w-3 h-3" />
+              {t("workflow.recommendedAgent")}
+            </div>
+            {filteredMarketAgents.map((agent, index) => (
+              <div key={agent.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
+                <button
+                  onClick={() => {
+                    onAddFromMarket(agent);
+                    if (location.pathname !== "/") {
+                      navigate("/");
+                    }
+                  }}
+                  className={cn(
+                    "w-full p-3 rounded-xl text-left transition-all duration-200 flex items-center gap-3",
+                    "hover:bg-secondary/80 bg-transparent"
+                  )}
+                >
+                  <div className="relative">
+                    <div className="w-9 h-9 rounded-lg bg-accent/20 flex items-center justify-center">
+                      <Workflow className="w-4 h-4 text-accent" />
+                    </div>
+                    <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-sidebar bg-status-online" />
+                  </div>
+                  <span className="font-medium text-sm flex-1 truncate">{agent.name}</span>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                </button>
+              </div>
+            ))}
+          </>
         )}
 
         {currentView === "assistant" && (

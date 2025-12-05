@@ -4,15 +4,7 @@ import { Workflow, Plus, Play, Save, Trash2, ChevronRight, ChevronDown, Store, C
 import { cn } from "@/lib/utils";
 import { NewAgentModal } from "@/components/workflow/NewAgentModal";
 import { WorkflowChatPanel } from "@/components/workflow/WorkflowChatPanel";
-
-interface WorkflowItem {
-  id: string;
-  name: string;
-  description: string;
-  steps: string[];
-  status: "active" | "draft" | "completed";
-  lastRun?: string;
-}
+import { WorkflowItem, agentMarketItems } from "@/pages/Index";
 
 interface ExecutionHistory {
   id: string;
@@ -51,15 +43,6 @@ const mockTools: Tool[] = [
   { id: "20", name: "Queue Manager", description: "메시지 큐를 관리합니다.", example: "manage_queue(action='send', queue='tasks', message='...')" },
 ];
 
-const agentMarketItems: WorkflowItem[] = [
-  { id: "r1", name: "서버 상태 점검 Agent", description: "서버 헬스체크 및 로그 분석", steps: ["Health Check", "Log Analyzer", "Alert Send"], status: "active" },
-  { id: "r2", name: "DB 백업 Agent", description: "데이터베이스 백업 및 검증", steps: ["DB Connect", "Backup Create", "Verify", "Notify"], status: "active" },
-  { id: "r3", name: "배포 자동화 Agent", description: "자동화된 배포 워크플로우", steps: ["Build", "Test", "Deploy", "Health Check"], status: "active" },
-  { id: "r4", name: "로그 모니터링 Agent", description: "실시간 로그 수집 및 분석", steps: ["Log Collect", "Parse", "Analyze", "Alert"], status: "active" },
-  { id: "r5", name: "보안 스캔 Agent", description: "취약점 탐지 및 보고", steps: ["Scan Init", "Vulnerability Check", "Report Gen", "Notify"], status: "active" },
-  { id: "r6", name: "성능 테스트 Agent", description: "부하 테스트 및 성능 측정", steps: ["Load Test", "Metrics Collect", "Analyze", "Report"], status: "active" },
-];
-
 const mockExecutionHistory: Record<string, ExecutionHistory[]> = {
   m1: [
     { id: "e1", timestamp: "오늘 09:00", status: "success", duration: "2분 30초" },
@@ -75,18 +58,26 @@ const mockExecutionHistory: Record<string, ExecutionHistory[]> = {
   ],
 };
 
-const initialMyAgents: WorkflowItem[] = [
-  { id: "m1", name: "일일 점검 루틴", description: "매일 아침 자동 실행", steps: ["Health Check", "DB Connect", "Report Gen"], status: "active", lastRun: "오늘 09:00" },
-  { id: "m2", name: "장애 대응 플로우", description: "장애 감지 시 자동 대응", steps: ["Alert Detect", "Log Analyzer", "Notify", "Escalate"], status: "draft" },
-  { id: "m3", name: "주간 리포트", description: "매주 월요일 리포트 생성", steps: ["Data Collect", "Analyze", "Report Gen", "Email Send"], status: "completed", lastRun: "지난주 월요일" },
-];
+interface WorkflowPageProps {
+  myAgents: WorkflowItem[];
+  setMyAgents: (agents: WorkflowItem[]) => void;
+  selectedAgent: WorkflowItem | null;
+  setSelectedAgent: (agent: WorkflowItem | null) => void;
+  onAddFromMarket: (agent: WorkflowItem) => void;
+  onAddNewAgent: (agent: { name: string; description: string; steps: string[]; instructions: string }) => void;
+}
 
-export function WorkflowPage() {
+export function WorkflowPage({
+  myAgents,
+  setMyAgents,
+  selectedAgent,
+  setSelectedAgent,
+  onAddFromMarket,
+  onAddNewAgent
+}: WorkflowPageProps) {
   const { t } = useTranslation();
-  const [myAgents, setMyAgents] = useState<WorkflowItem[]>(initialMyAgents);
   const [expandedMarket, setExpandedMarket] = useState(false);
   const [expandedMyAgent, setExpandedMyAgent] = useState<string | null>(null);
-  const [selectedAgent, setSelectedAgent] = useState<WorkflowItem | null>(null);
   const [isNewAgentModalOpen, setIsNewAgentModalOpen] = useState(false);
 
   const displayedMarketAgents = expandedMarket ? agentMarketItems : agentMarketItems.slice(0, 4);
@@ -121,27 +112,6 @@ export function WorkflowPage() {
       case "failed": return t("common.failed");
       case "running": return t("common.running");
     }
-  };
-
-  const handleSaveNewAgent = (agent: { name: string; description: string; steps: string[]; instructions: string }) => {
-    const newAgent: WorkflowItem = {
-      id: `m${Date.now()}`,
-      name: agent.name,
-      description: agent.description,
-      steps: agent.steps,
-      status: "draft",
-    };
-    setMyAgents([...myAgents, newAgent]);
-  };
-
-  const handleAddFromMarket = (marketAgent: WorkflowItem) => {
-    const newAgent: WorkflowItem = {
-      ...marketAgent,
-      id: `m${Date.now()}`,
-      status: "active",
-    };
-    setMyAgents([...myAgents, newAgent]);
-    setSelectedAgent(newAgent);
   };
 
   return (
@@ -186,7 +156,7 @@ export function WorkflowPage() {
             {displayedMarketAgents.map((agent) => (
               <div
                 key={agent.id}
-                onClick={() => handleAddFromMarket(agent)}
+                onClick={() => onAddFromMarket(agent)}
                 className="p-4 rounded-xl bg-accent/10 border border-accent/30 cursor-pointer transition-all hover:border-accent hover:bg-accent/20"
               >
                 <div className="flex items-start gap-3">
@@ -326,7 +296,7 @@ export function WorkflowPage() {
       <NewAgentModal
         isOpen={isNewAgentModalOpen}
         onClose={() => setIsNewAgentModalOpen(false)}
-        onSave={handleSaveNewAgent}
+        onSave={onAddNewAgent}
         tools={mockTools}
       />
     </div>

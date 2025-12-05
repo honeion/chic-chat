@@ -199,6 +199,7 @@
     "example": "Usage Example",
     "agentMarket": "Agent Market",
     "executionHistory": "Execution History",
+    "recommendedAgent": "Recommended Agent",
     "createNewAgent": "Create New Agent",
     "agentName": "Agent Name",
     "agentNamePlaceholder": "Enter agent name",

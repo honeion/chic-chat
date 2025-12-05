@@ -199,6 +199,7 @@
     "example": "사용 예제",
     "agentMarket": "Agent 마켓",
     "executionHistory": "실행 이력",
+    "recommendedAgent": "추천 Agent",
     "createNewAgent": "새 에이전트 생성",
     "agentName": "에이전트 이름",
     "agentNamePlaceholder": "에이전트 이름을 입력하세요",
