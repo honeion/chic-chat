@@ -209,7 +209,9 @@
     "instructions": "Hướng dẫn",
     "instructionsPlaceholder": "Nhập hướng dẫn thực thi agent",
     "agentChat": "Trò chuyện Agent",
-    "chatGreeting": "Xin chào! Vui lòng nhập câu hỏi hoặc yêu cầu về agent."
+    "chatGreeting": "Xin chào! Vui lòng nhập câu hỏi hoặc yêu cầu về agent.",
+    "addToMyAgent": "Thêm vào Agent của tôi",
+    "addToMyAgentDesc": "Thêm agent này vào Agent của tôi để bắt đầu sử dụng và tùy chỉnh."
   },
   "assistant": {
     "toolSelect": "Chọn công cụ",

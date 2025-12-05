@@ -120,7 +120,6 @@ const Index = () => {
         myAgents={myAgents}
         selectedWorkflowAgent={selectedWorkflowAgent}
         onSelectWorkflowAgent={setSelectedWorkflowAgent}
-        onAddFromMarket={handleAddFromMarket}
       />
       {renderContent()}
     </div>

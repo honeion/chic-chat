@@ -120,7 +120,6 @@ interface ChatSidebarProps {
   myAgents: WorkflowItem[];
   selectedWorkflowAgent: WorkflowItem | null;
   onSelectWorkflowAgent: (agent: WorkflowItem | null) => void;
-  onAddFromMarket: (agent: WorkflowItem) => void;
 }
 
 export function ChatSidebar({ 
@@ -133,10 +132,8 @@ export function ChatSidebar({
   myAgents,
   selectedWorkflowAgent,
   onSelectWorkflowAgent,
-  onAddFromMarket
 }: ChatSidebarProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [expandedMyAgent, setExpandedMyAgent] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
@@ -339,7 +336,6 @@ export function ChatSidebar({
             </div>
             {filteredMyAgents.map((agent, index) => {
               const isSelected = selectedWorkflowAgent?.id === agent.id;
-              const isExpanded = expandedMyAgent === agent.id;
               
               return (
                 <div key={agent.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
@@ -374,7 +370,7 @@ export function ChatSidebar({
               );
             })}
 
-            {/* Recommended Agent Section */}
+            {/* Recommended Agent Section (Fixed - from Agent Market) */}
             <div className="px-2 py-1.5 mt-4 text-xs font-semibold text-primary uppercase tracking-wider flex items-center gap-2">
               <Store className="w-3 h-3" />
               {t("workflow.recommendedAgent")}
@@ -383,7 +379,7 @@ export function ChatSidebar({
               <div key={agent.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
                 <button
                   onClick={() => {
-                    onAddFromMarket(agent);
+                    // Just navigate to workflow page - clicking here doesn't add to My Agent
                     if (location.pathname !== "/") {
                       navigate("/");
                     }
