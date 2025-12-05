@@ -134,7 +134,7 @@ export function ChatArea({ selectedChatId }: ChatAreaProps) {
         </div>
       </div>
 
-      <ChatInput onSend={handleSendMessage} disabled={isTyping} />
+      <ChatInput onSend={handleSendMessage} disabled={isTyping} showToolSelector={true} />
     </div>
   );
 }

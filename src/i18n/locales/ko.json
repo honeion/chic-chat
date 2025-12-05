@@ -40,7 +40,10 @@
     "newReport": "새 보고서 생성",
     "scheduleManage": "예약 관리",
     "newChangeRequest": "새 변경 요청",
-    "next": "다음"
+    "next": "다음",
+    "success": "성공",
+    "failed": "실패",
+    "running": "실행 중"
   },
   "db": {
     "totalDb": "전체 DB",
@@ -189,10 +192,29 @@
     "recommended": "추천 Agent",
     "showAll": "전체보기",
     "collapse": "접기",
+    "expandAll": "전체 펼치기",
     "toolList": "Tool List",
     "toolName": "Tool 이름",
     "toolDesc": "Tool 설명",
-    "example": "사용 예제"
+    "example": "사용 예제",
+    "agentMarket": "Agent 마켓",
+    "executionHistory": "실행 이력",
+    "createNewAgent": "새 에이전트 생성",
+    "agentName": "에이전트 이름",
+    "agentNamePlaceholder": "에이전트 이름을 입력하세요",
+    "descriptionPlaceholder": "에이전트 설명을 입력하세요",
+    "selectTools": "도구 선택 (클릭 순서대로 워크플로우 생성)",
+    "noToolsSelected": "도구를 선택하여 워크플로우를 구성하세요",
+    "instructions": "지침",
+    "instructionsPlaceholder": "에이전트 실행 지침을 입력하세요",
+    "agentChat": "Agent 대화",
+    "chatGreeting": "안녕하세요! 에이전트 관련 질문이나 요청을 입력해주세요."
+  },
+  "assistant": {
+    "toolSelect": "도구선택",
+    "toolCount": "개",
+    "selectAll": "전체 선택",
+    "deselectAll": "전체 해제"
   },
   "agentDetail": {
     "hello": "안녕하세요! {{agentName}}입니다. 무엇을 도와드릴까요?",
