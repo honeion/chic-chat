@@ -32,7 +32,68 @@
     "received": "Đã nhận",
     "inProgress": "Đang xử lý",
     "approved": "Đã phê duyệt",
-    "reviewing": "Đang xem xét"
+    "reviewing": "Đang xem xét",
+    "maintenance": "Bảo trì",
+    "warning": "Cảnh báo",
+    "critical": "Nguy hiểm",
+    "healthy": "Bình thường",
+    "newReport": "Báo cáo mới",
+    "scheduleManage": "Quản lý lịch",
+    "newChangeRequest": "Yêu cầu thay đổi mới",
+    "next": "Tiếp theo"
+  },
+  "db": {
+    "totalDb": "Tổng DB",
+    "totalConnections": "Tổng kết nối",
+    "slowQueries": "Truy vấn chậm",
+    "dbStatus": "Trạng thái Database",
+    "queryMonitoring": "Giám sát truy vấn thời gian thực",
+    "runQuery": "Chạy truy vấn"
+  },
+  "monitoring": {
+    "totalServers": "Tổng máy chủ",
+    "serverResource": "Trạng thái tài nguyên máy chủ",
+    "realtimeAlerts": "Cảnh báo thời gian thực"
+  },
+  "change": {
+    "changeStatus": "Tóm tắt trạng thái thay đổi",
+    "changeManagement": "Quản lý yêu cầu thay đổi",
+    "weekSchedule": "Lịch tuần này",
+    "emergency": "Khẩn cấp",
+    "planned": "Đã lên kế hoạch",
+    "standard": "Tiêu chuẩn",
+    "highRisk": "Rủi ro cao",
+    "mediumRisk": "Rủi ro trung bình",
+    "lowRisk": "Rủi ro thấp"
+  },
+  "report": {
+    "totalReports": "Tổng báo cáo",
+    "downloadable": "Có thể tải",
+    "generating": "Đang tạo",
+    "scheduledReports": "Báo cáo đã lên lịch",
+    "generatedReports": "Báo cáo đã tạo",
+    "quickGenerate": "Tạo báo cáo nhanh",
+    "daily": "Hàng ngày",
+    "weekly": "Hàng tuần",
+    "monthly": "Hàng tháng",
+    "custom": "Tùy chỉnh",
+    "performanceAnalysis": "Phân tích hiệu suất",
+    "trendAnalysis": "Phân tích xu hướng",
+    "resourceStatus": "Trạng thái tài nguyên",
+    "incidentSummary": "Tóm tắt sự cố",
+    "recipients": " người nhận"
+  },
+  "biz": {
+    "totalTasks": "Tổng công việc",
+    "taskStatus": "Trạng thái công việc",
+    "autoReport": "Báo cáo tự động",
+    "kpiStatus": "Trạng thái KPI",
+    "taskProcessRate": "Tỷ lệ xử lý công việc",
+    "goalAchievement": "Đạt mục tiêu",
+    "responseTime": "Thời gian phản hồi",
+    "unprocessed": "Chưa xử lý",
+    "ready": "Sẵn sàng",
+    "scheduled": "Đã lên lịch"
   },
   "dashboard": {
     "pendingIncidents": "Sự cố chờ xử lý",

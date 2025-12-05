@@ -32,7 +32,68 @@
     "received": "접수됨",
     "inProgress": "처리중",
     "approved": "승인완료",
-    "reviewing": "검토중"
+    "reviewing": "검토중",
+    "maintenance": "점검중",
+    "warning": "경고",
+    "critical": "위험",
+    "healthy": "정상",
+    "newReport": "새 보고서 생성",
+    "scheduleManage": "예약 관리",
+    "newChangeRequest": "새 변경 요청",
+    "next": "다음"
+  },
+  "db": {
+    "totalDb": "전체 DB",
+    "totalConnections": "총 연결",
+    "slowQueries": "슬로우 쿼리",
+    "dbStatus": "데이터베이스 현황",
+    "queryMonitoring": "실시간 쿼리 모니터링",
+    "runQuery": "쿼리 실행"
+  },
+  "monitoring": {
+    "totalServers": "전체 서버",
+    "serverResource": "서버 리소스 현황",
+    "realtimeAlerts": "실시간 알림"
+  },
+  "change": {
+    "changeStatus": "변경 현황 요약",
+    "changeManagement": "변경 요청 관리",
+    "weekSchedule": "이번 주 변경 일정",
+    "emergency": "긴급",
+    "planned": "계획",
+    "standard": "표준",
+    "highRisk": "고위험",
+    "mediumRisk": "중위험",
+    "lowRisk": "저위험"
+  },
+  "report": {
+    "totalReports": "전체 보고서",
+    "downloadable": "다운로드 가능",
+    "generating": "생성 중",
+    "scheduledReports": "예약 보고서",
+    "generatedReports": "생성된 보고서",
+    "quickGenerate": "빠른 보고서 생성",
+    "daily": "일일",
+    "weekly": "주간",
+    "monthly": "월간",
+    "custom": "사용자",
+    "performanceAnalysis": "성과 분석",
+    "trendAnalysis": "트렌드 분석",
+    "resourceStatus": "리소스 현황",
+    "incidentSummary": "인시던트 요약",
+    "recipients": "명 수신"
+  },
+  "biz": {
+    "totalTasks": "전체 업무",
+    "taskStatus": "업무 현황",
+    "autoReport": "자동 보고서",
+    "kpiStatus": "KPI 현황",
+    "taskProcessRate": "업무 처리율",
+    "goalAchievement": "목표 달성률",
+    "responseTime": "응답 시간",
+    "unprocessed": "미처리 건",
+    "ready": "준비됨",
+    "scheduled": "예정"
   },
   "dashboard": {
     "pendingIncidents": "승인 대기 인시던트",
