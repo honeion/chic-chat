@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Wrench, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -30,7 +30,8 @@ const defaultTools: Tool[] = [
 export function ToolSelector() {
   const { t } = useTranslation();
   const [tools, setTools] = useState<Tool[]>(defaultTools);
-  const [isHovered, setIsHovered] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const selectedCount = tools.filter((t) => t.enabled).length;
   const isAllSelected = selectedCount === tools.length;
@@ -44,17 +45,26 @@ export function ToolSelector() {
     setTools(tools.map((t) => ({ ...t, enabled: newEnabled })));
   };
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
-    <div
-      className="relative"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <div className="relative" ref={containerRef}>
       {/* Button */}
       <button
+        onClick={() => setIsOpen(!isOpen)}
         className={cn(
           "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-all border",
-          isHovered
+          isOpen
             ? "bg-primary/10 border-primary/50 text-primary"
             : "bg-secondary border-border text-muted-foreground hover:text-foreground"
         )}
@@ -65,11 +75,11 @@ export function ToolSelector() {
             ? `${t("assistant.toolSelect")} : ALL`
             : `Selected : ${selectedCount}${t("assistant.toolCount")}`}
         </span>
-        <ChevronDown className={cn("w-4 h-4 transition-transform", isHovered && "rotate-180")} />
+        <ChevronDown className={cn("w-4 h-4 transition-transform", isOpen && "rotate-180")} />
       </button>
 
       {/* Dropdown */}
-      {isHovered && (
+      {isOpen && (
         <div className="absolute bottom-full left-0 mb-2 w-80 p-3 rounded-xl bg-sidebar border border-border shadow-xl animate-fade-in z-50">
           <div className="flex items-center justify-between mb-3 pb-2 border-b border-border">
             <span className="text-sm font-medium">{t("workflow.toolList")}</span>
