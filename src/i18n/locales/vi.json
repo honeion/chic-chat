@@ -40,7 +40,10 @@
     "newReport": "Báo cáo mới",
     "scheduleManage": "Quản lý lịch",
     "newChangeRequest": "Yêu cầu thay đổi mới",
-    "next": "Tiếp theo"
+    "next": "Tiếp theo",
+    "success": "Thành công",
+    "failed": "Thất bại",
+    "running": "Đang chạy"
   },
   "db": {
     "totalDb": "Tổng DB",
@@ -189,10 +192,29 @@
     "recommended": "Agent đề xuất",
     "showAll": "Xem tất cả",
     "collapse": "Thu gọn",
+    "expandAll": "Mở rộng tất cả",
     "toolList": "Danh sách công cụ",
     "toolName": "Tên công cụ",
     "toolDesc": "Mô tả công cụ",
-    "example": "Ví dụ sử dụng"
+    "example": "Ví dụ sử dụng",
+    "agentMarket": "Chợ Agent",
+    "executionHistory": "Lịch sử thực thi",
+    "createNewAgent": "Tạo Agent mới",
+    "agentName": "Tên Agent",
+    "agentNamePlaceholder": "Nhập tên agent",
+    "descriptionPlaceholder": "Nhập mô tả agent",
+    "selectTools": "Chọn công cụ (thứ tự click tạo workflow)",
+    "noToolsSelected": "Chọn công cụ để xây dựng workflow",
+    "instructions": "Hướng dẫn",
+    "instructionsPlaceholder": "Nhập hướng dẫn thực thi agent",
+    "agentChat": "Trò chuyện Agent",
+    "chatGreeting": "Xin chào! Vui lòng nhập câu hỏi hoặc yêu cầu về agent."
+  },
+  "assistant": {
+    "toolSelect": "Chọn công cụ",
+    "toolCount": " cái",
+    "selectAll": "Chọn tất cả",
+    "deselectAll": "Bỏ chọn tất cả"
   },
   "agentDetail": {
     "hello": "Xin chào! Tôi là {{agentName}}. Tôi có thể giúp gì cho bạn?",

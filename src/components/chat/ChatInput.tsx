@@ -2,13 +2,15 @@ import { useState, useRef, KeyboardEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Send, Paperclip, Mic, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ToolSelector } from "./ToolSelector";
 
 interface ChatInputProps {
   onSend: (message: string) => void;
   disabled?: boolean;
+  showToolSelector?: boolean;
 }
 
-export function ChatInput({ onSend, disabled }: ChatInputProps) {
+export function ChatInput({ onSend, disabled, showToolSelector = false }: ChatInputProps) {
   const { t } = useTranslation();
   const [message, setMessage] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -47,6 +49,13 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
   return (
     <div className="p-4 border-t border-border bg-background/50 backdrop-blur-sm">
       <div className="max-w-4xl mx-auto">
+        {/* Tool Selector - for Assistant */}
+        {showToolSelector && (
+          <div className="mb-3">
+            <ToolSelector />
+          </div>
+        )}
+
         {/* Quick Actions */}
         <div className="flex items-center gap-2 mb-3">
           {quickActions.map((action) => (

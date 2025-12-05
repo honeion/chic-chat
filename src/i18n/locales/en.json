@@ -40,7 +40,10 @@
     "newReport": "New Report",
     "scheduleManage": "Manage Schedule",
     "newChangeRequest": "New Change Request",
-    "next": "Next"
+    "next": "Next",
+    "success": "Success",
+    "failed": "Failed",
+    "running": "Running"
   },
   "db": {
     "totalDb": "Total DB",
@@ -189,10 +192,29 @@
     "recommended": "Recommended Agents",
     "showAll": "Show All",
     "collapse": "Collapse",
+    "expandAll": "Expand All",
     "toolList": "Tool List",
     "toolName": "Tool Name",
     "toolDesc": "Tool Description",
-    "example": "Usage Example"
+    "example": "Usage Example",
+    "agentMarket": "Agent Market",
+    "executionHistory": "Execution History",
+    "createNewAgent": "Create New Agent",
+    "agentName": "Agent Name",
+    "agentNamePlaceholder": "Enter agent name",
+    "descriptionPlaceholder": "Enter agent description",
+    "selectTools": "Select Tools (click order becomes workflow)",
+    "noToolsSelected": "Select tools to build your workflow",
+    "instructions": "Instructions",
+    "instructionsPlaceholder": "Enter agent execution instructions",
+    "agentChat": "Agent Chat",
+    "chatGreeting": "Hello! Please enter your questions or requests about the agent."
+  },
+  "assistant": {
+    "toolSelect": "Tool Select",
+    "toolCount": "",
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All"
   },
   "agentDetail": {
     "hello": "Hello! I'm {{agentName}}. How can I help you?",
