@@ -32,7 +32,68 @@
     "received": "Received",
     "inProgress": "In Progress",
     "approved": "Approved",
-    "reviewing": "Reviewing"
+    "reviewing": "Reviewing",
+    "maintenance": "Maintenance",
+    "warning": "Warning",
+    "critical": "Critical",
+    "healthy": "Healthy",
+    "newReport": "New Report",
+    "scheduleManage": "Manage Schedule",
+    "newChangeRequest": "New Change Request",
+    "next": "Next"
+  },
+  "db": {
+    "totalDb": "Total DB",
+    "totalConnections": "Total Connections",
+    "slowQueries": "Slow Queries",
+    "dbStatus": "Database Status",
+    "queryMonitoring": "Real-time Query Monitoring",
+    "runQuery": "Run Query"
+  },
+  "monitoring": {
+    "totalServers": "Total Servers",
+    "serverResource": "Server Resource Status",
+    "realtimeAlerts": "Real-time Alerts"
+  },
+  "change": {
+    "changeStatus": "Change Status Summary",
+    "changeManagement": "Change Request Management",
+    "weekSchedule": "This Week's Schedule",
+    "emergency": "Emergency",
+    "planned": "Planned",
+    "standard": "Standard",
+    "highRisk": "High Risk",
+    "mediumRisk": "Medium Risk",
+    "lowRisk": "Low Risk"
+  },
+  "report": {
+    "totalReports": "Total Reports",
+    "downloadable": "Downloadable",
+    "generating": "Generating",
+    "scheduledReports": "Scheduled Reports",
+    "generatedReports": "Generated Reports",
+    "quickGenerate": "Quick Report Generate",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "monthly": "Monthly",
+    "custom": "Custom",
+    "performanceAnalysis": "Performance Analysis",
+    "trendAnalysis": "Trend Analysis",
+    "resourceStatus": "Resource Status",
+    "incidentSummary": "Incident Summary",
+    "recipients": " recipients"
+  },
+  "biz": {
+    "totalTasks": "Total Tasks",
+    "taskStatus": "Task Status",
+    "autoReport": "Auto Report",
+    "kpiStatus": "KPI Status",
+    "taskProcessRate": "Task Process Rate",
+    "goalAchievement": "Goal Achievement",
+    "responseTime": "Response Time",
+    "unprocessed": "Unprocessed",
+    "ready": "Ready",
+    "scheduled": "Scheduled"
   },
   "dashboard": {
     "pendingIncidents": "Pending Incidents",

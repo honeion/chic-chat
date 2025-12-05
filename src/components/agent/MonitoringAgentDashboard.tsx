@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Activity, Server, Database, Wifi, AlertTriangle, CheckCircle, TrendingUp, TrendingDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -25,17 +26,27 @@ const mockServers: ServerStatus[] = [
 ];
 
 const mockAlerts: Alert[] = [
-  { id: "a1", message: "API-01 CPU 사용률 임계치 초과", severity: "error", timestamp: "10:45" },
-  { id: "a2", message: "WEB-02 메모리 사용률 높음", severity: "warning", timestamp: "10:30" },
-  { id: "a3", message: "DB-01 백업 완료", severity: "info", timestamp: "10:00" },
+  { id: "a1", message: "API-01 CPU usage exceeded threshold", severity: "error", timestamp: "10:45" },
+  { id: "a2", message: "WEB-02 high memory usage", severity: "warning", timestamp: "10:30" },
+  { id: "a3", message: "DB-01 backup completed", severity: "info", timestamp: "10:00" },
 ];
 
 export function MonitoringAgentDashboard() {
+  const { t } = useTranslation();
+
   const getStatusColor = (status: ServerStatus["status"]) => {
     switch (status) {
       case "healthy": return "text-status-online";
       case "warning": return "text-status-busy";
       case "critical": return "text-destructive";
+    }
+  };
+
+  const getStatusLabel = (status: ServerStatus["status"]) => {
+    switch (status) {
+      case "healthy": return t("common.healthy");
+      case "warning": return t("common.warning");
+      case "critical": return t("common.critical");
     }
   };
 
@@ -59,51 +70,49 @@ export function MonitoringAgentDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* 전체 현황 */}
       <div className="grid grid-cols-4 gap-4">
         <div className="rounded-xl overflow-hidden border border-primary/30">
           <div className="px-4 py-2 bg-primary/20 flex items-center gap-2">
             <Server className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-foreground">전체 서버</span>
+            <span className="text-sm font-medium text-foreground">{t("monitoring.totalServers")}</span>
           </div>
           <div className="p-4 bg-background/80">
-            <p className="text-3xl font-bold text-foreground">{mockServers.length}<span className="text-lg ml-1">대</span></p>
+            <p className="text-3xl font-bold text-foreground">{mockServers.length}</p>
           </div>
         </div>
         <div className="rounded-xl overflow-hidden border border-status-online/30">
           <div className="px-4 py-2 bg-status-online/20 flex items-center gap-2">
             <CheckCircle className="w-4 h-4 text-status-online" />
-            <span className="text-sm font-medium text-foreground">정상</span>
+            <span className="text-sm font-medium text-foreground">{t("common.healthy")}</span>
           </div>
           <div className="p-4 bg-background/80">
-            <p className="text-3xl font-bold text-status-online">{healthyCount}<span className="text-lg ml-1">대</span></p>
+            <p className="text-3xl font-bold text-status-online">{healthyCount}</p>
           </div>
         </div>
         <div className="rounded-xl overflow-hidden border border-status-busy/30">
           <div className="px-4 py-2 bg-status-busy/20 flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-status-busy" />
-            <span className="text-sm font-medium text-foreground">경고</span>
+            <span className="text-sm font-medium text-foreground">{t("common.warning")}</span>
           </div>
           <div className="p-4 bg-background/80">
-            <p className="text-3xl font-bold text-status-busy">{warningCount}<span className="text-lg ml-1">대</span></p>
+            <p className="text-3xl font-bold text-status-busy">{warningCount}</p>
           </div>
         </div>
         <div className="rounded-xl overflow-hidden border border-destructive/30">
           <div className="px-4 py-2 bg-destructive/20 flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-destructive" />
-            <span className="text-sm font-medium text-foreground">위험</span>
+            <span className="text-sm font-medium text-foreground">{t("common.critical")}</span>
           </div>
           <div className="p-4 bg-background/80">
-            <p className="text-3xl font-bold text-destructive">{criticalCount}<span className="text-lg ml-1">대</span></p>
+            <p className="text-3xl font-bold text-destructive">{criticalCount}</p>
           </div>
         </div>
       </div>
 
-      {/* 서버 상태 */}
       <div className="rounded-xl overflow-hidden border border-primary/30">
         <div className="px-4 py-3 bg-primary/20 flex items-center gap-2">
           <Activity className="w-4 h-4 text-primary" />
-          <span className="text-sm font-medium text-foreground">서버 리소스 현황</span>
+          <span className="text-sm font-medium text-foreground">{t("monitoring.serverResource")}</span>
         </div>
         <div className="bg-background/80">
           <div className="grid grid-cols-4 gap-4 p-4">
@@ -112,7 +121,7 @@ export function MonitoringAgentDashboard() {
                 <div className="flex items-center justify-between mb-3">
                   <span className="font-semibold text-foreground">{server.name}</span>
                   <span className={cn("text-xs font-medium", getStatusColor(server.status))}>
-                    {server.status === "healthy" ? "정상" : server.status === "warning" ? "경고" : "위험"}
+                    {getStatusLabel(server.status)}
                   </span>
                 </div>
                 <div className="space-y-2">
@@ -150,11 +159,10 @@ export function MonitoringAgentDashboard() {
         </div>
       </div>
 
-      {/* 알림 목록 */}
       <div className="rounded-xl overflow-hidden border border-status-busy/30">
         <div className="px-4 py-3 bg-status-busy/20 flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 text-status-busy" />
-          <span className="text-sm font-medium text-foreground">실시간 알림</span>
+          <span className="text-sm font-medium text-foreground">{t("monitoring.realtimeAlerts")}</span>
         </div>
         <div className="bg-background/80 divide-y divide-border/30">
           {mockAlerts.map(alert => (
