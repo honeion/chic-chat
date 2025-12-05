@@ -157,7 +157,9 @@
     "all": "All",
     "agentFilter": "Agent",
     "user": "User",
-    "allSystems": "All Systems"
+    "allSystems": "All Systems",
+    "system": "System",
+    "chatHistory": "Chat History"
   },
   "agent": {
     "bizSupport": "Biz.Support Agent",

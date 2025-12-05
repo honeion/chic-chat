@@ -157,7 +157,9 @@
     "all": "전체",
     "agentFilter": "Agent",
     "user": "사용자",
-    "allSystems": "전체 시스템"
+    "allSystems": "전체 시스템",
+    "system": "시스템",
+    "chatHistory": "채팅 기록"
   },
   "agent": {
     "bizSupport": "Biz.Support Agent",

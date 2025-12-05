@@ -157,7 +157,9 @@
     "all": "Tất cả",
     "agentFilter": "Agent",
     "user": "Người dùng",
-    "allSystems": "Tất cả hệ thống"
+    "allSystems": "Tất cả hệ thống",
+    "system": "Hệ thống",
+    "chatHistory": "Lịch sử trò chuyện"
   },
   "agent": {
     "bizSupport": "Biz.Support Agent",
