@@ -350,7 +350,7 @@ export function ChatSidebar({
                       "w-full p-3 rounded-xl text-left transition-all duration-200 flex items-center gap-3",
                       "hover:bg-secondary/80",
                       isSelected && !isDashboard
-                        ? "bg-primary/20 border border-primary/30" 
+                        ? "bg-primary/30 border border-primary/50 shadow-md" 
                         : "bg-transparent"
                     )}
                   >

@@ -125,6 +125,14 @@ export function WorkflowPage({
     setSelectedMarketAgent(null);
   };
 
+  const handleDeleteAgent = (agentId: string) => {
+    const updatedAgents = myAgents.filter(a => a.id !== agentId);
+    setMyAgents(updatedAgents);
+    if (selectedAgent?.id === agentId) {
+      setSelectedAgent(null);
+    }
+  };
+
   return (
     <div className="flex-1 flex h-full overflow-hidden">
       {/* Main Content - 70% */}
@@ -205,7 +213,7 @@ export function WorkflowPage({
                 <div
                   className={cn(
                     "p-4 rounded-xl border cursor-pointer transition-all hover:border-primary/50",
-                    selectedAgent?.id === agent.id ? "bg-primary/10 border-primary/50" : "bg-chat-user/30 border-border/50",
+                    selectedAgent?.id === agent.id ? "bg-primary/20 border-primary shadow-md" : "bg-chat-user/30 border-border/50",
                     expandedMyAgent === agent.id && "rounded-b-none border-b-0"
                   )}
                 >
@@ -241,7 +249,13 @@ export function WorkflowPage({
                         <button className="p-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors">
                           <Save className="w-4 h-4" />
                         </button>
-                        <button className="p-2 rounded-lg bg-destructive/20 text-destructive hover:bg-destructive/30 transition-colors">
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteAgent(agent.id);
+                          }}
+                          className="p-2 rounded-lg bg-destructive/20 text-destructive hover:bg-destructive/30 transition-colors"
+                        >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
