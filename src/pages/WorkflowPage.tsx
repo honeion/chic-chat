@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Workflow, Plus, Play, Save, Trash2, ChevronRight, ChevronDown, Store, Clock, History } from "lucide-react";
+import { Workflow, Plus, Play, Save, Trash2, ChevronRight, ChevronDown, Store, Clock, History, Folder } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NewAgentModal } from "@/components/workflow/NewAgentModal";
 import { AgentDetailModal } from "@/components/workflow/AgentDetailModal";
 import { WorkflowChatPanel } from "@/components/workflow/WorkflowChatPanel";
-import { WorkflowItem, agentMarketItems } from "@/pages/Index";
+import { WorkflowItem, agentMarketItems, OPERATING_SYSTEMS, OperatingSystem } from "@/pages/Index";
 
 interface ExecutionHistory {
   id: string;
@@ -81,8 +81,15 @@ export function WorkflowPage({
   const [expandedMyAgent, setExpandedMyAgent] = useState<string | null>(null);
   const [isNewAgentModalOpen, setIsNewAgentModalOpen] = useState(false);
   const [selectedMarketAgent, setSelectedMarketAgent] = useState<WorkflowItem | null>(null);
+  const [selectedSystem, setSelectedSystem] = useState<OperatingSystem | null>(null);
+  const [systemDropdownOpen, setSystemDropdownOpen] = useState(false);
 
   const displayedMarketAgents = expandedMarket ? agentMarketItems : agentMarketItems.slice(0, 4);
+  
+  // Filter my agents by selected system
+  const filteredMyAgents = selectedSystem 
+    ? myAgents.filter(agent => agent.system === selectedSystem)
+    : myAgents;
 
   const getStatusStyle = (status: WorkflowItem["status"]) => {
     switch (status) {
@@ -156,6 +163,57 @@ export function WorkflowPage({
           </button>
         </div>
 
+        {/* System Selector */}
+        <div className="mb-6">
+          <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+            {t("sidebar.system")}
+          </div>
+          <div className="relative inline-block">
+            <button
+              onClick={() => setSystemDropdownOpen(!systemDropdownOpen)}
+              className="px-4 py-2 rounded-lg bg-secondary border border-border flex items-center gap-2 hover:bg-secondary/80 transition-colors"
+            >
+              <Folder className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium">
+                {selectedSystem || t("sidebar.allSystems")}
+              </span>
+              <ChevronDown className={cn("w-4 h-4 text-muted-foreground transition-transform", systemDropdownOpen && "rotate-180")} />
+            </button>
+            
+            {systemDropdownOpen && (
+              <div className="absolute z-50 w-48 mt-1 py-1 bg-popover border border-border rounded-lg shadow-lg">
+                <button
+                  onClick={() => {
+                    setSelectedSystem(null);
+                    setSystemDropdownOpen(false);
+                  }}
+                  className={cn(
+                    "w-full px-3 py-2 text-left text-sm hover:bg-secondary transition-colors",
+                    !selectedSystem && "bg-primary/10 text-primary"
+                  )}
+                >
+                  {t("sidebar.allSystems")}
+                </button>
+                {OPERATING_SYSTEMS.map((system) => (
+                  <button
+                    key={system}
+                    onClick={() => {
+                      setSelectedSystem(system);
+                      setSystemDropdownOpen(false);
+                    }}
+                    className={cn(
+                      "w-full px-3 py-2 text-left text-sm hover:bg-secondary transition-colors",
+                      selectedSystem === system && "bg-primary/10 text-primary"
+                    )}
+                  >
+                    {system}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Agent Market - Card Style */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
@@ -207,7 +265,7 @@ export function WorkflowPage({
             {t("sidebar.myAgent")}
           </h2>
           <div className="space-y-3">
-            {myAgents.map((agent) => (
+            {filteredMyAgents.map((agent) => (
               <div key={agent.id}>
                 {/* Agent Card */}
                 <div
