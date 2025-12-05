@@ -135,20 +135,6 @@ export function WorkflowChatPanel({ agentName }: WorkflowChatPanelProps) {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Quick Actions */}
-      <div className="px-4 pb-2">
-        <div className="flex flex-wrap gap-2">
-          {quickActions.map((action) => (
-            <button
-              key={action}
-              onClick={() => setInput(action)}
-              className="px-3 py-1.5 rounded-full text-xs bg-secondary hover:bg-primary/20 hover:text-primary transition-colors"
-            >
-              {action}
-            </button>
-          ))}
-        </div>
-      </div>
 
       {/* Input */}
       <div className="p-4 border-t border-border">
