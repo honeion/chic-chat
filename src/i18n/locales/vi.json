@@ -4,7 +4,8 @@
     "save": "Lưu",
     "cancel": "Hủy",
     "confirm": "Xác nhận",
-    "logout": "Đăng xuất"
+    "logout": "Đăng xuất",
+    "selectAgent": "Chọn một Agent"
   },
   "mypage": {
     "title": "Trang của tôi",
@@ -30,7 +31,13 @@
     "agentList": "Danh sách Agent",
     "workflow": "Quy trình",
     "newChat": "Cuộc trò chuyện mới",
-    "aiAssistant": "Trợ lý AI"
+    "aiAssistant": "Trợ lý AI",
+    "search": "Tìm kiếm...",
+    "dashboard": "Bảng điều khiển",
+    "workflowDesc": "Trang quy trình được hiển thị bên phải",
+    "all": "Tất cả",
+    "agentFilter": "Agent",
+    "user": "Người dùng"
   },
   "agent": {
     "bizSupport": "Biz.Support Agent",

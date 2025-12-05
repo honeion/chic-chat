@@ -4,7 +4,8 @@
     "save": "Save",
     "cancel": "Cancel",
     "confirm": "Confirm",
-    "logout": "Logout"
+    "logout": "Logout",
+    "selectAgent": "Select an Agent"
   },
   "mypage": {
     "title": "My Page",
@@ -30,7 +31,13 @@
     "agentList": "Agent List",
     "workflow": "Workflow",
     "newChat": "New Chat",
-    "aiAssistant": "AI Assistant"
+    "aiAssistant": "AI Assistant",
+    "search": "Search...",
+    "dashboard": "Dashboard",
+    "workflowDesc": "Workflow page is displayed on the right",
+    "all": "All",
+    "agentFilter": "Agent",
+    "user": "User"
   },
   "agent": {
     "bizSupport": "Biz.Support Agent",

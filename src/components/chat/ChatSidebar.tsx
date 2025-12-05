@@ -13,6 +13,7 @@ import {
   ChevronRight
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 type ViewType = "agent" | "workflow" | "assistant";
@@ -127,6 +128,7 @@ export function ChatSidebar({
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
 
   const filteredRooms = mockChatRooms.filter(room =>
     room.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -165,7 +167,7 @@ export function ChatSidebar({
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
             type="text"
-            placeholder="검색..."
+            placeholder={t("sidebar.search")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 bg-secondary rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
@@ -176,9 +178,9 @@ export function ChatSidebar({
       {/* Main View Tabs */}
       <div className="flex border-b border-border">
         {[
-          { view: "agent" as ViewType, icon: Bot, label: "SKI Agent" },
-          { view: "workflow" as ViewType, icon: Workflow, label: "My Agent" },
-          { view: "assistant" as ViewType, icon: MessageSquare, label: "Assistant" },
+          { view: "agent" as ViewType, icon: Bot, label: t("sidebar.skiAgent") },
+          { view: "workflow" as ViewType, icon: Workflow, label: t("sidebar.myAgent") },
+          { view: "assistant" as ViewType, icon: MessageSquare, label: t("sidebar.assistant") },
         ].map(({ view, icon: Icon, label }) => (
           <button
             key={view}
@@ -213,7 +215,7 @@ export function ChatSidebar({
           )}
         >
           <LayoutDashboard className="w-5 h-5" />
-          <span className="font-medium">대시보드</span>
+          <span className="font-medium">{t("sidebar.dashboard")}</span>
         </button>
       </div>
 
@@ -222,7 +224,7 @@ export function ChatSidebar({
         {currentView === "agent" && (
           <>
             <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Agent List
+              {t("sidebar.agentList")}
             </div>
             {filteredAgents.map((agent, index) => {
               const isExpanded = selectedAgent === agent.id;
@@ -305,7 +307,7 @@ export function ChatSidebar({
         {currentView === "workflow" && (
           <div className="p-4 text-center text-muted-foreground">
             <Workflow className="w-8 h-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">워크플로우 페이지가 오른쪽에 표시됩니다</p>
+            <p className="text-sm">{t("sidebar.workflowDesc")}</p>
           </div>
         )}
 
@@ -314,9 +316,9 @@ export function ChatSidebar({
             {/* Category Filter */}
             <div className="flex gap-1 p-1 mb-2">
               {[
-                { icon: MessageSquare, label: "전체" },
-                { icon: Bot, label: "Agent" },
-                { icon: Workflow, label: "Workflow" },
+                { icon: MessageSquare, label: t("sidebar.all") },
+                { icon: Bot, label: t("sidebar.agentFilter") },
+                { icon: Workflow, label: t("sidebar.workflow") },
               ].map(({ icon: Icon, label }) => (
                 <button
                   key={label}
@@ -395,8 +397,8 @@ export function ChatSidebar({
             <span className="text-sm font-semibold text-primary">U</span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">사용자</p>
-            <p className="text-xs text-muted-foreground">Lv.2 사용자</p>
+            <p className="text-sm font-medium truncate">{t("sidebar.user")}</p>
+            <p className="text-xs text-muted-foreground">{t("mypage.userLevel")}</p>
           </div>
           <Settings className="w-4 h-4 text-muted-foreground" />
         </div>

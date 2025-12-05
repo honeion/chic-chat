@@ -4,7 +4,8 @@
     "save": "저장",
     "cancel": "취소",
     "confirm": "확인",
-    "logout": "로그아웃"
+    "logout": "로그아웃",
+    "selectAgent": "Agent를 선택하세요"
   },
   "mypage": {
     "title": "마이페이지",
@@ -30,7 +31,13 @@
     "agentList": "Agent List",
     "workflow": "Workflow",
     "newChat": "새 채팅",
-    "aiAssistant": "AI 어시스턴트"
+    "aiAssistant": "AI 어시스턴트",
+    "search": "검색...",
+    "dashboard": "대시보드",
+    "workflowDesc": "워크플로우 페이지가 오른쪽에 표시됩니다",
+    "all": "전체",
+    "agentFilter": "Agent",
+    "user": "사용자"
   },
   "agent": {
     "bizSupport": "Biz.Support Agent",
