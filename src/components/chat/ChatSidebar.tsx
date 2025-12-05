@@ -146,6 +146,8 @@ export function ChatSidebar({
 
   const [selectedSystem, setSelectedSystem] = useState<OperatingSystem | null>(null);
   const [systemDropdownOpen, setSystemDropdownOpen] = useState(false);
+  const [assistantSelectedSystem, setAssistantSelectedSystem] = useState<OperatingSystem | null>(null);
+  const [assistantSystemDropdownOpen, setAssistantSystemDropdownOpen] = useState(false);
 
   const toggleSystem = (system: OperatingSystem) => {
     setExpandedSystems(prev => 
@@ -369,6 +371,11 @@ export function ChatSidebar({
               {t("sidebar.myAgent")}
             </div>
             
+            {/* System Label */}
+            <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              {t("sidebar.system")}
+            </div>
+            
             {/* System Selector Dropdown */}
             <div className="px-2 mb-2">
               <div className="relative">
@@ -495,86 +502,120 @@ export function ChatSidebar({
 
         {currentView === "assistant" && (
           <>
-            {/* System-based grouping for Assistant */}
-            {OPERATING_SYSTEMS.map((system) => {
-              const systemRooms = chatRoomsBySystem[system];
-              const isExpanded = expandedSystems.includes(system);
-              const totalUnread = systemRooms.reduce((sum, room) => sum + room.unread, 0);
-              
-              return (
-                <div key={system} className="mb-1">
-                  <button
-                    onClick={() => toggleSystem(system)}
-                    className="w-full px-3 py-2 rounded-lg text-left transition-all duration-200 flex items-center gap-2 hover:bg-secondary/50"
-                  >
+            {/* System Label */}
+            <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              {t("sidebar.system")}
+            </div>
+            
+            {/* System Selector Dropdown for Assistant */}
+            <div className="px-2 mb-2">
+              <div className="relative">
+                <button
+                  onClick={() => setAssistantSystemDropdownOpen(!assistantSystemDropdownOpen)}
+                  className="w-full px-3 py-2 rounded-lg bg-secondary border border-border flex items-center justify-between hover:bg-secondary/80 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
                     <Folder className="w-4 h-4 text-primary" />
-                    <span className="font-medium text-sm flex-1">{system}</span>
-                    {totalUnread > 0 && (
-                      <span className="min-w-[18px] h-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold flex items-center justify-center">
-                        {totalUnread}
+                    <span className="text-sm font-medium">
+                      {assistantSelectedSystem || t("sidebar.allSystems")}
+                    </span>
+                  </div>
+                  <ChevronDown className={cn("w-4 h-4 text-muted-foreground transition-transform", assistantSystemDropdownOpen && "rotate-180")} />
+                </button>
+                
+                {assistantSystemDropdownOpen && (
+                  <div className="absolute z-50 w-full mt-1 py-1 bg-popover border border-border rounded-lg shadow-lg">
+                    <button
+                      onClick={() => {
+                        setAssistantSelectedSystem(null);
+                        setAssistantSystemDropdownOpen(false);
+                      }}
+                      className={cn(
+                        "w-full px-3 py-2 text-left text-sm hover:bg-secondary transition-colors",
+                        !assistantSelectedSystem && "bg-primary/10 text-primary"
+                      )}
+                    >
+                      {t("sidebar.allSystems")}
+                    </button>
+                    {OPERATING_SYSTEMS.map((system) => (
+                      <button
+                        key={system}
+                        onClick={() => {
+                          setAssistantSelectedSystem(system);
+                          setAssistantSystemDropdownOpen(false);
+                        }}
+                        className={cn(
+                          "w-full px-3 py-2 text-left text-sm hover:bg-secondary transition-colors",
+                          assistantSelectedSystem === system && "bg-primary/10 text-primary"
+                        )}
+                      >
+                        {system}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Chat List - Filtered by System */}
+            <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              {t("sidebar.chatHistory")}
+            </div>
+            {(assistantSelectedSystem 
+              ? filteredRooms.filter(room => room.system === assistantSelectedSystem)
+              : filteredRooms
+            ).map((room, index) => (
+              <div key={room.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
+                <button
+                  onClick={() => {
+                    onSelectChat(room.id);
+                    if (location.pathname !== "/") {
+                      navigate("/");
+                    }
+                  }}
+                  className={cn(
+                    "w-full p-2.5 rounded-lg text-left transition-all duration-200",
+                    "hover:bg-secondary/80",
+                    selectedChat === room.id && !isDashboard
+                      ? "bg-secondary shadow-card border border-primary/20" 
+                      : "bg-transparent"
+                  )}
+                >
+                  <div className="flex items-start gap-2">
+                    <div className="relative">
+                      <div className={cn(
+                        "w-8 h-8 rounded-lg flex items-center justify-center",
+                        room.type === "agent" ? "bg-primary/20 text-primary" :
+                        room.type === "workflow" ? "bg-accent/20 text-accent" :
+                        "bg-secondary text-muted-foreground"
+                      )}>
+                        {room.type === "agent" ? <Bot className="w-3.5 h-3.5" /> :
+                         room.type === "workflow" ? <Workflow className="w-3.5 h-3.5" /> :
+                         <Users className="w-3.5 h-3.5" />}
+                      </div>
+                      <span className={cn(
+                        "absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-sidebar",
+                        getStatusColor(room.status)
+                      )} />
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span className="font-medium text-xs truncate">{room.name}</span>
+                        <span className="text-[10px] text-muted-foreground">{room.timestamp}</span>
+                      </div>
+                      <p className="text-[10px] text-muted-foreground truncate">{room.lastMessage}</p>
+                    </div>
+
+                    {room.unread > 0 && (
+                      <span className="min-w-[16px] h-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold flex items-center justify-center">
+                        {room.unread}
                       </span>
                     )}
-                    {isExpanded ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
-                  </button>
-                  
-                  {isExpanded && systemRooms.length > 0 && (
-                    <div className="ml-4 mt-1 space-y-1 border-l-2 border-border pl-2">
-                      {systemRooms.map((room) => (
-                        <button
-                          key={room.id}
-                          onClick={() => {
-                            onSelectChat(room.id);
-                            if (location.pathname !== "/") {
-                              navigate("/");
-                            }
-                          }}
-                          className={cn(
-                            "w-full p-2.5 rounded-lg text-left transition-all duration-200",
-                            "hover:bg-secondary/80",
-                            selectedChat === room.id && !isDashboard
-                              ? "bg-secondary shadow-card border border-primary/20" 
-                              : "bg-transparent"
-                          )}
-                        >
-                          <div className="flex items-start gap-2">
-                            <div className="relative">
-                              <div className={cn(
-                                "w-8 h-8 rounded-lg flex items-center justify-center",
-                                room.type === "agent" ? "bg-primary/20 text-primary" :
-                                room.type === "workflow" ? "bg-accent/20 text-accent" :
-                                "bg-secondary text-muted-foreground"
-                              )}>
-                                {room.type === "agent" ? <Bot className="w-3.5 h-3.5" /> :
-                                 room.type === "workflow" ? <Workflow className="w-3.5 h-3.5" /> :
-                                 <Users className="w-3.5 h-3.5" />}
-                              </div>
-                              <span className={cn(
-                                "absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-sidebar",
-                                getStatusColor(room.status)
-                              )} />
-                            </div>
-
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between mb-0.5">
-                                <span className="font-medium text-xs truncate">{room.name}</span>
-                                <span className="text-[10px] text-muted-foreground">{room.timestamp}</span>
-                              </div>
-                              <p className="text-[10px] text-muted-foreground truncate">{room.lastMessage}</p>
-                            </div>
-
-                            {room.unread > 0 && (
-                              <span className="min-w-[16px] h-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold flex items-center justify-center">
-                                {room.unread}
-                              </span>
-                            )}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                  </div>
+                </button>
+              </div>
+            ))}
           </>
         )}
       </div>
