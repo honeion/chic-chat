@@ -1,0 +1,49 @@
+{
+  "common": {
+    "back": "돌아가기",
+    "save": "저장",
+    "cancel": "취소",
+    "confirm": "확인",
+    "logout": "로그아웃"
+  },
+  "mypage": {
+    "title": "마이페이지",
+    "profile": "프로필 설정",
+    "profileDesc": "이름, 사진 등 프로필 정보 관리",
+    "notification": "알림 설정",
+    "notificationDesc": "이메일 및 푸시 알림 설정",
+    "security": "보안 설정",
+    "securityDesc": "비밀번호 및 2단계 인증",
+    "agentNotification": "Agent 알림",
+    "agentNotificationDesc": "Agent별 알림 수신 설정",
+    "theme": "테마 설정",
+    "themeDesc": "라이트/다크 모드 전환",
+    "language": "언어 설정",
+    "languageDesc": "표시 언어 변경",
+    "logoutDesc": "계정에서 로그아웃",
+    "userLevel": "Lv.2 사용자"
+  },
+  "sidebar": {
+    "skiAgent": "SKI Agent",
+    "myAgent": "My Agent",
+    "assistant": "Assistant",
+    "agentList": "Agent List",
+    "workflow": "Workflow",
+    "newChat": "새 채팅",
+    "aiAssistant": "AI 어시스턴트"
+  },
+  "agent": {
+    "bizSupport": "Biz.Support Agent",
+    "its": "ITS Agent",
+    "sop": "SOP Agent",
+    "db": "DB Agent",
+    "monitoring": "모니터링 Agent",
+    "changeManagement": "변경관리 Agent",
+    "report": "보고서 Agent"
+  },
+  "languages": {
+    "ko": "한국어",
+    "en": "English",
+    "vi": "Tiếng Việt"
+  }
+}

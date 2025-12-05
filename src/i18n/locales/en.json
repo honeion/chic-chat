@@ -1,0 +1,49 @@
+{
+  "common": {
+    "back": "Back",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "logout": "Logout"
+  },
+  "mypage": {
+    "title": "My Page",
+    "profile": "Profile Settings",
+    "profileDesc": "Manage profile information like name and photo",
+    "notification": "Notification Settings",
+    "notificationDesc": "Email and push notification settings",
+    "security": "Security Settings",
+    "securityDesc": "Password and two-factor authentication",
+    "agentNotification": "Agent Notifications",
+    "agentNotificationDesc": "Notification settings per Agent",
+    "theme": "Theme Settings",
+    "themeDesc": "Switch between light/dark mode",
+    "language": "Language Settings",
+    "languageDesc": "Change display language",
+    "logoutDesc": "Logout from account",
+    "userLevel": "Lv.2 User"
+  },
+  "sidebar": {
+    "skiAgent": "SKI Agent",
+    "myAgent": "My Agent",
+    "assistant": "Assistant",
+    "agentList": "Agent List",
+    "workflow": "Workflow",
+    "newChat": "New Chat",
+    "aiAssistant": "AI Assistant"
+  },
+  "agent": {
+    "bizSupport": "Biz.Support Agent",
+    "its": "ITS Agent",
+    "sop": "SOP Agent",
+    "db": "DB Agent",
+    "monitoring": "Monitoring Agent",
+    "changeManagement": "Change Management Agent",
+    "report": "Report Agent"
+  },
+  "languages": {
+    "ko": "한국어",
+    "en": "English",
+    "vi": "Tiếng Việt"
+  }
+}

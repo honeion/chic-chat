@@ -1,0 +1,49 @@
+{
+  "common": {
+    "back": "Quay lại",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "confirm": "Xác nhận",
+    "logout": "Đăng xuất"
+  },
+  "mypage": {
+    "title": "Trang của tôi",
+    "profile": "Cài đặt hồ sơ",
+    "profileDesc": "Quản lý thông tin hồ sơ như tên và ảnh",
+    "notification": "Cài đặt thông báo",
+    "notificationDesc": "Cài đặt email và thông báo đẩy",
+    "security": "Cài đặt bảo mật",
+    "securityDesc": "Mật khẩu và xác thực hai yếu tố",
+    "agentNotification": "Thông báo Agent",
+    "agentNotificationDesc": "Cài đặt thông báo theo Agent",
+    "theme": "Cài đặt giao diện",
+    "themeDesc": "Chuyển đổi chế độ sáng/tối",
+    "language": "Cài đặt ngôn ngữ",
+    "languageDesc": "Thay đổi ngôn ngữ hiển thị",
+    "logoutDesc": "Đăng xuất khỏi tài khoản",
+    "userLevel": "Lv.2 Người dùng"
+  },
+  "sidebar": {
+    "skiAgent": "SKI Agent",
+    "myAgent": "Agent của tôi",
+    "assistant": "Trợ lý",
+    "agentList": "Danh sách Agent",
+    "workflow": "Quy trình",
+    "newChat": "Cuộc trò chuyện mới",
+    "aiAssistant": "Trợ lý AI"
+  },
+  "agent": {
+    "bizSupport": "Biz.Support Agent",
+    "its": "ITS Agent",
+    "sop": "SOP Agent",
+    "db": "DB Agent",
+    "monitoring": "Agent Giám sát",
+    "changeManagement": "Agent Quản lý thay đổi",
+    "report": "Agent Báo cáo"
+  },
+  "languages": {
+    "ko": "한국어",
+    "en": "English",
+    "vi": "Tiếng Việt"
+  }
+}
