@@ -43,10 +43,10 @@ const mockAgents: Agent[] = [
 
 const mockChatRooms: ChatRoom[] = [
   { id: "1", name: "AI 어시스턴트", lastMessage: "안녕하세요! 무엇을 도와드릴까요?", timestamp: "방금", unread: 2, type: "agent", status: "online" },
-  { id: "2", name: "Super Agent", lastMessage: "작업이 완료되었습니다.", timestamp: "5분 전", unread: 0, type: "agent", status: "online" },
-  { id: "3", name: "데이터 워크플로우", lastMessage: "파이프라인 실행 중...", timestamp: "10분 전", unread: 1, type: "workflow", status: "busy" },
-  { id: "4", name: "김철수", lastMessage: "네, 확인했습니다!", timestamp: "1시간 전", unread: 0, type: "user", status: "offline" },
-  { id: "5", name: "RAG 에이전트", lastMessage: "문서 검색 완료", timestamp: "2시간 전", unread: 0, type: "agent", status: "online" },
+  { id: "2", name: "Biz.Support Agent", lastMessage: "작업이 완료되었습니다.", timestamp: "5분 전", unread: 0, type: "agent", status: "online" },
+  { id: "3", name: "ITS Agent", lastMessage: "티켓 처리가 완료되었습니다.", timestamp: "10분 전", unread: 1, type: "agent", status: "online" },
+  { id: "4", name: "모니터링 Agent", lastMessage: "시스템 상태 정상입니다.", timestamp: "1시간 전", unread: 0, type: "agent", status: "online" },
+  { id: "5", name: "데이터 분석 Agent", lastMessage: "보고서 생성 완료", timestamp: "2시간 전", unread: 0, type: "workflow", status: "online" },
 ];
 
 interface ChatSidebarProps {
@@ -284,7 +284,10 @@ export function ChatSidebar({
 
       {/* Footer */}
       <div className="p-3 border-t border-border">
-        <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary transition-colors cursor-pointer">
+        <div 
+          onClick={() => navigate("/mypage")}
+          className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary transition-colors cursor-pointer"
+        >
           <div className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center">
             <span className="text-sm font-semibold text-primary">U</span>
           </div>
