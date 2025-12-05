@@ -156,7 +156,8 @@
     "workflowDesc": "Trang quy trình được hiển thị bên phải",
     "all": "Tất cả",
     "agentFilter": "Agent",
-    "user": "Người dùng"
+    "user": "Người dùng",
+    "allSystems": "Tất cả hệ thống"
   },
   "agent": {
     "bizSupport": "Biz.Support Agent",

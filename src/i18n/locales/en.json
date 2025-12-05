@@ -156,7 +156,8 @@
     "workflowDesc": "Workflow page is displayed on the right",
     "all": "All",
     "agentFilter": "Agent",
-    "user": "User"
+    "user": "User",
+    "allSystems": "All Systems"
   },
   "agent": {
     "bizSupport": "Biz.Support Agent",
