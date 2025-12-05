@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Ticket, UserPlus, Shield, Database, Clock, CheckCircle, AlertCircle, Send, X, Key } from "lucide-react";
+import { Ticket, UserPlus, Shield, Database, Clock, CheckCircle, AlertCircle, Send, Key } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -33,10 +33,10 @@ const mockTickets: TicketItem[] = [
 ];
 
 const mockHistory = [
-  { id: 1, title: "VPN 접속 권한 신청", status: "completed" as const },
-  { id: 2, title: "신규 계정 발급 요청", status: "in-progress" as const },
-  { id: 3, title: "데이터베이스 접근 권한", status: "pending" as const },
-  { id: 4, title: "방화벽 포트 오픈 요청", status: "pending" as const },
+  { id: 1, title: "", status: "completed" as const },
+  { id: 2, title: "", status: "in-progress" as const },
+  { id: 3, title: "", status: "pending" as const },
+  { id: 4, title: "", status: "pending" as const },
 ];
 
 export function ITSAgentDashboard({ onRequest }: ITSAgentDashboardProps) {
@@ -45,16 +45,16 @@ export function ITSAgentDashboard({ onRequest }: ITSAgentDashboardProps) {
   const [selectedTicket, setSelectedTicket] = useState<TicketItem | null>(null);
 
   const requestCards = [
-    { id: "account", title: t("dashboard.accountRequest"), description: t("dashboard.accountRequestDesc"), icon: <UserPlus className="w-5 h-5" />, bgColor: "bg-amber-100 dark:bg-amber-900/30", borderColor: "border-amber-200 dark:border-amber-800" },
-    { id: "firewall", title: t("dashboard.firewallRequest"), description: t("dashboard.firewallRequestDesc"), icon: <Shield className="w-5 h-5" />, bgColor: "bg-orange-100 dark:bg-orange-900/30", borderColor: "border-orange-200 dark:border-orange-800" },
-    { id: "data", title: t("dashboard.dataRequest"), description: t("dashboard.dataRequestDesc"), icon: <Database className="w-5 h-5" />, bgColor: "bg-emerald-100 dark:bg-emerald-900/30", borderColor: "border-emerald-200 dark:border-emerald-800" },
-    { id: "access", title: t("dashboard.accessRequest"), description: t("dashboard.accessRequestDesc"), icon: <Key className="w-5 h-5" />, bgColor: "bg-green-100 dark:bg-green-900/30", borderColor: "border-green-200 dark:border-green-800" },
+    { id: "account", title: t("dashboard.accountRequest"), description: t("dashboard.accountRequestDesc"), icon: <UserPlus className="w-5 h-5" />, bgColor: "bg-amber-100 dark:bg-amber-900/30", headerColor: "bg-amber-200 dark:bg-amber-800/50" },
+    { id: "firewall", title: t("dashboard.firewallRequest"), description: t("dashboard.firewallRequestDesc"), icon: <Shield className="w-5 h-5" />, bgColor: "bg-orange-100 dark:bg-orange-900/30", headerColor: "bg-orange-200 dark:bg-orange-800/50" },
+    { id: "data", title: t("dashboard.dataRequest"), description: t("dashboard.dataRequestDesc"), icon: <Database className="w-5 h-5" />, bgColor: "bg-emerald-100 dark:bg-emerald-900/30", headerColor: "bg-emerald-200 dark:bg-emerald-800/50" },
+    { id: "access", title: t("dashboard.accessRequest"), description: t("dashboard.accessRequestDesc"), icon: <Key className="w-5 h-5" />, bgColor: "bg-green-100 dark:bg-green-900/30", headerColor: "bg-green-200 dark:bg-green-800/50" },
   ];
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "completed": return <span className="px-2 py-0.5 text-xs rounded bg-status-online/20 text-status-online border border-status-online/30">{t("common.completed")}</span>;
-      case "in-progress": return <span className="px-2 py-0.5 text-xs rounded bg-status-busy/20 text-status-busy border border-status-busy/30">{t("common.inProgress")}</span>;
+      case "completed": return <span className="px-3 py-1 text-xs rounded border bg-status-online/10 text-status-online border-status-online/30">{t("common.completed")}</span>;
+      case "in-progress": return <span className="px-3 py-1 text-xs rounded border bg-status-busy/10 text-status-busy border-status-busy/30">{t("common.inProgress")}</span>;
       default: return null;
     }
   };
@@ -69,67 +69,67 @@ export function ITSAgentDashboard({ onRequest }: ITSAgentDashboardProps) {
 
   return (
     <div className="space-y-6 h-full overflow-y-auto">
-      {/* Top Section: ITS 운영 + ITS 요청 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* ITS 운영 + ITS 요청 - 하나의 카드 안에 */}
+      <div className="rounded-xl border border-border bg-card p-5">
         {/* ITS 운영 */}
-        <div className="rounded-xl border border-border bg-card p-4">
+        <div className="mb-6">
           <h3 className="text-base font-semibold flex items-center gap-2 text-foreground mb-4">
             <Ticket className="w-5 h-5 text-primary" />
             {t("dashboard.itsOperations")}
           </h3>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-4">
             <div className="rounded-lg overflow-hidden border border-destructive/30">
-              <div className="px-3 py-1.5 bg-destructive/10 flex items-center gap-2">
-                <AlertCircle className="w-3.5 h-3.5 text-destructive" />
-                <span className="text-xs font-medium text-foreground">{t("common.received")}</span>
+              <div className="px-4 py-2 bg-destructive/20 flex items-center justify-center gap-2">
+                <AlertCircle className="w-4 h-4 text-destructive" />
+                <span className="text-sm font-medium text-foreground">{t("common.received")}</span>
               </div>
-              <div className="p-3 bg-background">
-                <p className="text-2xl font-bold text-foreground">{openCount}</p>
+              <div className="p-4 bg-background flex items-center justify-center">
+                <p className="text-3xl font-bold text-foreground">{openCount}</p>
               </div>
             </div>
             <div className="rounded-lg overflow-hidden border border-status-busy/30">
-              <div className="px-3 py-1.5 bg-status-busy/10 flex items-center gap-2">
-                <Clock className="w-3.5 h-3.5 text-status-busy" />
-                <span className="text-xs font-medium text-foreground">{t("common.inProgress")}</span>
+              <div className="px-4 py-2 bg-status-busy/20 flex items-center justify-center gap-2">
+                <Clock className="w-4 h-4 text-status-busy" />
+                <span className="text-sm font-medium text-foreground">{t("common.inProgress")}</span>
               </div>
-              <div className="p-3 bg-background">
-                <p className="text-2xl font-bold text-foreground">{inProgressCount}</p>
+              <div className="p-4 bg-background flex items-center justify-center">
+                <p className="text-3xl font-bold text-foreground">{inProgressCount}</p>
               </div>
             </div>
             <div className="rounded-lg overflow-hidden border border-status-online/30">
-              <div className="px-3 py-1.5 bg-status-online/10 flex items-center gap-2">
-                <CheckCircle className="w-3.5 h-3.5 text-status-online" />
-                <span className="text-xs font-medium text-foreground">{t("common.completed")}</span>
+              <div className="px-4 py-2 bg-status-online/20 flex items-center justify-center gap-2">
+                <CheckCircle className="w-4 h-4 text-status-online" />
+                <span className="text-sm font-medium text-foreground">{t("common.completed")}</span>
               </div>
-              <div className="p-3 bg-background">
-                <p className="text-2xl font-bold text-foreground">{resolvedCount}</p>
+              <div className="p-4 bg-background flex items-center justify-center">
+                <p className="text-3xl font-bold text-foreground">{resolvedCount}</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* ITS 요청 */}
-        <div className="rounded-xl border border-border bg-card p-4">
+        {/* ITS 요청 - 한 줄에 4개 */}
+        <div>
           <h3 className="text-base font-semibold flex items-center gap-2 text-foreground mb-4">
             <Send className="w-5 h-5 text-accent" />
             {t("dashboard.itsRequests")}
           </h3>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-4 gap-3">
             {requestCards.map(card => (
               <button
                 key={card.id}
                 onClick={() => onRequest(card.id)}
                 className={cn(
-                  "rounded-lg border transition-all hover:scale-[1.02] active:scale-[0.98] text-left",
-                  card.bgColor, card.borderColor
+                  "rounded-lg overflow-hidden border border-border transition-all hover:scale-[1.02] active:scale-[0.98] text-left",
+                  card.bgColor
                 )}
               >
-                <div className="p-3 flex items-center gap-2">
-                  <div className="text-foreground/70">{card.icon}</div>
+                <div className={cn("px-3 py-2 flex items-center justify-center gap-2", card.headerColor)}>
+                  <div className="text-foreground/80">{card.icon}</div>
                   <span className="font-medium text-sm text-foreground">{card.title}</span>
                 </div>
-                <div className="px-3 pb-3">
-                  <p className="text-xs text-muted-foreground">{card.description}</p>
+                <div className="p-3">
+                  <p className="text-xs text-muted-foreground text-center">{card.description}</p>
                 </div>
               </button>
             ))}
@@ -137,83 +137,86 @@ export function ITSAgentDashboard({ onRequest }: ITSAgentDashboardProps) {
         </div>
       </div>
 
-      {/* 현황 섹션: ITS 티켓 현황 (Kanban Style) */}
-      <div className="rounded-xl border border-border bg-card overflow-hidden">
-        <div className="px-4 py-3 bg-primary/10 border-b border-border">
-          <h3 className="text-sm font-semibold text-foreground text-center">{t("dashboard.ticketStatus")}</h3>
-        </div>
-        <div className="grid grid-cols-3 divide-x divide-border">
-          {/* 접수대기 Column */}
-          <div>
-            <div className="px-4 py-2 bg-muted/50 border-b border-border">
-              <span className="font-medium text-sm text-foreground">{t("common.pending")}</span>
-            </div>
-            <div className="p-3 space-y-2 min-h-[150px]">
-              {openTickets.map(ticket => (
-                <button
-                  key={ticket.id}
-                  onClick={() => setSelectedTicket(ticket)}
-                  className="w-full p-3 rounded-lg bg-muted/30 border border-border hover:bg-muted/50 transition-colors text-left"
-                >
-                  <p className="text-sm font-medium text-foreground truncate">{ticket.title}</p>
-                </button>
-              ))}
-            </div>
+      {/* 현황 섹션 */}
+      <div>
+        <h3 className="text-base font-semibold text-foreground mb-3">{t("dashboard.statusSection")}</h3>
+        <div className="rounded-xl border border-border bg-card overflow-hidden">
+          <div className="px-4 py-3 bg-primary/10 border-b border-border">
+            <h4 className="text-sm font-semibold text-foreground text-center">{t("dashboard.ticketStatus")}</h4>
           </div>
+          <div className="grid grid-cols-3 divide-x divide-border">
+            {/* 접수대기 Column */}
+            <div>
+              <div className="px-4 py-2 bg-muted/50 border-b border-border">
+                <span className="font-medium text-sm text-foreground">{t("common.pending")}</span>
+              </div>
+              <div className="p-3 space-y-2 min-h-[120px]">
+                {openTickets.map(ticket => (
+                  <button
+                    key={ticket.id}
+                    onClick={() => setSelectedTicket(ticket)}
+                    className="w-full p-3 rounded-lg bg-muted/30 border border-border hover:bg-muted/50 transition-colors text-left"
+                  >
+                    <p className="text-sm font-medium text-foreground truncate">{ticket.title}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
 
-          {/* 처리중 Column */}
-          <div>
-            <div className="px-4 py-2 bg-muted/50 border-b border-border">
-              <span className="font-medium text-sm text-foreground">{t("common.inProgress")}</span>
+            {/* 처리중 Column */}
+            <div>
+              <div className="px-4 py-2 bg-muted/50 border-b border-border">
+                <span className="font-medium text-sm text-foreground">{t("common.inProgress")}</span>
+              </div>
+              <div className="p-3 space-y-2 min-h-[120px]">
+                {inProgressTickets.map(ticket => (
+                  <button
+                    key={ticket.id}
+                    onClick={() => setSelectedTicket(ticket)}
+                    className="w-full p-3 rounded-lg bg-muted/30 border border-border hover:bg-muted/50 transition-colors text-left"
+                  >
+                    <p className="text-sm font-medium text-foreground truncate">{ticket.title}</p>
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="p-3 space-y-2 min-h-[150px]">
-              {inProgressTickets.map(ticket => (
-                <button
-                  key={ticket.id}
-                  onClick={() => setSelectedTicket(ticket)}
-                  className="w-full p-3 rounded-lg bg-muted/30 border border-border hover:bg-muted/50 transition-colors text-left"
-                >
-                  <p className="text-sm font-medium text-foreground truncate">{ticket.title}</p>
-                </button>
-              ))}
-            </div>
-          </div>
 
-          {/* 완료 Column */}
-          <div>
-            <div className="px-4 py-2 bg-muted/50 border-b border-border">
-              <span className="font-medium text-sm text-foreground">{t("common.completed")}</span>
-            </div>
-            <div className="p-3 space-y-2 min-h-[150px]">
-              {resolvedTickets.map(ticket => (
-                <button
-                  key={ticket.id}
-                  onClick={() => setSelectedTicket(ticket)}
-                  className="w-full p-3 rounded-lg bg-muted/30 border border-border hover:bg-muted/50 transition-colors text-left"
-                >
-                  <p className="text-sm font-medium text-foreground truncate">{ticket.title}</p>
-                </button>
-              ))}
+            {/* 완료 Column */}
+            <div>
+              <div className="px-4 py-2 bg-muted/50 border-b border-border">
+                <span className="font-medium text-sm text-foreground">{t("common.completed")}</span>
+              </div>
+              <div className="p-3 space-y-2 min-h-[120px]">
+                {resolvedTickets.map(ticket => (
+                  <button
+                    key={ticket.id}
+                    onClick={() => setSelectedTicket(ticket)}
+                    className="w-full p-3 rounded-lg bg-muted/30 border border-border hover:bg-muted/50 transition-colors text-left"
+                  >
+                    <p className="text-sm font-medium text-foreground truncate">{ticket.title}</p>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* 이력 섹션: 처리 이력 */}
-      <div className="rounded-xl border border-border bg-card overflow-hidden">
-        <div className="px-4 py-3 bg-muted/50 border-b border-border">
-          <h3 className="text-sm font-semibold text-foreground text-center">{t("dashboard.processHistory")}</h3>
-        </div>
-        <div className="divide-y divide-border">
-          {mockHistory.map(item => (
-            <div key={item.id} className="px-4 py-3 flex items-center justify-between hover:bg-muted/30 transition-colors">
-              <div className="flex items-center gap-3">
-                <span className="text-sm font-medium text-muted-foreground w-6">{item.id}</span>
-                <span className="text-sm text-foreground">{item.title}</span>
+      {/* 이력 섹션 */}
+      <div>
+        <h3 className="text-base font-semibold text-foreground mb-3">{t("dashboard.historySection")}</h3>
+        <div className="rounded-xl border border-border bg-card overflow-hidden">
+          <div className="px-4 py-3 bg-muted/50 border-b border-border">
+            <h4 className="text-sm font-semibold text-foreground text-center">{t("dashboard.processHistory")}</h4>
+          </div>
+          <div className="divide-y divide-border">
+            {mockHistory.map(item => (
+              <div key={item.id} className="px-4 py-3 flex items-center justify-between hover:bg-muted/30 transition-colors">
+                <span className="text-sm font-medium text-foreground">{item.id}</span>
+                {getStatusBadge(item.status)}
               </div>
-              {getStatusBadge(item.status)}
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
 

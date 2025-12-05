@@ -114,6 +114,8 @@
     "itsOperations": "Vận hành ITS",
     "itsRequests": "Yêu cầu ITS",
     "ticketStatus": "Trạng thái Ticket ITS",
+    "statusSection": "Phần Trạng thái",
+    "historySection": "Phần Lịch sử",
     "ticketDetail": "Chi tiết Ticket",
     "ticketNumber": "Số Ticket",
     "ticketType": "Loại Ticket",
