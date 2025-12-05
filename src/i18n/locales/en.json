@@ -114,6 +114,8 @@
     "itsOperations": "ITS Operations",
     "itsRequests": "ITS Requests",
     "ticketStatus": "ITS Ticket Status",
+    "statusSection": "Status Section",
+    "historySection": "History Section",
     "ticketDetail": "Ticket Detail",
     "ticketNumber": "Ticket Number",
     "ticketType": "Ticket Type",

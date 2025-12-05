@@ -114,6 +114,8 @@
     "itsOperations": "ITS 운영",
     "itsRequests": "ITS 요청",
     "ticketStatus": "ITS 티켓 현황",
+    "statusSection": "현황 섹션",
+    "historySection": "이력 섹션",
     "ticketDetail": "티켓 상세",
     "ticketNumber": "티켓번호",
     "ticketType": "티켓종류",
