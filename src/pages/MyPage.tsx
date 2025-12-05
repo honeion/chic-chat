@@ -1,15 +1,18 @@
-import { User, Mail, Shield, Bell, Palette, LogOut } from "lucide-react";
+import { User, Mail, Shield, Bell, Palette, LogOut, Globe } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 const MyPage = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const menuItems = [
-    { icon: User, label: "프로필 설정", description: "이름, 사진 등 프로필 정보 관리" },
-    { icon: Mail, label: "알림 설정", description: "이메일 및 푸시 알림 설정" },
-    { icon: Shield, label: "보안 설정", description: "비밀번호 및 2단계 인증" },
-    { icon: Bell, label: "Agent 알림", description: "Agent별 알림 수신 설정" },
+    { icon: User, label: t("mypage.profile"), description: t("mypage.profileDesc") },
+    { icon: Mail, label: t("mypage.notification"), description: t("mypage.notificationDesc") },
+    { icon: Shield, label: t("mypage.security"), description: t("mypage.securityDesc") },
+    { icon: Bell, label: t("mypage.agentNotification"), description: t("mypage.agentNotificationDesc") },
   ];
 
   return (
@@ -17,12 +20,12 @@ const MyPage = () => {
       {/* Header */}
       <header className="p-6 border-b border-border">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">마이페이지</h1>
+          <h1 className="text-2xl font-bold">{t("mypage.title")}</h1>
           <button
             onClick={() => navigate("/")}
             className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
-            돌아가기
+            {t("common.back")}
           </button>
         </div>
       </header>
@@ -40,7 +43,7 @@ const MyPage = () => {
                 <h2 className="text-xl font-semibold">사용자</h2>
                 <p className="text-sm text-muted-foreground">user@example.com</p>
                 <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-primary/20 text-primary text-xs font-medium">
-                  Lv.2 사용자
+                  {t("mypage.userLevel")}
                 </span>
               </div>
             </div>
@@ -54,11 +57,27 @@ const MyPage = () => {
                   <Palette className="w-5 h-5 text-muted-foreground" />
                 </div>
                 <div>
-                  <p className="font-medium">테마 설정</p>
-                  <p className="text-sm text-muted-foreground">라이트/다크 모드 전환</p>
+                  <p className="font-medium">{t("mypage.theme")}</p>
+                  <p className="text-sm text-muted-foreground">{t("mypage.themeDesc")}</p>
                 </div>
               </div>
               <ThemeToggle />
+            </div>
+          </div>
+
+          {/* Language Setting */}
+          <div className="p-4 rounded-2xl bg-card border border-border">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
+                  <Globe className="w-5 h-5 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="font-medium">{t("mypage.language")}</p>
+                  <p className="text-sm text-muted-foreground">{t("mypage.languageDesc")}</p>
+                </div>
+              </div>
+              <LanguageSelector />
             </div>
           </div>
 
@@ -86,8 +105,8 @@ const MyPage = () => {
               <LogOut className="w-5 h-5 text-destructive" />
             </div>
             <div>
-              <p className="font-medium text-destructive">로그아웃</p>
-              <p className="text-sm text-destructive/70">계정에서 로그아웃</p>
+              <p className="font-medium text-destructive">{t("common.logout")}</p>
+              <p className="text-sm text-destructive/70">{t("mypage.logoutDesc")}</p>
             </div>
           </button>
         </div>
