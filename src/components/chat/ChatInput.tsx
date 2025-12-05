@@ -1,4 +1,5 @@
 import { useState, useRef, KeyboardEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { Send, Paperclip, Mic, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -8,6 +9,7 @@ interface ChatInputProps {
 }
 
 export function ChatInput({ onSend, disabled }: ChatInputProps) {
+  const { t } = useTranslation();
   const [message, setMessage] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -35,12 +37,19 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
     }
   };
 
+  const quickActions = [
+    t("chat.quickActions.summarize"),
+    t("chat.quickActions.writeCode"),
+    t("chat.quickActions.translate"),
+    t("chat.quickActions.analyze"),
+  ];
+
   return (
     <div className="p-4 border-t border-border bg-background/50 backdrop-blur-sm">
       <div className="max-w-4xl mx-auto">
         {/* Quick Actions */}
         <div className="flex items-center gap-2 mb-3">
-          {["요약해줘", "코드 작성", "번역해줘", "분석해줘"].map((action) => (
+          {quickActions.map((action) => (
             <button
               key={action}
               onClick={() => setMessage(action)}
@@ -65,7 +74,7 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
             onInput={handleInput}
-            placeholder="메시지를 입력하세요..."
+            placeholder={t("chat.placeholder")}
             disabled={disabled}
             rows={1}
             className="flex-1 bg-transparent resize-none text-sm text-foreground placeholder:text-muted-foreground focus:outline-none py-2 max-h-[150px]"
@@ -94,7 +103,7 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
         {/* Footer hint */}
         <div className="flex items-center justify-center gap-1.5 mt-2 text-xs text-muted-foreground">
           <Sparkles className="w-3 h-3 text-primary" />
-          <span>AI가 도움을 드릴 준비가 되었습니다</span>
+          <span>{t("chat.aiReady")}</span>
         </div>
       </div>
     </div>
