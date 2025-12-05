@@ -156,7 +156,8 @@
     "workflowDesc": "워크플로우 페이지가 오른쪽에 표시됩니다",
     "all": "전체",
     "agentFilter": "Agent",
-    "user": "사용자"
+    "user": "사용자",
+    "allSystems": "전체 시스템"
   },
   "agent": {
     "bizSupport": "Biz.Support Agent",

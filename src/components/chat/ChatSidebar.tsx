@@ -144,6 +144,9 @@ export function ChatSidebar({
   const location = useLocation();
   const { t } = useTranslation();
 
+  const [selectedSystem, setSelectedSystem] = useState<OperatingSystem | null>(null);
+  const [systemDropdownOpen, setSystemDropdownOpen] = useState(false);
+
   const toggleSystem = (system: OperatingSystem) => {
     setExpandedSystems(prev => 
       prev.includes(system) 
@@ -163,6 +166,11 @@ export function ChatSidebar({
   const filteredMyAgents = myAgents.filter(agent =>
     agent.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Filter my agents by selected system
+  const filteredMyAgentsBySystem = selectedSystem 
+    ? filteredMyAgents.filter(agent => agent.system === selectedSystem)
+    : filteredMyAgents;
 
   const filteredMarketAgents = agentMarketItems.filter(agent =>
     agent.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -356,63 +364,99 @@ export function ChatSidebar({
 
         {currentView === "workflow" && (
           <>
-            {/* My Agent Section - Grouped by System */}
+            {/* My Agent Section */}
             <div className="px-2 py-1.5 text-xs font-semibold text-primary uppercase tracking-wider">
               {t("sidebar.myAgent")}
             </div>
-            {OPERATING_SYSTEMS.map((system) => {
-              const systemAgents = myAgentsBySystem[system];
-              const isExpanded = expandedSystems.includes(system);
+            
+            {/* System Selector Dropdown */}
+            <div className="px-2 mb-2">
+              <div className="relative">
+                <button
+                  onClick={() => setSystemDropdownOpen(!systemDropdownOpen)}
+                  className="w-full px-3 py-2 rounded-lg bg-secondary border border-border flex items-center justify-between hover:bg-secondary/80 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <Folder className="w-4 h-4 text-primary" />
+                    <span className="text-sm font-medium">
+                      {selectedSystem || t("sidebar.allSystems")}
+                    </span>
+                  </div>
+                  <ChevronDown className={cn("w-4 h-4 text-muted-foreground transition-transform", systemDropdownOpen && "rotate-180")} />
+                </button>
+                
+                {systemDropdownOpen && (
+                  <div className="absolute z-50 w-full mt-1 py-1 bg-popover border border-border rounded-lg shadow-lg">
+                    <button
+                      onClick={() => {
+                        setSelectedSystem(null);
+                        setSystemDropdownOpen(false);
+                      }}
+                      className={cn(
+                        "w-full px-3 py-2 text-left text-sm hover:bg-secondary transition-colors",
+                        !selectedSystem && "bg-primary/10 text-primary"
+                      )}
+                    >
+                      {t("sidebar.allSystems")}
+                    </button>
+                    {OPERATING_SYSTEMS.map((system) => (
+                      <button
+                        key={system}
+                        onClick={() => {
+                          setSelectedSystem(system);
+                          setSystemDropdownOpen(false);
+                        }}
+                        className={cn(
+                          "w-full px-3 py-2 text-left text-sm hover:bg-secondary transition-colors",
+                          selectedSystem === system && "bg-primary/10 text-primary"
+                        )}
+                      >
+                        {system}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* My Agent List - Filtered by System */}
+            {filteredMyAgentsBySystem.map((agent, index) => {
+              const isSelected = selectedWorkflowAgent?.id === agent.id;
               
               return (
-                <div key={system} className="mb-1">
+                <div key={agent.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
                   <button
-                    onClick={() => toggleSystem(system)}
-                    className="w-full px-3 py-2 rounded-lg text-left transition-all duration-200 flex items-center gap-2 hover:bg-secondary/50"
+                    onClick={() => {
+                      onSelectWorkflowAgent(agent);
+                      if (location.pathname !== "/") {
+                        navigate("/");
+                      }
+                    }}
+                    className={cn(
+                      "w-full p-3 rounded-xl text-left transition-all duration-200 flex items-center gap-3",
+                      "hover:bg-secondary/80",
+                      isSelected && !isDashboard
+                        ? "bg-primary/30 border border-primary/50 shadow-md" 
+                        : "bg-transparent"
+                    )}
                   >
-                    <Folder className="w-4 h-4 text-primary" />
-                    <span className="font-medium text-sm flex-1">{system}</span>
-                    <span className="text-xs text-muted-foreground">{systemAgents.length}</span>
-                    {isExpanded ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
-                  </button>
-                  
-                  {isExpanded && systemAgents.length > 0 && (
-                    <div className="ml-4 mt-1 space-y-1 border-l-2 border-border pl-2">
-                      {systemAgents.map((agent) => {
-                        const isSelected = selectedWorkflowAgent?.id === agent.id;
-                        
-                        return (
-                          <button
-                            key={agent.id}
-                            onClick={() => {
-                              onSelectWorkflowAgent(agent);
-                              if (location.pathname !== "/") {
-                                navigate("/");
-                              }
-                            }}
-                            className={cn(
-                              "w-full p-2.5 rounded-lg text-left transition-all duration-200 flex items-center gap-2",
-                              "hover:bg-secondary/80",
-                              isSelected && !isDashboard
-                                ? "bg-primary/30 border border-primary/50 shadow-md" 
-                                : "bg-transparent"
-                            )}
-                          >
-                            <div className="relative">
-                              <div className="w-7 h-7 rounded-md bg-accent/20 flex items-center justify-center">
-                                <Workflow className="w-3.5 h-3.5 text-accent" />
-                              </div>
-                              <span className={cn(
-                                "absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-sidebar",
-                                getWorkflowStatusColor(agent.status)
-                              )} />
-                            </div>
-                            <span className="font-medium text-xs flex-1 truncate">{agent.name}</span>
-                          </button>
-                        );
-                      })}
+                    <div className="relative">
+                      <div className="w-9 h-9 rounded-lg bg-accent/20 flex items-center justify-center">
+                        <Workflow className="w-4 h-4 text-accent" />
+                      </div>
+                      <span className={cn(
+                        "absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-sidebar",
+                        getWorkflowStatusColor(agent.status)
+                      )} />
                     </div>
-                  )}
+                    <div className="flex-1 min-w-0">
+                      <span className="font-medium text-sm block truncate">{agent.name}</span>
+                      {agent.system && (
+                        <span className="text-xs text-muted-foreground">{agent.system}</span>
+                      )}
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  </button>
                 </div>
               );
             })}
