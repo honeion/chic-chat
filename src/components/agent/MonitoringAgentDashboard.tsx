@@ -1,178 +1,279 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Activity, Server, Database, Wifi, AlertTriangle, CheckCircle, TrendingUp, TrendingDown } from "lucide-react";
+import { 
+  Activity, AlertTriangle, CheckCircle, Clock, AlertCircle, 
+  Play, MessageSquare, ChevronDown, ChevronUp, Server
+} from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { ChatSession } from "@/pages/AgentDetail";
 
-interface ServerStatus {
+// 감지 항목 타입 정의
+type DetectionSeverity = "critical" | "warning" | "info";
+
+interface DetectionItem {
   id: string;
-  name: string;
-  cpu: number;
-  memory: number;
-  disk: number;
-  status: "healthy" | "warning" | "critical";
+  detectionNo: string;
+  severity: DetectionSeverity;
+  title: string;
+  source: string;
+  date: string;
+  status: "detected" | "in-progress" | "resolved";
 }
 
-interface Alert {
-  id: string;
-  message: string;
-  severity: "info" | "warning" | "error";
-  timestamp: string;
+interface MonitoringAgentDashboardProps {
+  onStartChat?: (detection: DetectionItem) => void;
+  chatSessions?: ChatSession[];
+  onSelectSession?: (sessionId: string) => void;
+  activeSessionId?: string | null;
 }
 
-const mockServers: ServerStatus[] = [
-  { id: "s1", name: "WEB-01", cpu: 45, memory: 62, disk: 55, status: "healthy" },
-  { id: "s2", name: "WEB-02", cpu: 78, memory: 85, disk: 60, status: "warning" },
-  { id: "s3", name: "DB-01", cpu: 35, memory: 70, disk: 45, status: "healthy" },
-  { id: "s4", name: "API-01", cpu: 92, memory: 88, disk: 70, status: "critical" },
+// 심각도별 아이콘 및 색상
+const severityConfig: Record<DetectionSeverity, { icon: React.ReactNode; label: string; color: string }> = {
+  "critical": { icon: <AlertTriangle className="w-4 h-4" />, label: "심각", color: "text-destructive" },
+  "warning": { icon: <AlertCircle className="w-4 h-4" />, label: "경고", color: "text-amber-500" },
+  "info": { icon: <Activity className="w-4 h-4" />, label: "정보", color: "text-blue-500" },
+};
+
+// Mock 감지 데이터
+const mockDetections: DetectionItem[] = [
+  // 감지 (detected)
+  { id: "d1", detectionNo: "MON-2024-0045", severity: "critical", title: "API-01 CPU 사용률 임계치 초과", source: "API-01", date: "2024-12-05", status: "detected" },
+  { id: "d2", detectionNo: "MON-2024-0046", severity: "warning", title: "WEB-02 메모리 사용률 높음", source: "WEB-02", date: "2024-12-05", status: "detected" },
+  { id: "d3", detectionNo: "MON-2024-0047", severity: "critical", title: "DB-01 디스크 I/O 지연", source: "DB-01", date: "2024-12-06", status: "detected" },
+  // 처리중 (in-progress)
+  { id: "d4", detectionNo: "MON-2024-0044", severity: "warning", title: "네트워크 대역폭 포화 상태", source: "NETWORK", date: "2024-12-05", status: "in-progress" },
+  { id: "d5", detectionNo: "MON-2024-0043", severity: "critical", title: "SSL 인증서 만료 임박", source: "WEB-01", date: "2024-12-04", status: "in-progress" },
+  // 완료 (resolved)
+  { id: "d6", detectionNo: "MON-2024-0042", severity: "info", title: "DB-01 백업 완료", source: "DB-01", date: "2024-12-03", status: "resolved" },
+  { id: "d7", detectionNo: "MON-2024-0041", severity: "warning", title: "WEB-01 응답 지연 해결", source: "WEB-01", date: "2024-12-02", status: "resolved" },
 ];
 
-const mockAlerts: Alert[] = [
-  { id: "a1", message: "API-01 CPU usage exceeded threshold", severity: "error", timestamp: "10:45" },
-  { id: "a2", message: "WEB-02 high memory usage", severity: "warning", timestamp: "10:30" },
-  { id: "a3", message: "DB-01 backup completed", severity: "info", timestamp: "10:00" },
-];
-
-export function MonitoringAgentDashboard() {
+export function MonitoringAgentDashboard({ 
+  onStartChat, 
+  chatSessions = [], 
+  onSelectSession,
+  activeSessionId 
+}: MonitoringAgentDashboardProps) {
   const { t } = useTranslation();
+  const [detections] = useState<DetectionItem[]>(mockDetections);
+  const [isCompletedCollapsed, setIsCompletedCollapsed] = useState(true);
 
-  const getStatusColor = (status: ServerStatus["status"]) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
-      case "healthy": return "text-status-online";
-      case "warning": return "text-status-busy";
-      case "critical": return "text-destructive";
+      case "completed": return <span className="px-3 py-1 text-xs rounded border bg-status-online/10 text-status-online border-status-online/30">{t("common.completed")}</span>;
+      case "in-progress": return <span className="px-3 py-1 text-xs rounded border bg-status-busy/10 text-status-busy border-status-busy/30">{t("common.inProgress")}</span>;
+      case "pending-approval": return <span className="px-3 py-1 text-xs rounded border bg-amber-500/10 text-amber-500 border-amber-500/30">접수 대기</span>;
+      case "rejected": return <span className="px-3 py-1 text-xs rounded border bg-destructive/10 text-destructive border-destructive/30">반려</span>;
+      default: return null;
     }
   };
 
-  const getStatusLabel = (status: ServerStatus["status"]) => {
-    switch (status) {
-      case "healthy": return t("common.healthy");
-      case "warning": return t("common.warning");
-      case "critical": return t("common.critical");
+  const detectedItems = detections.filter(d => d.status === "detected");
+  const inProgressItems = detections.filter(d => d.status === "in-progress");
+  const resolvedItems = detections.filter(d => d.status === "resolved");
+
+  const detectedCount = detectedItems.length;
+  const inProgressCount = inProgressItems.length;
+  const resolvedCount = resolvedItems.length;
+
+  const handlePlayClick = (detection: DetectionItem) => {
+    if (onStartChat) {
+      onStartChat(detection);
     }
   };
 
-  const getProgressColor = (value: number) => {
-    if (value >= 90) return "bg-destructive";
-    if (value >= 70) return "bg-status-busy";
-    return "bg-status-online";
+  // 세션 ID 찾기 헬퍼 함수
+  const findSessionByDetectionId = (detectionId: string) => {
+    return chatSessions.find(session => session.request?.id === detectionId);
   };
 
-  const getSeverityStyle = (severity: Alert["severity"]) => {
-    switch (severity) {
-      case "error": return "bg-destructive/20 text-destructive border-destructive/30";
-      case "warning": return "bg-status-busy/20 text-status-busy border-status-busy/30";
-      case "info": return "bg-primary/20 text-primary border-primary/30";
+  // 감지 항목 클릭 핸들러
+  const handleDetectionClick = (detection: DetectionItem) => {
+    const session = findSessionByDetectionId(detection.id);
+    if (session && onSelectSession) {
+      onSelectSession(session.id);
     }
   };
 
-  const healthyCount = mockServers.filter(s => s.status === "healthy").length;
-  const warningCount = mockServers.filter(s => s.status === "warning").length;
-  const criticalCount = mockServers.filter(s => s.status === "critical").length;
+  // 감지 항목 렌더링 컴포넌트
+  const DetectionListItem = ({ detection, showPlay = false, clickable = false }: { detection: DetectionItem; showPlay?: boolean; clickable?: boolean }) => {
+    const config = severityConfig[detection.severity];
+    const session = findSessionByDetectionId(detection.id);
+    const isActive = session?.id === activeSessionId;
+    
+    const content = (
+      <>
+        <span className={cn("flex-shrink-0", config.color)} title={config.label}>
+          {config.icon}
+        </span>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm text-foreground truncate">{detection.title}</p>
+          <div className="flex items-center gap-2">
+            <p className="text-xs text-primary/80 font-mono">{detection.detectionNo}</p>
+            <span className="text-xs text-muted-foreground">• {detection.source}</span>
+          </div>
+        </div>
+        <span className="text-xs text-muted-foreground flex-shrink-0">{detection.date}</span>
+        {showPlay && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handlePlayClick(detection);
+            }}
+            className="p-1.5 rounded-md bg-primary/10 hover:bg-primary/20 text-primary transition-colors flex-shrink-0"
+            title="채팅 시작"
+          >
+            <Play className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </>
+    );
+
+    if (clickable && session) {
+      return (
+        <button
+          onClick={() => handleDetectionClick(detection)}
+          className={cn(
+            "w-full flex items-center gap-2 p-2 rounded-lg bg-background/50 hover:bg-background/80 transition-colors text-sm text-left",
+            isActive && "bg-primary/10 ring-1 ring-primary/30"
+          )}
+        >
+          {content}
+        </button>
+      );
+    }
+
+    return (
+      <div className="flex items-center gap-2 p-2 rounded-lg bg-background/50 hover:bg-background/80 transition-colors text-sm">
+        {content}
+      </div>
+    );
+  };
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-4 gap-4">
-        <div className="rounded-xl overflow-hidden border border-primary/30">
-          <div className="px-4 py-2 bg-primary/20 flex items-center gap-2">
-            <Server className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-foreground">{t("monitoring.totalServers")}</span>
-          </div>
-          <div className="p-4 bg-background/80">
-            <p className="text-3xl font-bold text-foreground">{mockServers.length}</p>
-          </div>
-        </div>
-        <div className="rounded-xl overflow-hidden border border-status-online/30">
-          <div className="px-4 py-2 bg-status-online/20 flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-status-online" />
-            <span className="text-sm font-medium text-foreground">{t("common.healthy")}</span>
-          </div>
-          <div className="p-4 bg-background/80">
-            <p className="text-3xl font-bold text-status-online">{healthyCount}</p>
-          </div>
-        </div>
-        <div className="rounded-xl overflow-hidden border border-status-busy/30">
-          <div className="px-4 py-2 bg-status-busy/20 flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-status-busy" />
-            <span className="text-sm font-medium text-foreground">{t("common.warning")}</span>
-          </div>
-          <div className="p-4 bg-background/80">
-            <p className="text-3xl font-bold text-status-busy">{warningCount}</p>
-          </div>
-        </div>
-        <div className="rounded-xl overflow-hidden border border-destructive/30">
-          <div className="px-4 py-2 bg-destructive/20 flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-destructive" />
-            <span className="text-sm font-medium text-foreground">{t("common.critical")}</span>
-          </div>
-          <div className="p-4 bg-background/80">
-            <p className="text-3xl font-bold text-destructive">{criticalCount}</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="rounded-xl overflow-hidden border border-primary/30">
-        <div className="px-4 py-3 bg-primary/20 flex items-center gap-2">
-          <Activity className="w-4 h-4 text-primary" />
-          <span className="text-sm font-medium text-foreground">{t("monitoring.serverResource")}</span>
-        </div>
-        <div className="bg-background/80">
-          <div className="grid grid-cols-4 gap-4 p-4">
-            {mockServers.map(server => (
-              <div key={server.id} className="p-4 rounded-lg border border-border/30 bg-background/50">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="font-semibold text-foreground">{server.name}</span>
-                  <span className={cn("text-xs font-medium", getStatusColor(server.status))}>
-                    {getStatusLabel(server.status)}
-                  </span>
-                </div>
-                <div className="space-y-2">
-                  <div>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-muted-foreground">CPU</span>
-                      <span className="text-foreground">{server.cpu}%</span>
-                    </div>
-                    <div className="h-2 bg-muted rounded-full overflow-hidden">
-                      <div className={cn("h-full rounded-full transition-all", getProgressColor(server.cpu))} style={{ width: `${server.cpu}%` }} />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-muted-foreground">Memory</span>
-                      <span className="text-foreground">{server.memory}%</span>
-                    </div>
-                    <div className="h-2 bg-muted rounded-full overflow-hidden">
-                      <div className={cn("h-full rounded-full transition-all", getProgressColor(server.memory))} style={{ width: `${server.memory}%` }} />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-muted-foreground">Disk</span>
-                      <span className="text-foreground">{server.disk}%</span>
-                    </div>
-                    <div className="h-2 bg-muted rounded-full overflow-hidden">
-                      <div className={cn("h-full rounded-full transition-all", getProgressColor(server.disk))} style={{ width: `${server.disk}%` }} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="rounded-xl overflow-hidden border border-status-busy/30">
-        <div className="px-4 py-3 bg-status-busy/20 flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4 text-status-busy" />
-          <span className="text-sm font-medium text-foreground">{t("monitoring.realtimeAlerts")}</span>
-        </div>
-        <div className="bg-background/80 divide-y divide-border/30">
-          {mockAlerts.map(alert => (
-            <div key={alert.id} className={cn("p-3 flex items-center gap-3 border-l-4", getSeverityStyle(alert.severity))}>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-foreground">{alert.message}</p>
-              </div>
-              <span className="text-xs text-muted-foreground">{alert.timestamp}</span>
+    <div className="space-y-6 h-full overflow-y-auto">
+      {/* 비정상 감지 현황 */}
+      <div className="rounded-xl border border-border bg-card p-5">
+        <h3 className="text-base font-semibold flex items-center gap-2 text-foreground mb-4">
+          <Server className="w-5 h-5 text-primary" />
+          비정상 감지 현황
+        </h3>
+        <div className="grid grid-cols-2 gap-4">
+          {/* 감지 */}
+          <div className="rounded-lg overflow-hidden border border-destructive/30">
+            <div className="px-4 py-2 bg-destructive/20 flex items-center justify-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-destructive" />
+              <span className="text-sm font-medium text-foreground">감지</span>
             </div>
-          ))}
+            <div className="p-3 bg-background flex items-center justify-center border-b border-border/50">
+              <p className="text-2xl font-bold text-foreground">{detectedCount}</p>
+            </div>
+            <div className="p-2 bg-background/50 space-y-1.5 max-h-[280px] overflow-y-auto">
+              {detectedItems.length > 0 ? (
+                detectedItems.map(detection => (
+                  <DetectionListItem key={detection.id} detection={detection} showPlay={true} />
+                ))
+              ) : (
+                <p className="text-xs text-muted-foreground text-center py-2">감지된 항목 없음</p>
+              )}
+            </div>
+          </div>
+
+          {/* 처리중 */}
+          <div className="rounded-lg overflow-hidden border border-status-busy/30">
+            <div className="px-4 py-2 bg-status-busy/20 flex items-center justify-center gap-2">
+              <Clock className="w-4 h-4 text-status-busy" />
+              <span className="text-sm font-medium text-foreground">처리중</span>
+            </div>
+            <div className="p-3 bg-background flex items-center justify-center border-b border-border/50">
+              <p className="text-2xl font-bold text-foreground">{inProgressCount}</p>
+            </div>
+            <div className="p-2 bg-background/50 space-y-1.5 max-h-[280px] overflow-y-auto">
+              {inProgressItems.length > 0 ? (
+                inProgressItems.map(detection => (
+                  <DetectionListItem key={detection.id} detection={detection} clickable={true} />
+                ))
+              ) : (
+                <p className="text-xs text-muted-foreground text-center py-2">처리중인 항목 없음</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* 완료 - 접기 가능 */}
+        <div className="mt-4 rounded-lg overflow-hidden border border-status-online/30">
+          <button
+            onClick={() => setIsCompletedCollapsed(!isCompletedCollapsed)}
+            className="w-full px-4 py-2 bg-status-online/20 flex items-center justify-between hover:bg-status-online/30 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-status-online" />
+              <span className="text-sm font-medium text-foreground">{t("common.completed")}</span>
+              <span className="text-sm font-bold text-foreground ml-2">{resolvedCount}</span>
+            </div>
+            {isCompletedCollapsed ? (
+              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+            ) : (
+              <ChevronUp className="w-4 h-4 text-muted-foreground" />
+            )}
+          </button>
+          {!isCompletedCollapsed && (
+            <div className="p-2 bg-background/50 space-y-1.5 max-h-[200px] overflow-y-auto">
+              {resolvedItems.length > 0 ? (
+                resolvedItems.map(detection => (
+                  <DetectionListItem key={detection.id} detection={detection} clickable={true} />
+                ))
+              ) : (
+                <p className="text-xs text-muted-foreground text-center py-2">완료된 항목 없음</p>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 처리 Chat 이력 */}
+      <div className="rounded-xl border border-border bg-card overflow-hidden">
+        <div className="px-4 py-3 bg-muted/50 border-b border-border flex items-center justify-center gap-2">
+          <MessageSquare className="w-5 h-5 text-primary" />
+          <h4 className="text-sm font-semibold text-foreground">{t("dashboard.processChatHistory")}</h4>
+        </div>
+        <div className="divide-y divide-border">
+          {chatSessions.length > 0 ? (
+            chatSessions.map(session => {
+              const isActive = session.id === activeSessionId;
+              return (
+                <button
+                  key={session.id}
+                  onClick={() => onSelectSession?.(session.id)}
+                  className={cn(
+                    "w-full px-4 py-3 flex items-center gap-3 hover:bg-muted/30 transition-colors text-left",
+                    isActive && "bg-primary/10 border-l-2 border-l-primary"
+                  )}
+                >
+                  <span className="flex-shrink-0 text-primary">
+                    <Activity className="w-4 h-4" />
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{session.request?.title || "모니터링 알림"}</p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-primary/80 font-mono">{session.request?.requestNo || session.id}</span>
+                      <span className="text-xs text-muted-foreground">{session.request?.date}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <MessageSquare className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">{session.messages.length}</span>
+                    {getStatusBadge(session.status)}
+                  </div>
+                </button>
+              );
+            })
+          ) : (
+            <div className="px-4 py-6 text-center">
+              <p className="text-sm text-muted-foreground">채팅 이력이 없습니다</p>
+              <p className="text-xs text-muted-foreground mt-1">감지 항목의 플레이 버튼을 눌러 채팅을 시작하세요</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
