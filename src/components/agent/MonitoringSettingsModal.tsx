@@ -112,13 +112,24 @@ export function MonitoringSettingsModal({
 }: MonitoringSettingsModalProps) {
   const { t } = useTranslation();
   const [categories, setCategories] = useState<MonitoringCategory[]>(initialCategories);
-  const [expandedCategory, setExpandedCategory] = useState<string | null>("http-api");
+  // 모든 카테고리를 기본적으로 펼친 상태로 시작
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
+    new Set(initialCategories.map(c => c.id))
+  );
   const [editingItem, setEditingItem] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
   const toggleCategory = (categoryId: string) => {
-    setExpandedCategory(expandedCategory === categoryId ? null : categoryId);
+    setExpandedCategories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(categoryId)) {
+        newSet.delete(categoryId);
+      } else {
+        newSet.add(categoryId);
+      }
+      return newSet;
+    });
   };
 
   const toggleItemEnabled = (categoryId: string, itemId: string) => {
@@ -238,7 +249,7 @@ export function MonitoringSettingsModal({
                     {getEnabledCount(category)}/{category.items.length} 활성
                   </span>
                 </div>
-                {expandedCategory === category.id ? (
+                {expandedCategories.has(category.id) ? (
                   <ChevronUp className="w-4 h-4 text-muted-foreground" />
                 ) : (
                   <ChevronDown className="w-4 h-4 text-muted-foreground" />
@@ -246,7 +257,7 @@ export function MonitoringSettingsModal({
               </button>
               
               {/* Category Items */}
-              {expandedCategory === category.id && (
+              {expandedCategories.has(category.id) && (
                 <div className="bg-background/50 divide-y divide-border/50">
                   {category.items.map(item => (
                     <div 
