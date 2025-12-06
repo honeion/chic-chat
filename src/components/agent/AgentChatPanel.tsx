@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { MessageSquare, Send, CheckCircle, Clock, Loader2 } from "lucide-react";
+import { MessageSquare, Send, CheckCircle, Clock, Loader2, X, AlertTriangle, Wrench, Database, User, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ProcessingStep {
@@ -16,20 +16,42 @@ interface Message {
   processingSteps?: ProcessingStep[];
 }
 
+// 현재 처리 중인 요청 정보
+type RequestType = "I" | "C" | "D" | "A" | "S";
+interface ActiveRequest {
+  id: string;
+  type: RequestType;
+  title: string;
+  date: string;
+}
+
 interface AgentChatPanelProps {
   agentName: string;
   messages: Message[];
   onSendMessage: (message: string) => void;
   onQuickAction: (action: string) => void;
   quickActions: Array<{ label: string; action: string }>;
+  activeRequest?: ActiveRequest | null;
+  onCloseRequest?: () => void;
 }
+
+// 요청 타입별 아이콘 및 색상
+const requestTypeConfig: Record<RequestType, { icon: React.ReactNode; label: string; color: string }> = {
+  "I": { icon: <AlertTriangle className="w-4 h-4" />, label: "인시던트", color: "text-destructive" },
+  "C": { icon: <Wrench className="w-4 h-4" />, label: "개선", color: "text-amber-500" },
+  "D": { icon: <Database className="w-4 h-4" />, label: "데이터", color: "text-emerald-500" },
+  "A": { icon: <User className="w-4 h-4" />, label: "계정/권한", color: "text-blue-500" },
+  "S": { icon: <FileText className="w-4 h-4" />, label: "단순", color: "text-muted-foreground" },
+};
 
 export function AgentChatPanel({ 
   agentName, 
   messages, 
   onSendMessage, 
   onQuickAction,
-  quickActions 
+  quickActions,
+  activeRequest,
+  onCloseRequest
 }: AgentChatPanelProps) {
   const { t } = useTranslation();
   const [chatInput, setChatInput] = useState("");
@@ -56,6 +78,31 @@ export function AgentChatPanel({
           {agentName} {t("agentChat.conversation")}
         </h3>
       </div>
+
+      {/* 현재 처리 중인 요청 제목 영역 */}
+      {activeRequest && (
+        <div className="px-4 py-3 border-b border-border bg-primary/5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className={cn("flex-shrink-0", requestTypeConfig[activeRequest.type].color)}>
+                {requestTypeConfig[activeRequest.type].icon}
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-foreground truncate">{activeRequest.title}</p>
+                <p className="text-xs text-muted-foreground">{activeRequest.date}</p>
+              </div>
+            </div>
+            {onCloseRequest && (
+              <button
+                onClick={onCloseRequest}
+                className="p-1 rounded hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
       
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {messages.map((msg, idx) => (
