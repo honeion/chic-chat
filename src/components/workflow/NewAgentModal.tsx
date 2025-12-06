@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { X, Plus, ChevronRight, GripVertical, Trash2 } from "lucide-react";
+import { X, Plus, ChevronRight, GripVertical, Trash2, Folder } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { OperatingSystem, AgentTemplateType, agentTemplates, OPERATING_SYSTEMS } from "@/pages/Index";
 
 interface Tool {
   id: string;
@@ -17,17 +18,26 @@ interface NewAgentModalProps {
     description: string;
     steps: string[];
     instructions: string;
+    systems: OperatingSystem[];
+    templateType: AgentTemplateType;
   }) => void;
   tools: Tool[];
+  defaultTemplateType?: AgentTemplateType | null;
 }
 
-export function NewAgentModal({ isOpen, onClose, onSave, tools }: NewAgentModalProps) {
+export function NewAgentModal({ isOpen, onClose, onSave, tools, defaultTemplateType }: NewAgentModalProps) {
   const { t } = useTranslation();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [selectedTools, setSelectedTools] = useState<Tool[]>([]);
   const [instructions, setInstructions] = useState("");
   const [hoveredTool, setHoveredTool] = useState<Tool | null>(null);
+  const [selectedSystems, setSelectedSystems] = useState<OperatingSystem[]>([]);
+  const [selectedTemplateType, setSelectedTemplateType] = useState<AgentTemplateType>(
+    defaultTemplateType || "daily-check"
+  );
+
+  const SYSTEM_BOXES: OperatingSystem[] = ["e-총무", "BiOn", "SATIS"];
 
   if (!isOpen) return null;
 
@@ -41,19 +51,30 @@ export function NewAgentModal({ isOpen, onClose, onSave, tools }: NewAgentModalP
     setSelectedTools(selectedTools.filter((t) => t.id !== toolId));
   };
 
+  const toggleSystem = (system: OperatingSystem) => {
+    setSelectedSystems(prev => 
+      prev.includes(system) 
+        ? prev.filter(s => s !== system)
+        : [...prev, system]
+    );
+  };
+
   const handleSave = () => {
-    if (name && selectedTools.length > 0) {
+    if (name && selectedTools.length > 0 && selectedSystems.length > 0) {
       onSave({
         name,
         description,
         steps: selectedTools.map((t) => t.name),
         instructions,
+        systems: selectedSystems,
+        templateType: selectedTemplateType,
       });
       // Reset form
       setName("");
       setDescription("");
       setSelectedTools([]);
       setInstructions("");
+      setSelectedSystems([]);
       onClose();
     }
   };
@@ -72,6 +93,49 @@ export function NewAgentModal({ isOpen, onClose, onSave, tools }: NewAgentModalP
 
         {/* Content */}
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)]">
+          {/* Template Type Selection */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium mb-3">템플릿 타입</label>
+            <div className="flex flex-wrap gap-2">
+              {agentTemplates.map((template) => (
+                <button
+                  key={template.type}
+                  onClick={() => setSelectedTemplateType(template.type)}
+                  className={cn(
+                    "px-4 py-2 rounded-lg text-sm transition-all border",
+                    selectedTemplateType === template.type
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-secondary border-border hover:border-primary/50"
+                  )}
+                >
+                  {template.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* System Selection */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium mb-3">대상 시스템 (필수)</label>
+            <div className="flex gap-3">
+              {SYSTEM_BOXES.map((system) => (
+                <button
+                  key={system}
+                  onClick={() => toggleSystem(system)}
+                  className={cn(
+                    "px-4 py-3 rounded-xl border-2 transition-all font-medium text-sm flex items-center gap-2",
+                    selectedSystems.includes(system)
+                      ? "bg-primary/20 border-primary text-primary shadow-md"
+                      : "bg-card/50 border-border/50 text-muted-foreground hover:border-primary/50 hover:bg-card"
+                  )}
+                >
+                  <Folder className="w-4 h-4" />
+                  {system}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Name & Description */}
           <div className="space-y-4 mb-6">
             <div>
@@ -191,10 +255,10 @@ export function NewAgentModal({ isOpen, onClose, onSave, tools }: NewAgentModalP
           </button>
           <button
             onClick={handleSave}
-            disabled={!name || selectedTools.length === 0}
+            disabled={!name || selectedTools.length === 0 || selectedSystems.length === 0}
             className={cn(
               "px-6 py-2 rounded-lg transition-colors",
-              name && selectedTools.length > 0
+              name && selectedTools.length > 0 && selectedSystems.length > 0
                 ? "bg-primary text-primary-foreground hover:bg-primary/90"
                 : "bg-muted text-muted-foreground cursor-not-allowed"
             )}

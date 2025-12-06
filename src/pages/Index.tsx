@@ -13,7 +13,7 @@ type ViewType = "agent" | "workflow" | "assistant";
 export const OPERATING_SYSTEMS = ["e-총무", "BiOn", "SATIS", "ITS"] as const;
 export type OperatingSystem = typeof OPERATING_SYSTEMS[number];
 
-export type AgentTemplateType = "daily-check" | "incident-response" | "weekly-report" | "its-automation" | "custom";
+export type AgentTemplateType = "daily-check" | "incident-response" | "weekly-report" | "its-automation";
 
 export interface WorkflowItem {
   id: string;
@@ -42,7 +42,6 @@ export const agentTemplates: { type: AgentTemplateType; name: string; descriptio
   { type: "incident-response", name: "장애 대응 플로우", description: "장애 감지 시 자동 대응 플로우", steps: ["Alert Detect", "Log Analyzer", "Notify", "Escalate"] },
   { type: "weekly-report", name: "주간 리포트", description: "매주 월요일 리포트 생성", steps: ["Data Collect", "Analyze", "Report Gen", "Email Send"] },
   { type: "its-automation", name: "ITS 티켓 자동화", description: "티켓 자동 분류 및 할당", steps: ["Ticket Parse", "Classify", "Assign", "Notify"] },
-  { type: "custom", name: "커스텀 Agent", description: "사용자 정의 Agent", steps: [] },
 ];
 
 export const initialMyAgents: WorkflowItem[] = [];
@@ -81,20 +80,30 @@ const Index = () => {
       ...marketAgent,
       id: `m${Date.now()}`,
       status: "active",
-      templateType: "custom", // 마켓에서 추가된 Agent는 커스텀 타입
+      systems: marketAgent.systems || [],
+      templateType: marketAgent.templateType || "daily-check",
     };
     setMyAgents([...myAgents, newAgent]);
     setSelectedWorkflowAgent(newAgent);
     setSelectedMarketAgent(null);
   };
 
-  const handleAddNewAgent = (agent: { name: string; description: string; steps: string[]; instructions: string }) => {
+  const handleAddNewAgent = (agent: { 
+    name: string; 
+    description: string; 
+    steps: string[]; 
+    instructions: string;
+    systems: OperatingSystem[];
+    templateType: AgentTemplateType;
+  }) => {
     const newAgent: WorkflowItem = {
       id: `m${Date.now()}`,
       name: agent.name,
       description: agent.description,
       steps: agent.steps,
       status: "draft",
+      systems: agent.systems,
+      templateType: agent.templateType,
     };
     setMyAgents([...myAgents, newAgent]);
   };
