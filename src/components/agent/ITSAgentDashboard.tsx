@@ -228,49 +228,46 @@ export function ITSAgentDashboard({
           </div>
         </div>
       </div>
-      {/* 이력 섹션 - 채팅 세션과 연동 */}
-      <div>
-        <h3 className="text-base font-semibold text-foreground mb-3">{t("dashboard.historySection")}</h3>
-        <div className="rounded-xl border border-border bg-card overflow-hidden">
-          <div className="px-4 py-3 bg-muted/50 border-b border-border">
-            <h4 className="text-sm font-semibold text-foreground text-center">{t("dashboard.processHistory")}</h4>
-          </div>
-          <div className="divide-y divide-border">
-            {chatSessions.length > 0 ? (
-              chatSessions.map(session => {
-                const config = requestTypeConfig[session.request.type];
-                const isActive = session.id === activeSessionId;
-                return (
-                  <button
-                    key={session.id}
-                    onClick={() => onSelectSession?.(session.id)}
-                    className={cn(
-                      "w-full px-4 py-3 flex items-center gap-3 hover:bg-muted/30 transition-colors text-left",
-                      isActive && "bg-primary/10 border-l-2 border-l-primary"
-                    )}
-                  >
-                    <span className={cn("flex-shrink-0", config.color)}>
-                      {config.icon}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">{session.request.title}</p>
-                      <p className="text-xs text-muted-foreground">{session.request.date}</p>
-                    </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <MessageSquare className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground">{session.messages.length}</span>
-                      {getStatusBadge(session.status)}
-                    </div>
-                  </button>
-                );
-              })
-            ) : (
-              <div className="px-4 py-6 text-center">
-                <p className="text-sm text-muted-foreground">채팅 이력이 없습니다</p>
-                <p className="text-xs text-muted-foreground mt-1">미접수 요청의 플레이 버튼을 눌러 채팅을 시작하세요</p>
-              </div>
-            )}
-          </div>
+      {/* 처리 Chat 이력 */}
+      <div className="rounded-xl border border-border bg-card overflow-hidden">
+        <div className="px-4 py-3 bg-muted/50 border-b border-border">
+          <h4 className="text-sm font-semibold text-foreground text-center">{t("dashboard.processChatHistory")}</h4>
+        </div>
+        <div className="divide-y divide-border">
+          {chatSessions.length > 0 ? (
+            chatSessions.map(session => {
+              const config = requestTypeConfig[session.request.type];
+              const isActive = session.id === activeSessionId;
+              return (
+                <button
+                  key={session.id}
+                  onClick={() => onSelectSession?.(session.id)}
+                  className={cn(
+                    "w-full px-4 py-3 flex items-center gap-3 hover:bg-muted/30 transition-colors text-left",
+                    isActive && "bg-primary/10 border-l-2 border-l-primary"
+                  )}
+                >
+                  <span className={cn("flex-shrink-0", config.color)}>
+                    {config.icon}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{session.request.title}</p>
+                    <p className="text-xs text-muted-foreground">{session.request.date}</p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <MessageSquare className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">{session.messages.length}</span>
+                    {getStatusBadge(session.status)}
+                  </div>
+                </button>
+              );
+            })
+          ) : (
+            <div className="px-4 py-6 text-center">
+              <p className="text-sm text-muted-foreground">채팅 이력이 없습니다</p>
+              <p className="text-xs text-muted-foreground mt-1">미접수 요청의 플레이 버튼을 눌러 채팅을 시작하세요</p>
+            </div>
+          )}
         </div>
       </div>
 
