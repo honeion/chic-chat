@@ -285,14 +285,14 @@ export function ChatSidebar({
               {t("sidebar.agentList")}
             </div>
             {filteredAgents.map((agent, index) => {
-              const isExpanded = selectedAgent === agent.id;
+              const isSelected = selectedAgent === agent.id;
               const totalUnread = agent.chatHistory.reduce((sum, chat) => sum + chat.unread, 0);
               
               return (
                 <div key={agent.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
                   <button
                     onClick={() => {
-                      onSelectAgent(isExpanded ? "" : agent.id);
+                      onSelectAgent(agent.id);
                       if (location.pathname !== "/") {
                         navigate("/");
                       }
@@ -300,7 +300,7 @@ export function ChatSidebar({
                     className={cn(
                       "w-full p-3 rounded-xl text-left transition-all duration-200 flex items-center gap-3",
                       "hover:bg-secondary/80",
-                      isExpanded && !isDashboard
+                      isSelected && !isDashboard
                         ? "bg-primary/20 border border-primary/30" 
                         : "bg-transparent"
                     )}
@@ -320,42 +320,7 @@ export function ChatSidebar({
                         {totalUnread}
                       </span>
                     )}
-                    {agent.chatHistory.length > 0 && (
-                      isExpanded ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                    )}
                   </button>
-                  
-                  {/* Chat History Sub-list */}
-                  {isExpanded && agent.chatHistory.length > 0 && (
-                    <div className="ml-6 mt-1 space-y-1 border-l-2 border-border pl-3">
-                      {agent.chatHistory.map((chat) => (
-                        <button
-                          key={chat.id}
-                          onClick={() => onSelectChat(chat.id)}
-                          className={cn(
-                            "w-full p-2 rounded-lg text-left transition-all duration-200",
-                            "hover:bg-secondary/80",
-                            selectedChat === chat.id
-                              ? "bg-secondary border border-primary/20"
-                              : "bg-transparent"
-                          )}
-                        >
-                          <div className="flex items-center justify-between mb-0.5">
-                            <span className="text-sm font-medium truncate">{chat.title}</span>
-                            <span className="text-xs text-muted-foreground">{chat.timestamp}</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <p className="text-xs text-muted-foreground truncate pr-2">{chat.lastMessage}</p>
-                            {chat.unread > 0 && (
-                              <span className="min-w-[18px] h-4 px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold flex items-center justify-center">
-                                {chat.unread}
-                              </span>
-                            )}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
                 </div>
               );
             })}
