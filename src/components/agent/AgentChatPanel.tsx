@@ -324,22 +324,6 @@ export function AgentChatPanel({
         </div>
       )}
 
-      {/* 일반 상태일 때 퀵 액션 표시 */}
-      {!isPendingApproval && !isPendingProcessStart && !isPendingMonitoringResult && !isPendingDetectionAction && !isPendingDirectComplete && (
-        <div className="p-3 border-t border-border/50">
-          <div className="flex flex-wrap gap-2 mb-3">
-            {quickActions.map((action, idx) => (
-              <button
-                key={idx}
-                onClick={() => onQuickAction(action.action)}
-                className="px-3 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 text-xs transition-colors"
-              >
-                {action.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
 
       <div className="p-4 border-t border-border">
         <div className="flex gap-2">
