@@ -539,12 +539,17 @@ ${getRequestDetailContent(request)}
 
   // SOP Agent 채팅 시작 핸들러 - 요청 요약 및 처리 확인 흐름
   const handleSOPStartChat = (incident: { id: string; title: string; description?: string; requestNo?: string; type?: RequestType; timestamp: string; priority?: string }) => {
+    console.log("handleSOPStartChat called with incident:", incident);
+    
     // 기존 세션 확인
     const existingSession = chatSessions.find(s => s.request.id === incident.id);
     if (existingSession) {
+      console.log("Existing session found:", existingSession.id);
       setActiveSessionId(existingSession.id);
       return;
     }
+    
+    console.log("Creating new session for incident:", incident.id);
     
     // 새로운 세션 생성
     const newSessionId = `session-${Date.now()}`;
