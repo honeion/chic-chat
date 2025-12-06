@@ -18,6 +18,7 @@ type RequestType = "I" | "C" | "D" | "A" | "S";
 
 interface RequestItem {
   id: string;
+  requestNo: string;
   type: RequestType;
   title: string;
   date: string;
@@ -44,13 +45,13 @@ const requestTypeConfig: Record<RequestType, { icon: React.ReactNode; label: str
 // Mock 요청 데이터 - 각 타입별 1개씩
 const mockRequests: RequestItem[] = [
   // 미접수 (open)
-  { id: "r1", type: "I", title: "서버 응답 지연 현상 발생", date: "2024-12-05", status: "open" },
-  { id: "r4", type: "A", title: "신규 입사자 계정 발급 요청", date: "2024-12-04", status: "open" },
+  { id: "r1", requestNo: "ITS-2024-0152", type: "I", title: "서버 응답 지연 현상 발생", date: "2024-12-05", status: "open" },
+  { id: "r4", requestNo: "ITS-2024-0149", type: "A", title: "신규 입사자 계정 발급 요청", date: "2024-12-04", status: "open" },
   // 접수/처리중 (in-progress)
-  { id: "r2", type: "C", title: "대시보드 UI 개선 요청", date: "2024-12-05", status: "in-progress" },
-  { id: "r3", type: "D", title: "월간 매출 데이터 추출 요청", date: "2024-12-04", status: "in-progress" },
+  { id: "r2", requestNo: "ITS-2024-0151", type: "C", title: "대시보드 UI 개선 요청", date: "2024-12-05", status: "in-progress" },
+  { id: "r3", requestNo: "ITS-2024-0150", type: "D", title: "월간 매출 데이터 추출 요청", date: "2024-12-04", status: "in-progress" },
   // 완료 (resolved)
-  { id: "r5", type: "S", title: "프린터 용지 교체 요청", date: "2024-12-03", status: "resolved" },
+  { id: "r5", requestNo: "ITS-2024-0148", type: "S", title: "프린터 용지 교체 요청", date: "2024-12-03", status: "resolved" },
 ];
 
 export function ITSAgentDashboard({ 
@@ -118,6 +119,7 @@ export function ITSAgentDashboard({
         <span className={cn("flex-shrink-0", config.color)} title={config.label}>
           {config.icon}
         </span>
+        <span className="text-xs text-primary/80 font-mono flex-shrink-0">{request.requestNo}</span>
         <span className="flex-1 truncate text-foreground">{request.title}</span>
         <span className="text-xs text-muted-foreground flex-shrink-0">{request.date}</span>
         {showPlay && (
