@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Workflow, Plus, Play, Save, Trash2, ChevronRight, ChevronDown, Store, Clock, History, Folder } from "lucide-react";
+import { Workflow, Plus, Play, Save, Trash2, ChevronRight, ChevronDown, Store, Clock, History, Folder, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NewAgentModal } from "@/components/workflow/NewAgentModal";
 import { AgentDetailModal } from "@/components/workflow/AgentDetailModal";
 import { WorkflowChatPanel } from "@/components/workflow/WorkflowChatPanel";
-import { WorkflowItem, agentMarketItems, OPERATING_SYSTEMS, OperatingSystem } from "@/pages/Index";
+import { WorkflowItem, agentMarketItems, OPERATING_SYSTEMS, OperatingSystem, AgentTemplateType, agentTemplates } from "@/pages/Index";
 
 interface ExecutionHistory {
   id: string;
@@ -50,6 +50,9 @@ const mockExecutionHistory: Record<string, ExecutionHistory[]> = {
     { id: "e2", timestamp: "어제 09:00", status: "success", duration: "2분 15초" },
     { id: "e3", timestamp: "2일 전 09:00", status: "failed", duration: "1분 45초" },
   ],
+  "m1-2": [
+    { id: "e1-2", timestamp: "오늘 09:00", status: "success", duration: "1분 50초" },
+  ],
   m2: [
     { id: "e4", timestamp: "오늘 14:30", status: "running", duration: "진행 중" },
   ],
@@ -66,6 +69,8 @@ interface WorkflowPageProps {
   setSelectedAgent: (agent: WorkflowItem | null) => void;
   onAddFromMarket: (agent: WorkflowItem) => void;
   onAddNewAgent: (agent: { name: string; description: string; steps: string[]; instructions: string }) => void;
+  selectedTemplateType: AgentTemplateType | null;
+  setSelectedTemplateType: (type: AgentTemplateType | null) => void;
 }
 
 export function WorkflowPage({
@@ -74,7 +79,9 @@ export function WorkflowPage({
   selectedAgent,
   setSelectedAgent,
   onAddFromMarket,
-  onAddNewAgent
+  onAddNewAgent,
+  selectedTemplateType,
+  setSelectedTemplateType
 }: WorkflowPageProps) {
   const { t } = useTranslation();
   const [expandedMarket, setExpandedMarket] = useState(false);
@@ -85,10 +92,19 @@ export function WorkflowPage({
 
   const displayedMarketAgents = expandedMarket ? agentMarketItems : agentMarketItems.slice(0, 4);
   
-  // Filter my agents by selected systems (toggle)
-  const filteredMyAgents = selectedSystems.length > 0
-    ? myAgents.filter(agent => agent.system && selectedSystems.includes(agent.system))
-    : myAgents;
+  // 템플릿 타입과 시스템으로 필터링
+  const filteredMyAgents = myAgents.filter(agent => {
+    // 템플릿 타입 필터
+    if (selectedTemplateType && agent.templateType !== selectedTemplateType) {
+      return false;
+    }
+    // 시스템 필터 (템플릿 뷰에서만 적용)
+    if (selectedTemplateType && selectedSystems.length > 0) {
+      const agentSystems = agent.systems || (agent.system ? [agent.system] : []);
+      return agentSystems.some(sys => selectedSystems.includes(sys));
+    }
+    return true;
+  });
 
   const SYSTEM_BOXES: OperatingSystem[] = ["e-총무", "BiOn", "SATIS"];
 
@@ -98,6 +114,11 @@ export function WorkflowPage({
         ? prev.filter(s => s !== system)
         : [...prev, system]
     );
+  };
+
+  const getTemplateName = (type: AgentTemplateType) => {
+    const template = agentTemplates.find(t => t.type === type);
+    return template?.name || type;
   };
 
   const getStatusStyle = (status: WorkflowItem["status"]) => {
@@ -156,56 +177,128 @@ export function WorkflowPage({
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
+            {selectedTemplateType && (
+              <button
+                onClick={() => {
+                  setSelectedTemplateType(null);
+                  setSelectedSystems([]);
+                }}
+                className="p-2 rounded-lg hover:bg-secondary transition-colors mr-2"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+            )}
             <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center">
               <Workflow className="w-6 h-6 text-accent" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">{t("sidebar.myAgent")}</h1>
-              <p className="text-sm text-muted-foreground">{t("workflow.subtitle")}</p>
+              <h1 className="text-2xl font-bold">
+                {selectedTemplateType ? getTemplateName(selectedTemplateType) : t("sidebar.myAgent")}
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                {selectedTemplateType 
+                  ? `시스템별 ${getTemplateName(selectedTemplateType)} 관리` 
+                  : t("workflow.subtitle")}
+              </p>
             </div>
           </div>
           <button 
             onClick={() => setIsNewAgentModalOpen(true)}
             className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-2"
           >
-            <Plus className="w-4 h-4" />{t("workflow.newAgent")}
+            <Plus className="w-4 h-4" />
+            {selectedTemplateType ? `${getTemplateName(selectedTemplateType)} 추가` : t("workflow.newAgent")}
           </button>
         </div>
 
-        {/* System Selector Boxes */}
-        <div className="mb-6">
-          <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-            담당 시스템
+        {/* 템플릿 타입 선택 시 시스템 필터 표시 */}
+        {selectedTemplateType && (
+          <div className="mb-6">
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+              시스템 필터
+            </div>
+            <div className="flex gap-3">
+              {SYSTEM_BOXES.map((system) => (
+                <button
+                  key={system}
+                  onClick={() => toggleSystem(system)}
+                  className={cn(
+                    "px-4 py-3 rounded-xl border-2 transition-all font-medium text-sm",
+                    selectedSystems.includes(system)
+                      ? "bg-primary/20 border-primary text-primary shadow-md"
+                      : "bg-card/50 border-border/50 text-muted-foreground hover:border-primary/50 hover:bg-card"
+                  )}
+                >
+                  <div className="flex items-center gap-2">
+                    <Folder className="w-4 h-4" />
+                    {system}
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="flex gap-3">
-            {SYSTEM_BOXES.map((system) => (
-              <button
-                key={system}
-                onClick={() => toggleSystem(system)}
-                className={cn(
-                  "px-4 py-3 rounded-xl border-2 transition-all font-medium text-sm",
-                  selectedSystems.includes(system)
-                    ? "bg-primary/20 border-primary text-primary shadow-md"
-                    : "bg-card/50 border-border/50 text-muted-foreground hover:border-primary/50 hover:bg-card"
-                )}
-              >
-                <div className="flex items-center gap-2">
-                  <Folder className="w-4 h-4" />
-                  {system}
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
+        )}
 
-        {/* My Agent */}
+        {/* 템플릿 타입이 선택되지 않았을 때 - 템플릿 선택 화면 */}
+        {!selectedTemplateType && (
+          <div className="mb-8">
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+              Agent 템플릿
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              {agentTemplates.map((template) => {
+                const count = myAgents.filter(a => a.templateType === template.type).length;
+                return (
+                  <button
+                    key={template.type}
+                    onClick={() => setSelectedTemplateType(template.type)}
+                    className="p-5 rounded-xl border-2 border-border/50 bg-card/50 hover:border-primary/50 hover:bg-card transition-all text-left"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+                        <Workflow className="w-5 h-5 text-primary" />
+                      </div>
+                      <span className="px-2 py-1 rounded-full bg-secondary text-xs font-medium">
+                        {count}개
+                      </span>
+                    </div>
+                    <h3 className="font-semibold text-lg mb-1">{template.name}</h3>
+                    <p className="text-sm text-muted-foreground">{template.description}</p>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* My Agent - 템플릿 타입 선택 시에만 표시 */}
+        {selectedTemplateType && (
         <div>
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <Workflow className="w-5 h-5" />
-            {t("sidebar.myAgent")}
+            {getTemplateName(selectedTemplateType)} 목록
+            <span className="text-sm font-normal text-muted-foreground">
+              ({filteredMyAgents.length}개)
+            </span>
           </h2>
           <div className="space-y-3">
-            {filteredMyAgents.map((agent) => (
+            {filteredMyAgents.length === 0 ? (
+              <div className="p-8 rounded-xl border border-dashed border-border/50 text-center">
+                <p className="text-muted-foreground mb-4">
+                  {selectedSystems.length > 0 
+                    ? `선택한 시스템에 등록된 ${getTemplateName(selectedTemplateType)}이(가) 없습니다.`
+                    : `등록된 ${getTemplateName(selectedTemplateType)}이(가) 없습니다.`}
+                </p>
+                <button 
+                  onClick={() => setIsNewAgentModalOpen(true)}
+                  className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors inline-flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  새로 추가하기
+                </button>
+              </div>
+            ) : (
+            filteredMyAgents.map((agent) => (
               <div key={agent.id}>
                 {/* Agent Card */}
                 <div
@@ -229,6 +322,16 @@ export function WorkflowPage({
                           <span className={cn("px-2 py-0.5 rounded-full text-xs", getStatusStyle(agent.status))}>
                             {getStatusLabel(agent.status)}
                           </span>
+                          {/* 시스템 태그 표시 */}
+                          {agent.systems && agent.systems.length > 0 && (
+                            <div className="flex gap-1">
+                              {agent.systems.map(sys => (
+                                <span key={sys} className="px-2 py-0.5 rounded-full text-xs bg-secondary text-secondary-foreground">
+                                  {sys}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
                         <p className="text-sm text-muted-foreground">{agent.description}</p>
                       </div>
@@ -305,9 +408,11 @@ export function WorkflowPage({
                   </div>
                 )}
               </div>
-            ))}
+            ))
+            )}
           </div>
         </div>
+        )}
       </div>
 
       {/* Chat Panel - 30% */}

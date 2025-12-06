@@ -12,6 +12,8 @@ type ViewType = "agent" | "workflow" | "assistant";
 export const OPERATING_SYSTEMS = ["e-총무", "BiOn", "SATIS", "ITS"] as const;
 export type OperatingSystem = typeof OPERATING_SYSTEMS[number];
 
+export type AgentTemplateType = "daily-check" | "incident-response" | "weekly-report" | "its-automation" | "custom";
+
 export interface WorkflowItem {
   id: string;
   name: string;
@@ -20,6 +22,8 @@ export interface WorkflowItem {
   status: "active" | "draft" | "completed";
   lastRun?: string;
   system?: OperatingSystem;
+  systems?: OperatingSystem[]; // 복수 시스템 지원
+  templateType?: AgentTemplateType; // 템플릿 타입
 }
 
 export const agentMarketItems: WorkflowItem[] = [
@@ -31,11 +35,22 @@ export const agentMarketItems: WorkflowItem[] = [
   { id: "r6", name: "성능 테스트 Agent", description: "부하 테스트 및 성능 측정", steps: ["Load Test", "Metrics Collect", "Analyze", "Report"], status: "active" },
 ];
 
+// Agent 템플릿 정의
+export const agentTemplates: { type: AgentTemplateType; name: string; description: string; steps: string[] }[] = [
+  { type: "daily-check", name: "일일 점검 루틴", description: "매일 아침 자동 실행되는 점검 루틴", steps: ["Health Check", "DB Connect", "Report Gen"] },
+  { type: "incident-response", name: "장애 대응 플로우", description: "장애 감지 시 자동 대응 플로우", steps: ["Alert Detect", "Log Analyzer", "Notify", "Escalate"] },
+  { type: "weekly-report", name: "주간 리포트", description: "매주 월요일 리포트 생성", steps: ["Data Collect", "Analyze", "Report Gen", "Email Send"] },
+  { type: "its-automation", name: "ITS 티켓 자동화", description: "티켓 자동 분류 및 할당", steps: ["Ticket Parse", "Classify", "Assign", "Notify"] },
+];
+
 export const initialMyAgents: WorkflowItem[] = [
-  { id: "m1", name: "일일 점검 루틴", description: "매일 아침 자동 실행", steps: ["Health Check", "DB Connect", "Report Gen"], status: "active", lastRun: "오늘 09:00", system: "e-총무" },
-  { id: "m2", name: "장애 대응 플로우", description: "장애 감지 시 자동 대응", steps: ["Alert Detect", "Log Analyzer", "Notify", "Escalate"], status: "draft", system: "BiOn" },
-  { id: "m3", name: "주간 리포트", description: "매주 월요일 리포트 생성", steps: ["Data Collect", "Analyze", "Report Gen", "Email Send"], status: "completed", lastRun: "지난주 월요일", system: "SATIS" },
-  { id: "m4", name: "ITS 티켓 자동화", description: "티켓 자동 분류 및 할당", steps: ["Ticket Parse", "Classify", "Assign", "Notify"], status: "active", system: "ITS" },
+  { id: "m1", name: "e-총무 일일 점검", description: "e-총무 시스템 매일 아침 점검", steps: ["Health Check", "DB Connect", "Report Gen"], status: "active", lastRun: "오늘 09:00", systems: ["e-총무"], templateType: "daily-check" },
+  { id: "m1-2", name: "BiOn 일일 점검", description: "BiOn 시스템 매일 아침 점검", steps: ["Health Check", "DB Connect", "Report Gen"], status: "active", lastRun: "오늘 09:00", systems: ["BiOn"], templateType: "daily-check" },
+  { id: "m2", name: "BiOn 장애 대응", description: "BiOn 장애 감지 시 자동 대응", steps: ["Alert Detect", "Log Analyzer", "Notify", "Escalate"], status: "draft", systems: ["BiOn"], templateType: "incident-response" },
+  { id: "m2-2", name: "SATIS 장애 대응", description: "SATIS 장애 감지 시 자동 대응", steps: ["Alert Detect", "Log Analyzer", "Notify", "Escalate"], status: "active", systems: ["SATIS"], templateType: "incident-response" },
+  { id: "m3", name: "SATIS 주간 리포트", description: "SATIS 매주 월요일 리포트 생성", steps: ["Data Collect", "Analyze", "Report Gen", "Email Send"], status: "completed", lastRun: "지난주 월요일", systems: ["SATIS"], templateType: "weekly-report" },
+  { id: "m3-2", name: "전체 시스템 주간 리포트", description: "전체 시스템 통합 주간 리포트", steps: ["Data Collect", "Analyze", "Report Gen", "Email Send"], status: "active", systems: ["e-총무", "BiOn", "SATIS"], templateType: "weekly-report" },
+  { id: "m4", name: "ITS 티켓 자동화", description: "티켓 자동 분류 및 할당", steps: ["Ticket Parse", "Classify", "Assign", "Notify"], status: "active", systems: ["ITS"], templateType: "its-automation" },
 ];
 
 const Index = () => {
@@ -44,6 +59,7 @@ const Index = () => {
   const [selectedAgent, setSelectedAgent] = useState<string | null>("a1");
   const [myAgents, setMyAgents] = useState<WorkflowItem[]>(initialMyAgents);
   const [selectedWorkflowAgent, setSelectedWorkflowAgent] = useState<WorkflowItem | null>(null);
+  const [selectedTemplateType, setSelectedTemplateType] = useState<AgentTemplateType | null>(null);
   const location = useLocation();
   const isDashboard = location.pathname === "/dashboard";
   const { t } = useTranslation();
@@ -111,6 +127,8 @@ const Index = () => {
             setSelectedAgent={setSelectedWorkflowAgent}
             onAddFromMarket={handleAddFromMarket}
             onAddNewAgent={handleAddNewAgent}
+            selectedTemplateType={selectedTemplateType}
+            setSelectedTemplateType={setSelectedTemplateType}
           />
         );
       case "assistant":
@@ -131,6 +149,8 @@ const Index = () => {
         myAgents={myAgents}
         selectedWorkflowAgent={selectedWorkflowAgent}
         onSelectWorkflowAgent={setSelectedWorkflowAgent}
+        selectedTemplateType={selectedTemplateType}
+        onSelectTemplateType={setSelectedTemplateType}
       />
       {renderContent()}
     </div>

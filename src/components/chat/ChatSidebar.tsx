@@ -17,7 +17,7 @@ import {
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { WorkflowItem, agentMarketItems, OPERATING_SYSTEMS, OperatingSystem } from "@/pages/Index";
+import { WorkflowItem, agentMarketItems, OPERATING_SYSTEMS, OperatingSystem, AgentTemplateType, agentTemplates } from "@/pages/Index";
 
 type ViewType = "agent" | "workflow" | "assistant";
 
@@ -125,6 +125,8 @@ interface ChatSidebarProps {
   myAgents: WorkflowItem[];
   selectedWorkflowAgent: WorkflowItem | null;
   onSelectWorkflowAgent: (agent: WorkflowItem | null) => void;
+  selectedTemplateType?: AgentTemplateType | null;
+  onSelectTemplateType?: (type: AgentTemplateType | null) => void;
 }
 
 export function ChatSidebar({ 
@@ -137,6 +139,8 @@ export function ChatSidebar({
   myAgents,
   selectedWorkflowAgent,
   onSelectWorkflowAgent,
+  selectedTemplateType,
+  onSelectTemplateType,
 }: ChatSidebarProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedSystems, setExpandedSystems] = useState<OperatingSystem[]>([...OPERATING_SYSTEMS]);
@@ -329,20 +333,21 @@ export function ChatSidebar({
 
         {currentView === "workflow" && (
           <>
-            {/* My Agent Section */}
+            {/* My Agent Section - Template Based */}
             <div className="px-2 py-1.5 text-xs font-semibold text-primary uppercase tracking-wider">
               {t("sidebar.myAgent")}
             </div>
             
-            {/* My Agent List */}
-            {filteredMyAgents.map((agent, index) => {
-              const isSelected = selectedWorkflowAgent?.id === agent.id;
+            {/* Template List */}
+            {agentTemplates.map((template, index) => {
+              const count = myAgents.filter(a => a.templateType === template.type).length;
+              const isSelected = selectedTemplateType === template.type;
               
               return (
-                <div key={agent.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
+                <div key={template.type} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
                   <button
                     onClick={() => {
-                      onSelectWorkflowAgent(agent);
+                      onSelectTemplateType?.(template.type);
                       if (location.pathname !== "/") {
                         navigate("/");
                       }
@@ -359,16 +364,10 @@ export function ChatSidebar({
                       <div className="w-9 h-9 rounded-lg bg-accent/20 flex items-center justify-center">
                         <Workflow className="w-4 h-4 text-accent" />
                       </div>
-                      <span className={cn(
-                        "absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-sidebar",
-                        getWorkflowStatusColor(agent.status)
-                      )} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <span className="font-medium text-sm block truncate">{agent.name}</span>
-                      {agent.system && (
-                        <span className="text-xs text-muted-foreground">{agent.system}</span>
-                      )}
+                      <span className="font-medium text-sm block truncate">{template.name}</span>
+                      <span className="text-xs text-muted-foreground">{count}개 등록됨</span>
                     </div>
                     <ChevronRight className="w-4 h-4 text-muted-foreground" />
                   </button>
