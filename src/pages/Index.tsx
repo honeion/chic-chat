@@ -49,13 +49,13 @@ const Index = () => {
   const { t } = useTranslation();
 
   const agentNames: Record<string, string> = {
-    "a1": t("agent.bizSupport"),
-    "a2": t("agent.its"),
-    "a3": t("agent.sop"),
+    "a1": t("agent.its"),
+    "a2": t("agent.sop"),
+    "a3": t("agent.changeManagement"),
     "a4": t("agent.db"),
     "a5": t("agent.monitoring"),
-    "a6": t("agent.changeManagement"),
-    "a7": t("agent.report"),
+    "a6": t("agent.report"),
+    "a7": t("agent.bizSupport"),
   };
 
   const handleAddFromMarket = (marketAgent: WorkflowItem) => {
