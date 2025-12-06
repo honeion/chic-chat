@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ChatSession } from "@/pages/AgentDetail";
+import { MonitoringSettingsModal } from "./MonitoringSettingsModal";
 
 // 감지 항목 타입 정의
 type DetectionSeverity = "critical" | "warning" | "info";
@@ -70,6 +71,7 @@ export function MonitoringAgentDashboard({
   const [internalDetections] = useState<DetectionItem[]>(mockDetections);
   const detections = externalDetections || internalDetections;
   const [isCompletedCollapsed, setIsCompletedCollapsed] = useState(true);
+  const [settingsModalSystem, setSettingsModalSystem] = useState<SystemInfo | null>(null);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -177,6 +179,11 @@ export function MonitoringAgentDashboard({
     }
   };
 
+  // 모니터링 설정 버튼 클릭 핸들러
+  const handleOpenSettings = (system: SystemInfo) => {
+    setSettingsModalSystem(system);
+  };
+
   return (
     <div className="space-y-6 h-full overflow-y-auto">
       {/* 운영자 담당 시스템 */}
@@ -196,6 +203,7 @@ export function MonitoringAgentDashboard({
                 <PlayCircle className="w-5 h-5" />
               </button>
               <button
+                onClick={() => handleOpenSettings(system)}
                 className="p-2 rounded-lg bg-muted hover:bg-muted/80 text-muted-foreground transition-colors"
                 title="모니터링 설정"
               >
@@ -330,6 +338,14 @@ export function MonitoringAgentDashboard({
           )}
         </div>
       </div>
+
+      {/* 모니터링 설정 모달 */}
+      <MonitoringSettingsModal
+        isOpen={settingsModalSystem !== null}
+        onClose={() => setSettingsModalSystem(null)}
+        systemName={settingsModalSystem?.name || ""}
+        systemId={settingsModalSystem?.id || ""}
+      />
     </div>
   );
 }
