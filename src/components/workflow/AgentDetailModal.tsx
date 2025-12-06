@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { X, Workflow, ChevronRight, Plus, Pencil, Folder } from "lucide-react";
-import { WorkflowItem, OperatingSystem } from "@/pages/Index";
+import { X, Workflow, ChevronRight, Plus, Pencil } from "lucide-react";
+import { WorkflowItem } from "@/pages/Index";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
@@ -16,35 +16,20 @@ export function AgentDetailModal({ isOpen, onClose, agent, onAddToMyAgent }: Age
   const { t } = useTranslation();
   const [customName, setCustomName] = useState("");
   const [isEditingName, setIsEditingName] = useState(false);
-  const [selectedSystems, setSelectedSystems] = useState<OperatingSystem[]>([]);
-
-  const SYSTEM_BOXES: OperatingSystem[] = ["e-총무", "BiOn", "SATIS"];
 
   useEffect(() => {
     if (agent) {
       setCustomName(agent.name);
       setIsEditingName(false);
-      setSelectedSystems([]);
     }
   }, [agent]);
 
   if (!isOpen || !agent) return null;
 
-  const toggleSystem = (system: OperatingSystem) => {
-    setSelectedSystems(prev => 
-      prev.includes(system) 
-        ? prev.filter(s => s !== system)
-        : [...prev, system]
-    );
-  };
-
   const handleAdd = () => {
-    if (selectedSystems.length === 0) return;
-    
     const agentToAdd = {
       ...agent,
       name: customName.trim() || agent.name,
-      systems: selectedSystems,
     };
     onAddToMyAgent(agentToAdd);
     onClose();
@@ -92,28 +77,6 @@ export function AgentDetailModal({ isOpen, onClose, agent, onAddToMyAgent }: Age
 
         {/* Content */}
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)]">
-          {/* System Selection */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium mb-3 text-muted-foreground">대상 시스템 선택 (필수)</label>
-            <div className="flex gap-3">
-              {SYSTEM_BOXES.map((system) => (
-                <button
-                  key={system}
-                  onClick={() => toggleSystem(system)}
-                  className={cn(
-                    "px-4 py-3 rounded-xl border-2 transition-all font-medium text-sm flex items-center gap-2",
-                    selectedSystems.includes(system)
-                      ? "bg-primary/20 border-primary text-primary shadow-md"
-                      : "bg-card/50 border-border/50 text-muted-foreground hover:border-primary/50 hover:bg-card"
-                  )}
-                >
-                  <Folder className="w-4 h-4" />
-                  {system}
-                </button>
-              ))}
-            </div>
-          </div>
-
           {/* Description */}
           <div className="mb-6">
             <label className="block text-sm font-medium mb-2 text-muted-foreground">{t("common.description")}</label>
@@ -163,13 +126,7 @@ export function AgentDetailModal({ isOpen, onClose, agent, onAddToMyAgent }: Age
           </button>
           <button
             onClick={handleAdd}
-            disabled={selectedSystems.length === 0}
-            className={cn(
-              "px-6 py-2 rounded-lg transition-colors flex items-center gap-2",
-              selectedSystems.length > 0
-                ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                : "bg-muted text-muted-foreground cursor-not-allowed"
-            )}
+            className="px-6 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
             {t("workflow.addToMyAgent")}
