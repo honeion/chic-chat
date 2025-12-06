@@ -453,11 +453,18 @@ ${getRequestDetailContent(request)}
     setActiveSessionId(sessionId);
   };
 
-  // DB Agent 채팅 시작 핸들러
-  const handleDBStartChat = (task: { id: string; title: string; requestNo?: string; type?: RequestType; timestamp: string }) => {
-    // 기존 세션 확인
+  // DB Agent 채팅 시작 핸들러 - 요청 요약 및 처리 확인 흐름
+  const handleDBStartChat = (task: { id: string; title: string; description?: string; requestNo?: string; type?: RequestType; timestamp: string; priority?: string }) => {
+    // 기존 세션 확인 - 기존 세션이 있으면 상태를 pending-process-start로 리셋하고 활성화
     const existingSession = chatSessions.find(s => s.request.id === task.id);
     if (existingSession) {
+      if (existingSession.status !== "pending-process-start") {
+        setChatSessions(prev => prev.map(s => 
+          s.id === existingSession.id 
+            ? { ...s, status: "pending-process-start" as const }
+            : s
+        ));
+      }
       setActiveSessionId(existingSession.id);
       return;
     }
@@ -466,16 +473,23 @@ ${getRequestDetailContent(request)}
     const newSessionId = `session-${Date.now()}`;
     const typeLabel = task.type ? requestTypeLabels[task.type] : "데이터 요청";
     
-    const requestDetailMessage = `📋 **DB 요청 상세 정보**
+    // 요청 내용 요약 메시지
+    const requestSummaryMessage = `📋 **DB 요청 요약**
 
 **유형:** ${typeLabel}
-**요청 번호:** ${task.requestNo || 'N/A'}
+**요청 번호:** ${task.requestNo || `DB-${Date.now()}`}
 **제목:** ${task.title}
 **일시:** ${task.timestamp}
+**우선순위:** ${task.priority === "high" ? "긴급" : task.priority === "medium" ? "보통" : "낮음"}
 
 ---
 
-처리를 시작하시겠습니까?`;
+**요청 내용:**
+${task.description || "해당 DB 작업에 대한 처리가 필요합니다."}
+
+---
+
+위 요청 내용을 확인하시고, 처리 여부를 결정해 주세요.`;
     
     const newSession: ChatSession = {
       id: newSessionId,
@@ -486,8 +500,8 @@ ${getRequestDetailContent(request)}
         title: task.title, 
         date: task.timestamp 
       },
-      messages: [{ role: "agent", content: requestDetailMessage }],
-      status: "pending-approval",
+      messages: [{ role: "agent", content: requestSummaryMessage }],
+      status: "pending-process-start", // 처리 시작 대기 상태
       createdAt: new Date().toISOString(),
     };
     
@@ -495,11 +509,18 @@ ${getRequestDetailContent(request)}
     setActiveSessionId(newSessionId);
   };
 
-  // 변경관리 Agent 채팅 시작 핸들러
-  const handleChangeManagementStartChat = (request: { id: string; title: string; requestNo?: string; requestType?: RequestType; scheduledDate: string }) => {
-    // 기존 세션 확인
+  // 변경관리 Agent 채팅 시작 핸들러 - 요청 요약 및 처리 확인 흐름
+  const handleChangeManagementStartChat = (request: { id: string; title: string; description?: string; requestNo?: string; requestType?: RequestType; scheduledDate: string; priority?: string }) => {
+    // 기존 세션 확인 - 기존 세션이 있으면 상태를 pending-process-start로 리셋하고 활성화
     const existingSession = chatSessions.find(s => s.request.id === request.id);
     if (existingSession) {
+      if (existingSession.status !== "pending-process-start") {
+        setChatSessions(prev => prev.map(s => 
+          s.id === existingSession.id 
+            ? { ...s, status: "pending-process-start" as const }
+            : s
+        ));
+      }
       setActiveSessionId(existingSession.id);
       return;
     }
@@ -508,16 +529,23 @@ ${getRequestDetailContent(request)}
     const newSessionId = `session-${Date.now()}`;
     const typeLabel = request.requestType ? requestTypeLabels[request.requestType] : "개선 요청";
     
-    const requestDetailMessage = `📋 **변경 요청 상세 정보**
+    // 요청 내용 요약 메시지
+    const requestSummaryMessage = `📋 **변경 요청 요약**
 
 **유형:** ${typeLabel}
-**요청 번호:** ${request.requestNo || 'N/A'}
+**요청 번호:** ${request.requestNo || `CM-${Date.now()}`}
 **제목:** ${request.title}
 **예정일:** ${request.scheduledDate}
+**우선순위:** ${request.priority === "high" ? "긴급" : request.priority === "medium" ? "보통" : "낮음"}
 
 ---
 
-처리를 시작하시겠습니까?`;
+**요청 내용:**
+${request.description || "해당 변경 작업에 대한 처리가 필요합니다."}
+
+---
+
+위 요청 내용을 확인하시고, 처리 여부를 결정해 주세요.`;
     
     const newSession: ChatSession = {
       id: newSessionId,
@@ -528,8 +556,8 @@ ${getRequestDetailContent(request)}
         title: request.title, 
         date: request.scheduledDate 
       },
-      messages: [{ role: "agent", content: requestDetailMessage }],
-      status: "pending-approval",
+      messages: [{ role: "agent", content: requestSummaryMessage }],
+      status: "pending-process-start", // 처리 시작 대기 상태
       createdAt: new Date().toISOString(),
     };
     
