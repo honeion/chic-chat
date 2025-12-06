@@ -94,11 +94,27 @@ export function ITSAgentDashboard({
     }
   };
 
+  // 세션 ID 찾기 헬퍼 함수
+  const findSessionByRequestId = (requestId: string) => {
+    return chatSessions.find(session => session.request.id === requestId);
+  };
+
+  // 요청 아이템 클릭 핸들러
+  const handleRequestClick = (request: RequestItem) => {
+    const session = findSessionByRequestId(request.id);
+    if (session && onSelectSession) {
+      onSelectSession(session.id);
+    }
+  };
+
   // 요청 아이템 렌더링 컴포넌트
-  const RequestListItem = ({ request, showPlay = false }: { request: RequestItem; showPlay?: boolean }) => {
+  const RequestListItem = ({ request, showPlay = false, clickable = false }: { request: RequestItem; showPlay?: boolean; clickable?: boolean }) => {
     const config = requestTypeConfig[request.type];
-    return (
-      <div className="flex items-center gap-2 p-2 rounded-lg bg-background/50 hover:bg-background/80 transition-colors text-sm">
+    const session = findSessionByRequestId(request.id);
+    const isActive = session?.id === activeSessionId;
+    
+    const content = (
+      <>
         <span className={cn("flex-shrink-0", config.color)} title={config.label}>
           {config.icon}
         </span>
@@ -106,13 +122,36 @@ export function ITSAgentDashboard({
         <span className="text-xs text-muted-foreground flex-shrink-0">{request.date}</span>
         {showPlay && (
           <button
-            onClick={() => handlePlayClick(request)}
+            onClick={(e) => {
+              e.stopPropagation();
+              handlePlayClick(request);
+            }}
             className="p-1.5 rounded-md bg-primary/10 hover:bg-primary/20 text-primary transition-colors flex-shrink-0"
             title="채팅 시작"
           >
             <Play className="w-3.5 h-3.5" />
           </button>
         )}
+      </>
+    );
+
+    if (clickable && session) {
+      return (
+        <button
+          onClick={() => handleRequestClick(request)}
+          className={cn(
+            "w-full flex items-center gap-2 p-2 rounded-lg bg-background/50 hover:bg-background/80 transition-colors text-sm text-left",
+            isActive && "bg-primary/10 ring-1 ring-primary/30"
+          )}
+        >
+          {content}
+        </button>
+      );
+    }
+
+    return (
+      <div className="flex items-center gap-2 p-2 rounded-lg bg-background/50 hover:bg-background/80 transition-colors text-sm">
+        {content}
       </div>
     );
   };
@@ -160,7 +199,7 @@ export function ITSAgentDashboard({
               <div className="p-2 bg-background/50 space-y-1.5 max-h-[280px] overflow-y-auto">
                 {inProgressRequests.length > 0 ? (
                   inProgressRequests.map(request => (
-                    <RequestListItem key={request.id} request={request} />
+                    <RequestListItem key={request.id} request={request} clickable={true} />
                   ))
                 ) : (
                   <p className="text-xs text-muted-foreground text-center py-2">요청 없음</p>
@@ -190,7 +229,7 @@ export function ITSAgentDashboard({
               <div className="p-2 bg-background/50 space-y-1.5 max-h-[200px] overflow-y-auto">
                 {resolvedRequests.length > 0 ? (
                   resolvedRequests.map(request => (
-                    <RequestListItem key={request.id} request={request} />
+                    <RequestListItem key={request.id} request={request} clickable={true} />
                   ))
                 ) : (
                   <p className="text-xs text-muted-foreground text-center py-2">요청 없음</p>
