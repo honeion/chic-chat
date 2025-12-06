@@ -43,9 +43,6 @@ interface SOPAgentDashboardProps {
 }
 
 const mockIncidents: Incident[] = [
-  { id: "i1", title: "서버 CPU 사용률 90% 초과", description: "서버 A의 CPU 사용률이 임계치를 초과했습니다.", status: "pending", priority: "high", timestamp: "10:45", recommendation: "서버 재시작 또는 프로세스 정리 권장" },
-  { id: "i2", title: "DB 연결 지연 감지", description: "데이터베이스 응답 시간이 평소보다 3배 느립니다.", status: "pending", priority: "medium", timestamp: "10:30", recommendation: "쿼리 최적화 또는 인덱스 확인 권장" },
-  { id: "i3", title: "디스크 용량 80% 도달", description: "스토리지 공간이 부족해지고 있습니다.", status: "processing", priority: "low", timestamp: "09:15" },
   { id: "i4", title: "네트워크 지연 복구", description: "네트워크 레이턴시가 정상 범위로 복구되었습니다.", status: "approved", priority: "medium", timestamp: "08:30" },
 ];
 
