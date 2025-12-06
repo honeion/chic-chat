@@ -187,6 +187,66 @@ const initialChatSessions: ChatSession[] = [
     status: "completed",
     createdAt: "2024-12-02T11:30:00Z",
   },
+  // Biz.Support Agent 세션들
+  {
+    id: "session-biz1",
+    request: { id: "biz1", requestNo: "BIZ-2024-0023", type: "S" as RequestType, title: "e-총무 시스템 접속 오류 문의", date: "2024-12-05" },
+    messages: [
+      { role: "agent", content: "안녕하세요! Biz.Support Agent입니다. e-총무 시스템 접속 오류에 대해 문의해 주셨네요.\n\n어떤 오류 메시지가 표시되나요?" },
+      { role: "user", content: "로그인 후 '세션이 만료되었습니다' 메시지가 계속 나타납니다." },
+      { role: "agent", content: "확인 감사합니다. 해당 증상은 브라우저 캐시 문제로 발생할 수 있습니다.\n\n다음 방법을 시도해 주세요:\n1. 브라우저 캐시 및 쿠키 삭제\n2. 시크릿 모드에서 접속 시도\n3. 다른 브라우저로 접속 시도\n\n위 방법으로도 해결되지 않으면 말씀해 주세요." },
+      { role: "user", content: "캐시 삭제 후 정상 접속됩니다. 감사합니다!" },
+      { role: "agent", content: "다행입니다! 추가 문의사항이 있으시면 언제든 말씀해 주세요." },
+    ],
+    status: "completed",
+    createdAt: "2024-12-05T14:30:00Z",
+  },
+  {
+    id: "session-biz2",
+    request: { id: "biz2", requestNo: "BIZ-2024-0024", type: "S" as RequestType, title: "구매시스템 결재 프로세스 문의", date: "2024-12-05" },
+    messages: [
+      { role: "agent", content: "안녕하세요! Biz.Support Agent입니다. 구매시스템 결재 프로세스에 대해 문의해 주셨네요.\n\n어떤 부분이 궁금하신가요?" },
+      { role: "user", content: "결재라인 변경 방법을 알고 싶습니다." },
+      { role: "agent", content: "결재라인 변경은 다음 경로에서 가능합니다:\n\n**구매시스템 > 설정 > 결재관리 > 결재라인 설정**\n\n해당 메뉴에서 기존 결재라인을 수정하거나 새로운 결재라인을 추가할 수 있습니다.\n\n단, 결재라인 변경 권한은 팀장 이상에게만 부여되어 있습니다." },
+    ],
+    status: "in-progress",
+    createdAt: "2024-12-05T11:20:00Z",
+  },
+  {
+    id: "session-biz3",
+    request: { id: "biz3", requestNo: "BIZ-2024-0022", type: "S" as RequestType, title: "영업시스템 데이터 조회 권한 요청", date: "2024-12-04" },
+    messages: [
+      { role: "agent", content: "안녕하세요! Biz.Support Agent입니다. 영업시스템 데이터 조회 권한 요청이시군요.\n\n어떤 데이터에 대한 조회 권한이 필요하신가요?" },
+      { role: "user", content: "월별 매출 현황 리포트 조회 권한이 필요합니다." },
+      { role: "agent", content: "매출 현황 리포트 조회 권한 신청을 위해 다음 정보가 필요합니다:\n\n• 사번\n• 부서\n• 신청 사유\n• 필요 기간\n\n정보를 알려주시면 권한 신청을 진행해 드리겠습니다." },
+    ],
+    status: "in-progress",
+    createdAt: "2024-12-04T16:45:00Z",
+  },
+  {
+    id: "session-biz4",
+    request: { id: "biz4", requestNo: "BIZ-2024-0021", type: "S" as RequestType, title: "물류시스템 재고 현황 조회 방법 안내", date: "2024-12-04" },
+    messages: [
+      { role: "agent", content: "안녕하세요! Biz.Support Agent입니다. 물류시스템 재고 현황 조회 방법을 안내해 드리겠습니다.\n\n**물류시스템 > 재고관리 > 재고현황조회**\n\n해당 메뉴에서 창고별, 품목별 재고 현황을 확인하실 수 있습니다." },
+      { role: "user", content: "감사합니다. 잘 확인했습니다." },
+      { role: "agent", content: "도움이 되었다니 다행입니다. 추가 문의사항이 있으시면 언제든 말씀해 주세요!" },
+    ],
+    status: "completed",
+    createdAt: "2024-12-04T09:15:00Z",
+  },
+  {
+    id: "session-biz5",
+    request: { id: "biz5", requestNo: "BIZ-2024-0020", type: "S" as RequestType, title: "SAP 연동 오류 해결 지원", date: "2024-12-03" },
+    messages: [
+      { role: "agent", content: "안녕하세요! Biz.Support Agent입니다. SAP 연동 오류에 대해 지원해 드리겠습니다.\n\n어떤 오류가 발생하고 있나요?" },
+      { role: "user", content: "SAP에서 데이터 전송 시 'Connection timeout' 오류가 발생합니다." },
+      { role: "agent", content: "Connection timeout 오류는 네트워크 연결 문제일 가능성이 높습니다.\n\n해당 건은 ITS팀으로 에스컬레이션하여 네트워크 점검을 요청하겠습니다.\n\n처리 완료 시 별도 안내드리겠습니다." },
+      { role: "user", content: "확인 감사합니다." },
+      { role: "agent", content: "ITS팀 점검 결과, 방화벽 정책 변경으로 인한 일시적 오류였으며 현재 정상화되었습니다.\n\n다시 시도해 보시기 바랍니다." },
+    ],
+    status: "completed",
+    createdAt: "2024-12-03T15:40:00Z",
+  },
 ];
 
 const getAgentType = (agentName: string): AgentType => {
@@ -328,8 +388,29 @@ export function AgentDetail({ agentId, agentName, onNavigateToAgent }: AgentDeta
 
   const handleSendMessage = (message: string) => { 
     if (activeSessionId) {
+      // Biz Agent의 "새 문의" 세션인 경우 제목 업데이트
+      const session = chatSessions.find(s => s.id === activeSessionId);
+      if (session && session.request.title === "새 문의" && session.request.requestNo.startsWith("BIZ-")) {
+        setChatSessions(prev => prev.map(s => 
+          s.id === activeSessionId 
+            ? { ...s, request: { ...s.request, title: message.slice(0, 30) + (message.length > 30 ? "..." : "") } }
+            : s
+        ));
+      }
+      
       updateSessionMessages(activeSessionId, prev => [...prev, { role: "user", content: message }]); 
-      simulateProcessing(message, activeSessionId); 
+      
+      // Biz Agent는 즉각적인 응답 방식 (processing step 없이)
+      if (session?.request.requestNo.startsWith("BIZ-")) {
+        setTimeout(() => {
+          updateSessionMessages(activeSessionId, prev => [...prev, { 
+            role: "agent", 
+            content: "네, 말씀하신 내용 확인했습니다. 해당 건에 대해 확인 후 안내드리겠습니다.\n\n추가 정보가 필요하시면 말씀해 주세요." 
+          }]);
+        }, 800);
+      } else {
+        simulateProcessing(message, activeSessionId); 
+      }
     }
   };
   
@@ -1058,6 +1139,32 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
     setTimeout(() => simulateProcessing(`${reportType.name} 생성`, newSessionId), 300);
   };
 
+  // Biz.Support 새 채팅 핸들러
+  const handleBizNewChat = () => {
+    const newSessionId = `session-biz-${Date.now()}`;
+    const requestNo = `BIZ-2024-${String(Math.floor(Math.random() * 9000) + 1000)}`;
+    
+    const newSession: ChatSession = {
+      id: newSessionId,
+      request: { 
+        id: `biz-${Date.now()}`, 
+        requestNo, 
+        type: "S" as const, 
+        title: "새 문의", 
+        date: new Date().toISOString().split('T')[0]
+      },
+      messages: [{ 
+        role: "agent", 
+        content: "안녕하세요! Biz.Support Agent입니다. 시스템 관련 문의사항이나 업무 지원이 필요하시면 말씀해 주세요.\n\n• e-총무, 구매, 영업/물류 시스템 사용 문의\n• 시스템 오류 및 접속 문제 해결\n• 업무 프로세스 안내\n• 권한 및 계정 관련 지원" 
+      }],
+      status: "in-progress",
+      createdAt: new Date().toISOString(),
+    };
+    
+    setChatSessions(prev => [newSession, ...prev]);
+    setActiveSessionId(newSessionId);
+  };
+
   const handleStartProcess = (sessionId: string) => {
     const session = chatSessions.find(s => s.id === sessionId);
     if (!session) return;
@@ -1141,7 +1248,19 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
           activeSessionId={activeSessionId}
         />
       );
-      case "biz-support": return <BizSupportAgentDashboard />;
+      case "biz-support": {
+        const bizSessions = chatSessions.filter(s => 
+          s.request.requestNo.startsWith("BIZ-")
+        );
+        return (
+          <BizSupportAgentDashboard 
+            onNewChat={handleBizNewChat}
+            onSelectSession={handleSelectSession}
+            chatSessions={bizSessions}
+            activeSessionId={activeSessionId}
+          />
+        );
+      }
       case "change-management": return (
         <ChangeManagementAgentDashboard 
           routedRequests={routedRequestsToChangeManagement}
