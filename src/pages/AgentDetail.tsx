@@ -15,6 +15,24 @@ interface Message { role: "user" | "agent"; content: string; processingSteps?: P
 interface AgentDetailProps { agentId: string; agentName: string; }
 type AgentType = "sop" | "its" | "monitoring" | "db" | "biz-support" | "change-management" | "report";
 
+// RequestItem 타입 (ITSAgentDashboard와 동일)
+type RequestType = "I" | "C" | "D" | "A" | "S";
+interface RequestItem {
+  id: string;
+  type: RequestType;
+  title: string;
+  date: string;
+  status: "open" | "in-progress" | "resolved";
+}
+
+const requestTypeLabels: Record<RequestType, string> = {
+  "I": "인시던트 요청",
+  "C": "개선 요청",
+  "D": "데이터 요청",
+  "A": "계정/권한 요청",
+  "S": "단순 요청",
+};
+
 const getAgentType = (agentName: string): AgentType => {
   const name = agentName.toLowerCase();
   if (name.includes("sop")) return "sop";
@@ -91,10 +109,18 @@ export function AgentDetail({ agentId, agentName }: AgentDetailProps) {
     simulateProcessing(label);
   };
 
+  // ITS 요청 채팅 시작 핸들러
+  const handleStartChat = (request: RequestItem) => {
+    const typeLabel = requestTypeLabels[request.type];
+    const chatIntro = `[${typeLabel}] ${request.title}\n일자: ${request.date}\n\n해당 요청을 분석하고 처리를 시작하겠습니다.`;
+    setMessages(prev => [...prev, { role: "agent", content: chatIntro }]);
+    simulateProcessing(request.title);
+  };
+
   const renderDashboard = () => {
     switch (agentType) {
       case "sop": return <SOPAgentDashboard onApprove={handleApprove} onReject={handleReject} />;
-      case "its": return <ITSAgentDashboard onRequest={handleITSRequest} />;
+      case "its": return <ITSAgentDashboard onRequest={handleITSRequest} onStartChat={handleStartChat} />;
       case "monitoring": return <MonitoringAgentDashboard />;
       case "db": return <DBAgentDashboard />;
       case "biz-support": return <BizSupportAgentDashboard />;
