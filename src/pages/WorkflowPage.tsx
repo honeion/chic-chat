@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Workflow, Plus, Play, Save, Trash2, ChevronRight, ChevronDown, Clock, History } from "lucide-react";
+import { Workflow, Plus, Play, Save, Trash2, ChevronRight, ChevronDown, Clock, History, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NewAgentModal } from "@/components/workflow/NewAgentModal";
 import { WorkflowChatPanel } from "@/components/workflow/WorkflowChatPanel";
-import { WorkflowItem, OperatingSystem } from "@/pages/Index";
+import { WorkflowItem, OperatingSystem, RegisteredAgent, OPERATING_SYSTEMS } from "@/pages/Index";
 
 interface ExecutionHistory {
   id: string;
@@ -45,6 +45,7 @@ interface WorkflowPageProps {
   setSelectedAgent: (agent: WorkflowItem | null) => void;
   onAddFromMarket: (agent: WorkflowItem) => void;
   onAddNewAgent: (agent: { name: string; description: string; steps: string[]; instructions: string; systems: OperatingSystem[] }) => void;
+  onAddRegisteredAgent: (agentTypeId: string, registeredAgent: RegisteredAgent) => void;
 }
 
 export function WorkflowPage({
@@ -53,11 +54,15 @@ export function WorkflowPage({
   selectedAgent,
   setSelectedAgent,
   onAddFromMarket,
-  onAddNewAgent
+  onAddNewAgent,
+  onAddRegisteredAgent
 }: WorkflowPageProps) {
   const { t } = useTranslation();
   const [expandedMyAgent, setExpandedMyAgent] = useState<string | null>(null);
   const [isNewAgentModalOpen, setIsNewAgentModalOpen] = useState(false);
+  const [isAddAgentModalOpen, setIsAddAgentModalOpen] = useState(false);
+  const [newAgentName, setNewAgentName] = useState("");
+  const [newAgentSystem, setNewAgentSystem] = useState<OperatingSystem | null>(null);
 
   const getStatusStyle = (status: WorkflowItem["status"]) => {
     switch (status) {
@@ -99,6 +104,27 @@ export function WorkflowPage({
     }
   };
 
+  const handleAddRegisteredAgent = () => {
+    if (!selectedAgent || !newAgentSystem || !newAgentName.trim()) return;
+    
+    const registeredAgent: RegisteredAgent = {
+      id: `ra${Date.now()}`,
+      name: newAgentName.trim(),
+      system: newAgentSystem,
+      createdAt: new Date().toISOString(),
+    };
+    
+    onAddRegisteredAgent(selectedAgent.id, registeredAgent);
+    setIsAddAgentModalOpen(false);
+    setNewAgentName("");
+    setNewAgentSystem(null);
+  };
+
+  const registeredAgents = selectedAgent?.registeredAgents || [];
+  const getSystemAgentCount = (system: OperatingSystem) => {
+    return registeredAgents.filter(a => a.system === system).length;
+  };
+
   // 선택된 Agent Type이 있으면 해당 타입의 상세 화면 표시
   const showAgentTypeDetail = selectedAgent !== null;
 
@@ -120,7 +146,7 @@ export function WorkflowPage({
                 </div>
               </div>
               <button 
-                onClick={() => setIsNewAgentModalOpen(true)}
+                onClick={() => setIsAddAgentModalOpen(true)}
                 className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-2"
               >
                 <Plus className="w-4 h-4" />
@@ -141,32 +167,53 @@ export function WorkflowPage({
                       <Workflow className="w-6 h-6 text-primary" />
                     </div>
                     <h3 className="font-semibold text-lg">{system}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">등록된 Agent: 0개</p>
+                    <p className="text-sm text-muted-foreground mt-1">등록된 Agent: {getSystemAgentCount(system)}개</p>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Empty Agent List */}
+            {/* Agent List */}
             <div>
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <Workflow className="w-5 h-5" />
                 등록된 Agent
-                <span className="text-sm font-normal text-muted-foreground">(0개)</span>
+                <span className="text-sm font-normal text-muted-foreground">({registeredAgents.length}개)</span>
               </h2>
-              <div className="p-8 rounded-xl border border-dashed border-border/50 text-center">
-                <p className="text-muted-foreground mb-4">
-                  이 Agent Type에 등록된 Agent가 없습니다.<br />
-                  Agent 추가 버튼을 눌러 시스템별 Agent를 등록하세요.
-                </p>
-                <button 
-                  onClick={() => setIsNewAgentModalOpen(true)}
-                  className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors inline-flex items-center gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  Agent 추가
-                </button>
-              </div>
+              {registeredAgents.length === 0 ? (
+                <div className="p-8 rounded-xl border border-dashed border-border/50 text-center">
+                  <p className="text-muted-foreground mb-4">
+                    이 Agent Type에 등록된 Agent가 없습니다.<br />
+                    Agent 추가 버튼을 눌러 시스템별 Agent를 등록하세요.
+                  </p>
+                  <button 
+                    onClick={() => setIsAddAgentModalOpen(true)}
+                    className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors inline-flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Agent 추가
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-4">
+                  {registeredAgents.map((agent) => (
+                    <div
+                      key={agent.id}
+                      className="p-4 rounded-xl border border-border/50 bg-card/50 hover:border-primary/50 transition-all"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center">
+                          <Workflow className="w-5 h-5 text-accent" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-medium">{agent.name}</h3>
+                          <p className="text-xs text-muted-foreground">{agent.system}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </>
         ) : (
@@ -242,7 +289,7 @@ export function WorkflowPage({
                             </div>
                           </div>
                           <div className="flex items-center gap-4">
-                            <span className="text-xs text-muted-foreground">등록된 Agent: 0개</span>
+                            <span className="text-xs text-muted-foreground">등록된 Agent: {(agent.registeredAgents || []).length}개</span>
                             <button 
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -268,13 +315,87 @@ export function WorkflowPage({
       {/* Chat Panel - 30% */}
       <WorkflowChatPanel agentName={selectedAgent?.name} />
 
-      {/* New Agent Modal */}
+      {/* New Agent Type Modal */}
       <NewAgentModal
         isOpen={isNewAgentModalOpen}
         onClose={() => setIsNewAgentModalOpen(false)}
         onSave={onAddNewAgent}
         tools={mockTools}
       />
+
+      {/* Add Registered Agent Modal */}
+      {isAddAgentModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-full max-w-md bg-background border border-border rounded-xl shadow-xl">
+            <div className="flex items-center justify-between p-4 border-b border-border">
+              <h2 className="text-lg font-semibold">Agent 추가</h2>
+              <button 
+                onClick={() => {
+                  setIsAddAgentModalOpen(false);
+                  setNewAgentName("");
+                  setNewAgentSystem(null);
+                }}
+                className="p-1 rounded-lg hover:bg-muted transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-4 space-y-4">
+              {/* System Selection */}
+              <div>
+                <label className="block text-sm font-medium mb-2">시스템 선택</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(["e-총무", "BiOn", "SATIS"] as const).map((system) => (
+                    <button
+                      key={system}
+                      onClick={() => setNewAgentSystem(system)}
+                      className={cn(
+                        "p-3 rounded-lg border-2 text-sm font-medium transition-all",
+                        newAgentSystem === system
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border hover:border-primary/50"
+                      )}
+                    >
+                      {system}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Agent Name */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Agent 이름</label>
+                <input
+                  type="text"
+                  value={newAgentName}
+                  onChange={(e) => setNewAgentName(e.target.value)}
+                  placeholder="Agent 이름을 입력하세요"
+                  className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 p-4 border-t border-border">
+              <button
+                onClick={() => {
+                  setIsAddAgentModalOpen(false);
+                  setNewAgentName("");
+                  setNewAgentSystem(null);
+                }}
+                className="px-4 py-2 rounded-lg border border-border hover:bg-muted transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleAddRegisteredAgent}
+                disabled={!newAgentSystem || !newAgentName.trim()}
+                className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                추가
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
