@@ -347,7 +347,7 @@ export function ChatSidebar({
             </div>
             
             {/* Template List */}
-            {agentTemplates.map((template, index) => {
+            {agentTemplates.filter(t => t.type !== "custom").map((template, index) => {
               const count = myAgents.filter(a => a.templateType === template.type).length;
               const isSelected = selectedTemplateType === template.type;
               
@@ -383,6 +383,52 @@ export function ChatSidebar({
                 </div>
               );
             })}
+
+            {/* Custom Agents from Market - Show each agent individually */}
+            {myAgents.filter(a => a.templateType === "custom").length > 0 && (
+              <>
+                <div className="px-2 py-1.5 mt-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  추가된 Agent
+                </div>
+                {myAgents.filter(a => a.templateType === "custom").map((agent, index) => {
+                  const isSelected = selectedWorkflowAgent?.id === agent.id;
+                  return (
+                    <div key={agent.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
+                      <button
+                        onClick={() => {
+                          onSelectWorkflowAgent(agent);
+                          onSelectTemplateType?.(null);
+                          if (location.pathname !== "/") {
+                            navigate("/");
+                          }
+                        }}
+                        className={cn(
+                          "w-full p-3 rounded-xl text-left transition-all duration-200 flex items-center gap-3",
+                          "hover:bg-secondary/80",
+                          isSelected && !isDashboard
+                            ? "bg-primary/30 border border-primary/50 shadow-md" 
+                            : "bg-transparent"
+                        )}
+                      >
+                        <div className="relative">
+                          <div className="w-9 h-9 rounded-lg bg-primary/20 flex items-center justify-center">
+                            <Workflow className="w-4 h-4 text-primary" />
+                          </div>
+                          <span className={cn(
+                            "absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-sidebar",
+                            agent.status === "active" ? "bg-status-online" : "bg-status-offline"
+                          )} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="font-medium text-sm block truncate">{agent.name}</span>
+                          <span className="text-xs text-muted-foreground truncate block">{agent.description}</span>
+                        </div>
+                      </button>
+                    </div>
+                  );
+                })}
+              </>
+            )}
 
             {/* Recommended Agent Section (Fixed - from Agent Market) */}
             <div className="px-2 py-1.5 mt-4 text-xs font-semibold text-primary uppercase tracking-wider flex items-center gap-2">
