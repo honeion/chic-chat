@@ -20,6 +20,7 @@ interface Message {
 type RequestType = "I" | "C" | "D" | "A" | "S";
 interface ActiveRequest {
   id: string;
+  requestNo: string;
   type: RequestType;
   title: string;
   date: string;
@@ -89,7 +90,10 @@ export function AgentChatPanel({
               </span>
               <div className="min-w-0">
                 <p className="text-sm font-medium text-foreground truncate">{activeRequest.title}</p>
-                <p className="text-xs text-muted-foreground">{activeRequest.date}</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-primary/80 font-mono">{activeRequest.requestNo}</span>
+                  <span className="text-xs text-muted-foreground">{activeRequest.date}</span>
+                </div>
               </div>
             </div>
             {onCloseRequest && (
