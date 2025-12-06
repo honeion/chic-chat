@@ -60,9 +60,16 @@ const Index = () => {
   const [myAgents, setMyAgents] = useState<WorkflowItem[]>(initialMyAgents);
   const [selectedWorkflowAgent, setSelectedWorkflowAgent] = useState<WorkflowItem | null>(null);
   const [selectedTemplateType, setSelectedTemplateType] = useState<AgentTemplateType | null>(null);
+  const [selectedSystems, setSelectedSystems] = useState<OperatingSystem[]>([]);
   const location = useLocation();
   const isDashboard = location.pathname === "/dashboard";
   const { t } = useTranslation();
+
+  const SYSTEM_BOXES: OperatingSystem[] = ["e-총무", "BiOn", "SATIS"];
+
+  const handleSelectAllSystems = () => {
+    setSelectedSystems([...SYSTEM_BOXES]);
+  };
 
   const agentNames: Record<string, string> = {
     "a1": t("agent.its"),
@@ -129,6 +136,8 @@ const Index = () => {
             onAddNewAgent={handleAddNewAgent}
             selectedTemplateType={selectedTemplateType}
             setSelectedTemplateType={setSelectedTemplateType}
+            selectedSystems={selectedSystems}
+            setSelectedSystems={setSelectedSystems}
           />
         );
       case "assistant":
@@ -151,6 +160,7 @@ const Index = () => {
         onSelectWorkflowAgent={setSelectedWorkflowAgent}
         selectedTemplateType={selectedTemplateType}
         onSelectTemplateType={setSelectedTemplateType}
+        onSelectAllSystems={handleSelectAllSystems}
       />
       {renderContent()}
     </div>

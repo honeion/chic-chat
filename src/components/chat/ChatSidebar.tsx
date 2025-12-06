@@ -127,6 +127,7 @@ interface ChatSidebarProps {
   onSelectWorkflowAgent: (agent: WorkflowItem | null) => void;
   selectedTemplateType?: AgentTemplateType | null;
   onSelectTemplateType?: (type: AgentTemplateType | null) => void;
+  onSelectAllSystems?: () => void;
 }
 
 export function ChatSidebar({ 
@@ -141,6 +142,7 @@ export function ChatSidebar({
   onSelectWorkflowAgent,
   selectedTemplateType,
   onSelectTemplateType,
+  onSelectAllSystems,
 }: ChatSidebarProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedSystems, setExpandedSystems] = useState<OperatingSystem[]>([...OPERATING_SYSTEMS]);
@@ -348,6 +350,7 @@ export function ChatSidebar({
                   <button
                     onClick={() => {
                       onSelectTemplateType?.(template.type);
+                      onSelectAllSystems?.();
                       if (location.pathname !== "/") {
                         navigate("/");
                       }
