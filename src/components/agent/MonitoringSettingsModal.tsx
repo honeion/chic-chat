@@ -36,70 +36,73 @@ interface MonitoringCategory {
 
 const initialCategories: MonitoringCategory[] = [
   {
-    id: "http-api",
-    name: "HTTP API Check",
+    id: "service-app",
+    name: "서비스 모니터링 - Application 서비스 확인",
     icon: <Globe className="w-5 h-5" />,
     color: "text-blue-500",
     bgColor: "bg-blue-500/10",
     items: [
-      { id: "api-1", name: "메인 API 헬스체크", url: "https://api.example.com/health", threshold: "3초", enabled: true },
-      { id: "api-2", name: "인증 API", url: "https://api.example.com/auth/status", threshold: "2초", enabled: true },
+      { id: "app-1", name: "HTTP API Health Check", url: "https://api.example.com/health", threshold: "3초", enabled: true },
+      { id: "app-2", name: "운영자 지정 Application Health Check (지침 등 활용)", url: "", threshold: "", enabled: true },
+      { id: "app-3", name: "Crawling 탐색", url: "", threshold: "", enabled: true },
     ]
   },
   {
-    id: "db",
-    name: "DB 모니터링",
+    id: "service-db",
+    name: "서비스 모니터링 - DB 서비스 확인",
     icon: <Database className="w-5 h-5" />,
     color: "text-emerald-500",
     bgColor: "bg-emerald-500/10",
     items: [
-      { id: "db-1", name: "메인 DB 연결", endpoint: "main-db:5432", query: "SELECT 1", threshold: "1초", enabled: true },
-      { id: "db-2", name: "리플리카 DB", endpoint: "replica-db:5432", query: "SELECT 1", threshold: "2초", enabled: true },
+      { id: "db-1", name: "DB 접속 여부", endpoint: "main-db:5432", threshold: "", enabled: true },
+      { id: "db-2", name: "DB 쿼리 응답시간 Check / Slow Query 탐색", query: "SELECT 1", threshold: "1초", enabled: true },
+      { id: "db-3", name: "DB DeadLock Check", threshold: "", enabled: true },
+      { id: "db-4", name: "DB File Size", threshold: "80%", enabled: true },
     ]
   },
   {
-    id: "interface",
-    name: "IF 모니터링",
+    id: "service-db-custom",
+    name: "서비스 모니터링 - 사용자 지정 DB 모니터링 쿼리",
+    icon: <Database className="w-5 h-5" />,
+    color: "text-teal-500",
+    bgColor: "bg-teal-500/10",
+    items: [
+      { id: "db-custom-1", name: "운영자 지정 쿼리 (지침서 등 활용)", query: "", threshold: "", enabled: true },
+    ]
+  },
+  {
+    id: "service-if-batch",
+    name: "서비스 모니터링 - IF 및 배치 확인",
     icon: <RefreshCw className="w-5 h-5" />,
     color: "text-amber-500",
     bgColor: "bg-amber-500/10",
     items: [
-      { id: "if-1", name: "ERP 연동", endpoint: "erp.internal:8080", threshold: "5초", enabled: true },
-      { id: "if-2", name: "외부 결제 연동", endpoint: "payment.external:443", threshold: "3초", enabled: false },
-    ]
-  },
-  {
-    id: "batch",
-    name: "BATCH 모니터링",
-    icon: <Clock className="w-5 h-5" />,
-    color: "text-purple-500",
-    bgColor: "bg-purple-500/10",
-    items: [
-      { id: "batch-1", name: "일일 정산 배치", schedule: "매일 00:00", threshold: "30분", enabled: true },
-      { id: "batch-2", name: "데이터 동기화", schedule: "매시 정각", threshold: "10분", enabled: true },
+      { id: "if-1", name: "I/F Data 확인", endpoint: "", threshold: "", enabled: true },
+      { id: "if-2", name: "I/F Log 확인 (지침서 등 활용)", endpoint: "", threshold: "", enabled: true },
+      { id: "batch-1", name: "배치 Data 확인", schedule: "", threshold: "", enabled: true },
+      { id: "batch-2", name: "배치 Log 확인 (지침서 등 활용)", schedule: "", threshold: "", enabled: true },
     ]
   },
   {
     id: "log",
-    name: "LOG 모니터링",
+    name: "Log 모니터링 - 로그 확인",
     icon: <FileText className="w-5 h-5" />,
     color: "text-orange-500",
     bgColor: "bg-orange-500/10",
     items: [
-      { id: "log-1", name: "에러 로그 감시", endpoint: "/var/log/app/error.log", threshold: "10건/시간", enabled: true },
-      { id: "log-2", name: "액세스 로그", endpoint: "/var/log/app/access.log", threshold: "1000건/분", enabled: true },
+      { id: "log-1", name: "Application log 확인 (NPO)", endpoint: "", threshold: "", enabled: true },
+      { id: "log-2", name: "Application log 확인 (Log tool)", endpoint: "", threshold: "", enabled: true },
     ]
   },
   {
     id: "performance",
-    name: "성능 모니터링",
+    name: "성능 모니터링 - Infra (Cloud) Agent 도구",
     icon: <Activity className="w-5 h-5" />,
     color: "text-destructive",
     bgColor: "bg-destructive/10",
     items: [
-      { id: "perf-1", name: "CPU 사용률", threshold: "80%", enabled: true },
-      { id: "perf-2", name: "메모리 사용률", threshold: "85%", enabled: true },
-      { id: "perf-3", name: "디스크 I/O", threshold: "90%", enabled: true },
+      { id: "perf-1", name: "서버 성능 조회 (CPU, Memory, I/O)", threshold: "80%", enabled: true },
+      { id: "perf-2", name: "Application 성능조회", threshold: "", enabled: true },
     ]
   },
 ];
