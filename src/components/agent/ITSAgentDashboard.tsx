@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Ticket, UserPlus, Shield, Database, Clock, CheckCircle, AlertCircle, Send, Key } from "lucide-react";
+import { 
+  Ticket, UserPlus, Shield, Database, Clock, CheckCircle, AlertCircle, Send, Key,
+  Play, AlertTriangle, Wrench, FileText, User
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -9,27 +12,41 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-interface TicketItem {
+// 요청 타입 정의
+type RequestType = "I" | "C" | "D" | "A" | "S";
+
+interface RequestItem {
   id: string;
-  ticketNumber: string;
-  ticketType: string;
+  type: RequestType;
   title: string;
-  system: string;
-  requester: string;
+  date: string;
   status: "open" | "in-progress" | "resolved";
-  timestamp: string;
-  processHistory?: string;
 }
 
 interface ITSAgentDashboardProps {
   onRequest: (requestType: string) => void;
+  onStartChat?: (request: RequestItem) => void;
 }
 
-const mockTickets: TicketItem[] = [
-  { id: "t1", ticketNumber: "ITS-2024-001", ticketType: "계정발급", title: "계정발급요청서", system: "e-총무", requester: "김철수", status: "open", timestamp: "2024-12-05 10:30" },
-  { id: "t2", ticketNumber: "ITS-2024-002", ticketType: "데이터추출", title: "데이터추출요청서", system: "BiOn", requester: "이영희", status: "open", timestamp: "2024-12-05 09:45" },
-  { id: "t3", ticketNumber: "ITS-2024-003", ticketType: "시스템접근", title: "정보시스템ID신청", system: "SATIS", requester: "박민수", status: "in-progress", timestamp: "2024-12-05 09:15", processHistory: "담당자 배정 완료" },
-  { id: "t4", ticketNumber: "ITS-2024-004", ticketType: "SOP", title: "sop", system: "ITS", requester: "정수진", status: "resolved", timestamp: "2024-12-04 16:30", processHistory: "처리 완료" },
+// 요청 타입별 아이콘 및 색상
+const requestTypeConfig: Record<RequestType, { icon: React.ReactNode; label: string; color: string }> = {
+  "I": { icon: <AlertTriangle className="w-4 h-4" />, label: "인시던트", color: "text-destructive" },
+  "C": { icon: <Wrench className="w-4 h-4" />, label: "개선", color: "text-amber-500" },
+  "D": { icon: <Database className="w-4 h-4" />, label: "데이터", color: "text-emerald-500" },
+  "A": { icon: <User className="w-4 h-4" />, label: "계정/권한", color: "text-blue-500" },
+  "S": { icon: <FileText className="w-4 h-4" />, label: "단순", color: "text-muted-foreground" },
+};
+
+// Mock 요청 데이터 - 각 타입별 1개씩
+const mockRequests: RequestItem[] = [
+  // 미접수 (open)
+  { id: "r1", type: "I", title: "서버 응답 지연 현상 발생", date: "2024-12-05", status: "open" },
+  { id: "r2", type: "C", title: "대시보드 UI 개선 요청", date: "2024-12-05", status: "open" },
+  // 접수/처리중 (in-progress)
+  { id: "r3", type: "D", title: "월간 매출 데이터 추출 요청", date: "2024-12-04", status: "in-progress" },
+  { id: "r4", type: "A", title: "신규 입사자 계정 발급 요청", date: "2024-12-04", status: "in-progress" },
+  // 완료 (resolved)
+  { id: "r5", type: "S", title: "프린터 용지 교체 요청", date: "2024-12-03", status: "resolved" },
 ];
 
 const mockHistory = [
@@ -39,10 +56,10 @@ const mockHistory = [
   { id: 4, title: "", status: "pending" as const },
 ];
 
-export function ITSAgentDashboard({ onRequest }: ITSAgentDashboardProps) {
+export function ITSAgentDashboard({ onRequest, onStartChat }: ITSAgentDashboardProps) {
   const { t } = useTranslation();
-  const [tickets] = useState<TicketItem[]>(mockTickets);
-  const [selectedTicket, setSelectedTicket] = useState<TicketItem | null>(null);
+  const [requests] = useState<RequestItem[]>(mockRequests);
+  const [selectedTicket, setSelectedTicket] = useState<RequestItem | null>(null);
 
   const requestCards = [
     { id: "account", title: t("dashboard.accountRequest"), description: t("dashboard.accountRequestDesc"), icon: <UserPlus className="w-5 h-5" />, bgColor: "bg-amber-100 dark:bg-amber-900/30", headerColor: "bg-amber-200 dark:bg-amber-800/50" },
@@ -59,50 +76,111 @@ export function ITSAgentDashboard({ onRequest }: ITSAgentDashboardProps) {
     }
   };
 
-  const openTickets = tickets.filter(t => t.status === "open");
-  const inProgressTickets = tickets.filter(t => t.status === "in-progress");
-  const resolvedTickets = tickets.filter(t => t.status === "resolved");
+  const openRequests = requests.filter(r => r.status === "open");
+  const inProgressRequests = requests.filter(r => r.status === "in-progress");
+  const resolvedRequests = requests.filter(r => r.status === "resolved");
 
-  const openCount = openTickets.length;
-  const inProgressCount = inProgressTickets.length;
-  const resolvedCount = resolvedTickets.length;
+  const openCount = openRequests.length;
+  const inProgressCount = inProgressRequests.length;
+  const resolvedCount = resolvedRequests.length;
+
+  const handlePlayClick = (request: RequestItem) => {
+    if (onStartChat) {
+      onStartChat(request);
+    }
+  };
+
+  // 요청 아이템 렌더링 컴포넌트
+  const RequestListItem = ({ request, showPlay = false }: { request: RequestItem; showPlay?: boolean }) => {
+    const config = requestTypeConfig[request.type];
+    return (
+      <div className="flex items-center gap-2 p-2 rounded-lg bg-background/50 hover:bg-background/80 transition-colors text-sm">
+        <span className={cn("flex-shrink-0", config.color)} title={config.label}>
+          {config.icon}
+        </span>
+        <span className="flex-1 truncate text-foreground">{request.title}</span>
+        <span className="text-xs text-muted-foreground flex-shrink-0">{request.date}</span>
+        {showPlay && (
+          <button
+            onClick={() => handlePlayClick(request)}
+            className="p-1.5 rounded-md bg-primary/10 hover:bg-primary/20 text-primary transition-colors flex-shrink-0"
+            title="채팅 시작"
+          >
+            <Play className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6 h-full overflow-y-auto">
-      {/* ITS 운영 + ITS 요청 - 하나의 카드 안에 */}
+      {/* ITS접수현황 + ITS 요청 - 하나의 카드 안에 */}
       <div className="rounded-xl border border-border bg-card p-5">
-        {/* ITS 운영 */}
+        {/* ITS접수현황 */}
         <div className="mb-6">
           <h3 className="text-base font-semibold flex items-center gap-2 text-foreground mb-4">
             <Ticket className="w-5 h-5 text-primary" />
-            {t("dashboard.itsOperations")}
+            {t("dashboard.itsReceptionStatus")}
           </h3>
           <div className="grid grid-cols-3 gap-4">
+            {/* 미접수 */}
             <div className="rounded-lg overflow-hidden border border-destructive/30">
               <div className="px-4 py-2 bg-destructive/20 flex items-center justify-center gap-2">
                 <AlertCircle className="w-4 h-4 text-destructive" />
-                <span className="text-sm font-medium text-foreground">{t("common.received")}</span>
+                <span className="text-sm font-medium text-foreground">{t("common.notReceived")}</span>
               </div>
-              <div className="p-4 bg-background flex items-center justify-center">
-                <p className="text-3xl font-bold text-foreground">{openCount}</p>
+              <div className="p-3 bg-background flex items-center justify-center border-b border-border/50">
+                <p className="text-2xl font-bold text-foreground">{openCount}</p>
+              </div>
+              <div className="p-2 bg-background/50 space-y-1.5 max-h-[200px] overflow-y-auto">
+                {openRequests.length > 0 ? (
+                  openRequests.map(request => (
+                    <RequestListItem key={request.id} request={request} showPlay={true} />
+                  ))
+                ) : (
+                  <p className="text-xs text-muted-foreground text-center py-2">요청 없음</p>
+                )}
               </div>
             </div>
+
+            {/* 접수/처리중 */}
             <div className="rounded-lg overflow-hidden border border-status-busy/30">
               <div className="px-4 py-2 bg-status-busy/20 flex items-center justify-center gap-2">
                 <Clock className="w-4 h-4 text-status-busy" />
-                <span className="text-sm font-medium text-foreground">{t("common.inProgress")}</span>
+                <span className="text-sm font-medium text-foreground">{t("common.receivedProcessing")}</span>
               </div>
-              <div className="p-4 bg-background flex items-center justify-center">
-                <p className="text-3xl font-bold text-foreground">{inProgressCount}</p>
+              <div className="p-3 bg-background flex items-center justify-center border-b border-border/50">
+                <p className="text-2xl font-bold text-foreground">{inProgressCount}</p>
+              </div>
+              <div className="p-2 bg-background/50 space-y-1.5 max-h-[200px] overflow-y-auto">
+                {inProgressRequests.length > 0 ? (
+                  inProgressRequests.map(request => (
+                    <RequestListItem key={request.id} request={request} />
+                  ))
+                ) : (
+                  <p className="text-xs text-muted-foreground text-center py-2">요청 없음</p>
+                )}
               </div>
             </div>
+
+            {/* 완료 */}
             <div className="rounded-lg overflow-hidden border border-status-online/30">
               <div className="px-4 py-2 bg-status-online/20 flex items-center justify-center gap-2">
                 <CheckCircle className="w-4 h-4 text-status-online" />
                 <span className="text-sm font-medium text-foreground">{t("common.completed")}</span>
               </div>
-              <div className="p-4 bg-background flex items-center justify-center">
-                <p className="text-3xl font-bold text-foreground">{resolvedCount}</p>
+              <div className="p-3 bg-background flex items-center justify-center border-b border-border/50">
+                <p className="text-2xl font-bold text-foreground">{resolvedCount}</p>
+              </div>
+              <div className="p-2 bg-background/50 space-y-1.5 max-h-[200px] overflow-y-auto">
+                {resolvedRequests.length > 0 ? (
+                  resolvedRequests.map(request => (
+                    <RequestListItem key={request.id} request={request} />
+                  ))
+                ) : (
+                  <p className="text-xs text-muted-foreground text-center py-2">요청 없음</p>
+                )}
               </div>
             </div>
           </div>
@@ -145,19 +223,24 @@ export function ITSAgentDashboard({ onRequest }: ITSAgentDashboardProps) {
             <h4 className="text-sm font-semibold text-foreground text-center">{t("dashboard.ticketStatus")}</h4>
           </div>
           <div className="grid grid-cols-3 divide-x divide-border">
-            {/* 접수대기 Column */}
+            {/* 대기 Column */}
             <div>
               <div className="px-4 py-2 bg-muted/50 border-b border-border">
                 <span className="font-medium text-sm text-foreground">{t("common.pending")}</span>
               </div>
               <div className="p-3 space-y-2 min-h-[120px]">
-                {openTickets.map(ticket => (
+                {openRequests.map(request => (
                   <button
-                    key={ticket.id}
-                    onClick={() => setSelectedTicket(ticket)}
+                    key={request.id}
+                    onClick={() => setSelectedTicket(request)}
                     className="w-full p-3 rounded-lg bg-muted/30 border border-border hover:bg-muted/50 transition-colors text-left"
                   >
-                    <p className="text-sm font-medium text-foreground truncate">{ticket.title}</p>
+                    <div className="flex items-center gap-2">
+                      <span className={requestTypeConfig[request.type].color}>
+                        {requestTypeConfig[request.type].icon}
+                      </span>
+                      <p className="text-sm font-medium text-foreground truncate">{request.title}</p>
+                    </div>
                   </button>
                 ))}
               </div>
@@ -169,13 +252,18 @@ export function ITSAgentDashboard({ onRequest }: ITSAgentDashboardProps) {
                 <span className="font-medium text-sm text-foreground">{t("common.inProgress")}</span>
               </div>
               <div className="p-3 space-y-2 min-h-[120px]">
-                {inProgressTickets.map(ticket => (
+                {inProgressRequests.map(request => (
                   <button
-                    key={ticket.id}
-                    onClick={() => setSelectedTicket(ticket)}
+                    key={request.id}
+                    onClick={() => setSelectedTicket(request)}
                     className="w-full p-3 rounded-lg bg-muted/30 border border-border hover:bg-muted/50 transition-colors text-left"
                   >
-                    <p className="text-sm font-medium text-foreground truncate">{ticket.title}</p>
+                    <div className="flex items-center gap-2">
+                      <span className={requestTypeConfig[request.type].color}>
+                        {requestTypeConfig[request.type].icon}
+                      </span>
+                      <p className="text-sm font-medium text-foreground truncate">{request.title}</p>
+                    </div>
                   </button>
                 ))}
               </div>
@@ -187,13 +275,18 @@ export function ITSAgentDashboard({ onRequest }: ITSAgentDashboardProps) {
                 <span className="font-medium text-sm text-foreground">{t("common.completed")}</span>
               </div>
               <div className="p-3 space-y-2 min-h-[120px]">
-                {resolvedTickets.map(ticket => (
+                {resolvedRequests.map(request => (
                   <button
-                    key={ticket.id}
-                    onClick={() => setSelectedTicket(ticket)}
+                    key={request.id}
+                    onClick={() => setSelectedTicket(request)}
                     className="w-full p-3 rounded-lg bg-muted/30 border border-border hover:bg-muted/50 transition-colors text-left"
                   >
-                    <p className="text-sm font-medium text-foreground truncate">{ticket.title}</p>
+                    <div className="flex items-center gap-2">
+                      <span className={requestTypeConfig[request.type].color}>
+                        {requestTypeConfig[request.type].icon}
+                      </span>
+                      <p className="text-sm font-medium text-foreground truncate">{request.title}</p>
+                    </div>
                   </button>
                 ))}
               </div>
@@ -228,38 +321,29 @@ export function ITSAgentDashboard({ onRequest }: ITSAgentDashboardProps) {
           </DialogHeader>
           {selectedTicket && (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                <span className={requestTypeConfig[selectedTicket.type].color}>
+                  {requestTypeConfig[selectedTicket.type].icon}
+                </span>
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">{t("dashboard.ticketNumber")}</p>
-                  <p className="text-sm font-medium text-foreground">{selectedTicket.ticketNumber}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">{t("dashboard.ticketType")}</p>
-                  <p className="text-sm font-medium text-foreground">{selectedTicket.ticketType}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">{t("dashboard.ticketTitle")}</p>
                   <p className="text-sm font-medium text-foreground">{selectedTicket.title}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">{t("sidebar.system")}</p>
-                  <p className="text-sm font-medium text-foreground">{selectedTicket.system}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">{t("common.requester")}</p>
-                  <p className="text-sm font-medium text-foreground">{selectedTicket.requester}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">{t("common.datetime")}</p>
-                  <p className="text-sm font-medium text-foreground">{selectedTicket.timestamp}</p>
+                  <p className="text-xs text-muted-foreground">{requestTypeConfig[selectedTicket.type].label} 요청</p>
                 </div>
               </div>
-              {selectedTicket.processHistory && (
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">{t("dashboard.processHistory")}</p>
-                  <p className="text-sm font-medium text-foreground">{selectedTicket.processHistory}</p>
+                  <p className="text-xs text-muted-foreground mb-1">{t("common.datetime")}</p>
+                  <p className="text-sm font-medium text-foreground">{selectedTicket.date}</p>
                 </div>
-              )}
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">상태</p>
+                  <p className="text-sm font-medium text-foreground">
+                    {selectedTicket.status === "open" && "미접수"}
+                    {selectedTicket.status === "in-progress" && "접수/처리중"}
+                    {selectedTicket.status === "resolved" && "완료"}
+                  </p>
+                </div>
+              </div>
             </div>
           )}
         </DialogContent>
