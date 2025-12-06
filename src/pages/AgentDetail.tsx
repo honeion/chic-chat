@@ -120,9 +120,48 @@ const getAgentType = (agentName: string): AgentType => {
   return "sop";
 };
 
+// 라우팅된 요청 타입
+interface RoutedRequest {
+  id: string;
+  requestNo: string;
+  type: RequestType;
+  title: string;
+  date: string;
+  sourceAgent: string;
+}
+
+interface AgentDetailExtendedProps extends AgentDetailProps {
+  onRouteToAgent?: (request: ActiveRequest, targetAgentType: AgentType) => void;
+}
+
 export function AgentDetail({ agentId, agentName }: AgentDetailProps) {
   const { t } = useTranslation();
   const agentType = getAgentType(agentName);
+  
+  // 각 Agent별 라우팅된 요청 목록
+  const [routedRequestsToSOP, setRoutedRequestsToSOP] = useState<RoutedRequest[]>([]);
+  const [routedRequestsToChangeManagement, setRoutedRequestsToChangeManagement] = useState<RoutedRequest[]>([]);
+  const [routedRequestsToDB, setRoutedRequestsToDB] = useState<RoutedRequest[]>([]);
+
+  // Agent로 요청 라우팅
+  const handleRouteToAgent = (request: ActiveRequest, targetAgentType: AgentType) => {
+    const routedRequest: RoutedRequest = {
+      ...request,
+      sourceAgent: "ITS Agent"
+    };
+    
+    switch (targetAgentType) {
+      case "sop":
+        setRoutedRequestsToSOP(prev => [routedRequest, ...prev]);
+        break;
+      case "change-management":
+        setRoutedRequestsToChangeManagement(prev => [routedRequest, ...prev]);
+        break;
+      case "db":
+        setRoutedRequestsToDB(prev => [routedRequest, ...prev]);
+        break;
+    }
+  };
 
   const getQuickActions = () => {
     switch (agentType) {
@@ -339,23 +378,45 @@ ${getRequestDetailContent(request)}
     }
   };
   
+  // 요청 타입에 따른 라우팅 Agent 결정
+  const getTargetAgentInfo = (requestType: RequestType): { agentName: string; agentType: AgentType } | null => {
+    switch (requestType) {
+      case "I": return { agentName: "SOP Agent", agentType: "sop" };
+      case "C": return { agentName: "변경관리 Agent", agentType: "change-management" };
+      case "D": return { agentName: "DB Agent", agentType: "db" };
+      default: return null;
+    }
+  };
+
   // 접수 승인 핸들러
   const handleApproveRequest = (sessionId: string) => {
-    setChatSessions(prev => prev.map(session => {
-      if (session.id === sessionId) {
-        return { ...session, status: "in-progress" as const };
+    const session = chatSessions.find(s => s.id === sessionId);
+    if (!session) return;
+
+    const targetAgent = getTargetAgentInfo(session.request.type);
+    
+    setChatSessions(prev => prev.map(s => {
+      if (s.id === sessionId) {
+        return { ...s, status: "in-progress" as const };
       }
-      return session;
+      return s;
     }));
     
-    // 접수 완료 메시지 및 처리 시작
-    updateSessionMessages(sessionId, prev => [...prev, 
-      { role: "user", content: "접수" },
-      { role: "agent", content: "✅ 요청이 접수되었습니다. 처리를 시작합니다." }
-    ]);
-    
-    const session = chatSessions.find(s => s.id === sessionId);
-    if (session) {
+    if (targetAgent) {
+      // 다른 Agent로 라우팅되는 경우
+      updateSessionMessages(sessionId, prev => [...prev, 
+        { role: "user", content: "접수" },
+        { role: "agent", content: `✅ 요청이 접수되었습니다.\n\n📌 **${targetAgent.agentName}**로 요청을 전달합니다.\n해당 Agent의 접수 항목에서 처리 현황을 확인하실 수 있습니다.` }
+      ]);
+      
+      // 해당 Agent의 접수 목록에 추가
+      handleRouteToAgent(session.request, targetAgent.agentType);
+    } else {
+      // 계정/권한, 단순 요청 등 ITS에서 직접 처리
+      updateSessionMessages(sessionId, prev => [...prev, 
+        { role: "user", content: "접수" },
+        { role: "agent", content: "✅ 요청이 접수되었습니다. 처리를 시작합니다." }
+      ]);
       setTimeout(() => simulateProcessing(session.request.title, sessionId), 500);
     }
   };
@@ -386,7 +447,7 @@ ${getRequestDetailContent(request)}
 
   const renderDashboard = () => {
     switch (agentType) {
-      case "sop": return <SOPAgentDashboard onApprove={handleApprove} onReject={handleReject} />;
+      case "sop": return <SOPAgentDashboard onApprove={handleApprove} onReject={handleReject} routedRequests={routedRequestsToSOP} />;
       case "its": return (
         <ITSAgentDashboard 
           onRequest={handleITSRequest} 
@@ -397,11 +458,11 @@ ${getRequestDetailContent(request)}
         />
       );
       case "monitoring": return <MonitoringAgentDashboard />;
-      case "db": return <DBAgentDashboard />;
+      case "db": return <DBAgentDashboard routedRequests={routedRequestsToDB} />;
       case "biz-support": return <BizSupportAgentDashboard />;
-      case "change-management": return <ChangeManagementAgentDashboard />;
+      case "change-management": return <ChangeManagementAgentDashboard routedRequests={routedRequestsToChangeManagement} />;
       case "report": return <ReportAgentDashboard />;
-      default: return <SOPAgentDashboard onApprove={handleApprove} onReject={handleReject} />;
+      default: return <SOPAgentDashboard onApprove={handleApprove} onReject={handleReject} routedRequests={routedRequestsToSOP} />;
     }
   };
 
