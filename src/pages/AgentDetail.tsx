@@ -40,7 +40,7 @@ export interface ChatSession {
   id: string;
   request: ActiveRequest;
   messages: Message[];
-  status: "in-progress" | "completed";
+  status: "pending-approval" | "in-progress" | "completed" | "rejected";
   createdAt: string;
 }
 
@@ -266,7 +266,7 @@ export function AgentDetail({ agentId, agentName }: AgentDetailProps) {
     setTimeout(() => simulateProcessing(label, newSessionId), 100);
   };
 
-  // ITS 요청 채팅 시작 핸들러
+  // ITS 요청 채팅 시작 핸들러 (미접수 → 접수 확인 흐름)
   const handleStartChat = (request: RequestItem) => {
     // 기존 세션 확인
     const existingSession = chatSessions.find(s => s.request.id === request.id);
@@ -275,23 +275,104 @@ export function AgentDetail({ agentId, agentName }: AgentDetailProps) {
       return;
     }
     
-    // 새로운 세션 생성
+    // 새로운 세션 생성 - 요청 상세 내용과 접수/반려 안내
     const newSessionId = `session-${Date.now()}`;
     const typeLabel = requestTypeLabels[request.type];
-    const chatIntro = `[${typeLabel}] ${request.title}\n일자: ${request.date}\n\n해당 요청을 분석하고 처리를 시작하겠습니다.`;
+    
+    // 요청 상세 내용을 보여주는 메시지
+    const requestDetailMessage = `📋 **요청 상세 정보**
+
+**요청 유형:** ${typeLabel}
+**요청 번호:** ${request.requestNo}
+**요청 제목:** ${request.title}
+**요청 일자:** ${request.date}
+
+---
+
+**요청 내용:**
+${getRequestDetailContent(request)}
+
+---
+
+위 요청 내용을 확인하시고, 접수 여부를 결정해 주세요.`;
     
     const newSession: ChatSession = {
       id: newSessionId,
       request: { id: request.id, requestNo: request.requestNo, type: request.type, title: request.title, date: request.date },
-      messages: [{ role: "agent", content: chatIntro }],
-      status: "in-progress",
+      messages: [{ role: "agent", content: requestDetailMessage }],
+      status: "pending-approval", // 승인 대기 상태
       createdAt: new Date().toISOString(),
     };
     
     setChatSessions(prev => [newSession, ...prev]);
     setActiveSessionId(newSessionId);
+  };
+  
+  // 요청 타입별 상세 내용 (mock)
+  const getRequestDetailContent = (request: RequestItem): string => {
+    switch (request.type) {
+      case "I":
+        return `• 증상: 서버 응답 시간이 평균 5초 이상 지연되고 있습니다.
+• 영향 범위: 전체 사용자
+• 발생 시점: 2024-12-05 09:30 경
+• 긴급도: 높음`;
+      case "C":
+        return `• 개선 요청 사항: 대시보드 UI 레이아웃 변경
+• 요청 사유: 사용성 개선을 위한 디자인 변경 필요
+• 희망 완료일: 2024-12-15`;
+      case "D":
+        return `• 요청 데이터: 월간 매출 현황
+• 추출 기간: 2024년 11월
+• 데이터 형식: Excel
+• 용도: 월간 보고서 작성`;
+      case "A":
+        return `• 요청 유형: 신규 계정 발급
+• 대상자: 홍길동 (신규 입사자)
+• 필요 권한: 일반 사용자 권한
+• 부서: 개발팀`;
+      case "S":
+        return `• 요청 내용: 프린터 용지 교체
+• 위치: 3층 개발팀 프린터
+• 비고: A4 용지 부족`;
+      default:
+        return "요청 상세 내용이 없습니다.";
+    }
+  };
+  
+  // 접수 승인 핸들러
+  const handleApproveRequest = (sessionId: string) => {
+    setChatSessions(prev => prev.map(session => {
+      if (session.id === sessionId) {
+        return { ...session, status: "in-progress" as const };
+      }
+      return session;
+    }));
     
-    setTimeout(() => simulateProcessing(request.title, newSessionId), 100);
+    // 접수 완료 메시지 및 처리 시작
+    updateSessionMessages(sessionId, prev => [...prev, 
+      { role: "user", content: "접수" },
+      { role: "agent", content: "✅ 요청이 접수되었습니다. 처리를 시작합니다." }
+    ]);
+    
+    const session = chatSessions.find(s => s.id === sessionId);
+    if (session) {
+      setTimeout(() => simulateProcessing(session.request.title, sessionId), 500);
+    }
+  };
+  
+  // 반려 핸들러
+  const handleRejectRequest = (sessionId: string) => {
+    setChatSessions(prev => prev.map(session => {
+      if (session.id === sessionId) {
+        return { ...session, status: "rejected" as const };
+      }
+      return session;
+    }));
+    
+    updateSessionMessages(sessionId, prev => [...prev, 
+      { role: "user", content: "반려" },
+      { role: "agent", content: "❌ 요청이 반려되었습니다. 반려 사유가 필요하시면 입력해 주세요." }
+    ]);
   };
 
   const handleCloseRequest = () => {
@@ -347,6 +428,9 @@ export function AgentDetail({ agentId, agentName }: AgentDetailProps) {
         quickActions={quickActions}
         activeRequest={activeRequest}
         onCloseRequest={handleCloseRequest}
+        isPendingApproval={activeSession?.status === "pending-approval"}
+        onApproveRequest={() => activeSessionId && handleApproveRequest(activeSessionId)}
+        onRejectRequest={() => activeSessionId && handleRejectRequest(activeSessionId)}
       />
     </div>
   );

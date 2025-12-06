@@ -77,6 +77,8 @@ export function ITSAgentDashboard({
     switch (status) {
       case "completed": return <span className="px-3 py-1 text-xs rounded border bg-status-online/10 text-status-online border-status-online/30">{t("common.completed")}</span>;
       case "in-progress": return <span className="px-3 py-1 text-xs rounded border bg-status-busy/10 text-status-busy border-status-busy/30">{t("common.inProgress")}</span>;
+      case "pending-approval": return <span className="px-3 py-1 text-xs rounded border bg-amber-500/10 text-amber-500 border-amber-500/30">접수 대기</span>;
+      case "rejected": return <span className="px-3 py-1 text-xs rounded border bg-destructive/10 text-destructive border-destructive/30">반려</span>;
       default: return null;
     }
   };

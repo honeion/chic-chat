@@ -34,6 +34,9 @@ interface AgentChatPanelProps {
   quickActions: Array<{ label: string; action: string }>;
   activeRequest?: ActiveRequest | null;
   onCloseRequest?: () => void;
+  isPendingApproval?: boolean;
+  onApproveRequest?: () => void;
+  onRejectRequest?: () => void;
 }
 
 // 요청 타입별 아이콘 및 색상
@@ -52,7 +55,10 @@ export function AgentChatPanel({
   onQuickAction,
   quickActions,
   activeRequest,
-  onCloseRequest
+  onCloseRequest,
+  isPendingApproval,
+  onApproveRequest,
+  onRejectRequest
 }: AgentChatPanelProps) {
   const { t } = useTranslation();
   const [chatInput, setChatInput] = useState("");
@@ -155,19 +161,47 @@ export function AgentChatPanel({
         ))}
       </div>
 
-      <div className="p-3 border-t border-border/50">
-        <div className="flex flex-wrap gap-2 mb-3">
-          {quickActions.map((action, idx) => (
+      {/* 승인 대기 상태일 때 접수/반려 버튼 표시 */}
+      {isPendingApproval && activeRequest && (
+        <div className="p-4 border-t border-border bg-amber-50 dark:bg-amber-900/20">
+          <p className="text-sm text-foreground mb-3 text-center font-medium">
+            요청을 접수하시겠습니까?
+          </p>
+          <div className="flex gap-3">
             <button
-              key={idx}
-              onClick={() => onQuickAction(action.action)}
-              className="px-3 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 text-xs transition-colors"
+              onClick={onApproveRequest}
+              className="flex-1 px-4 py-2.5 rounded-lg bg-status-online text-white font-medium hover:bg-status-online/90 transition-colors flex items-center justify-center gap-2"
             >
-              {action.label}
+              <CheckCircle className="w-4 h-4" />
+              접수
             </button>
-          ))}
+            <button
+              onClick={onRejectRequest}
+              className="flex-1 px-4 py-2.5 rounded-lg bg-destructive text-white font-medium hover:bg-destructive/90 transition-colors flex items-center justify-center gap-2"
+            >
+              <X className="w-4 h-4" />
+              반려
+            </button>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* 일반 상태일 때 퀵 액션 표시 */}
+      {!isPendingApproval && (
+        <div className="p-3 border-t border-border/50">
+          <div className="flex flex-wrap gap-2 mb-3">
+            {quickActions.map((action, idx) => (
+              <button
+                key={idx}
+                onClick={() => onQuickAction(action.action)}
+                className="px-3 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 text-xs transition-colors"
+              >
+                {action.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="p-4 border-t border-border">
         <div className="flex gap-2">
