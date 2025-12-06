@@ -46,7 +46,9 @@
     "next": "Tiếp theo",
     "success": "Thành công",
     "failed": "Thất bại",
-    "running": "Đang chạy"
+    "running": "Đang chạy",
+    "chatHistory": "Lịch sử Chat xử lý",
+    "rejected": "Từ chối"
   },
   "db": {
     "totalDb": "Tổng DB",

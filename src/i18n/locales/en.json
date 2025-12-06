@@ -46,7 +46,9 @@
     "next": "Next",
     "success": "Success",
     "failed": "Failed",
-    "running": "Running"
+    "running": "Running",
+    "chatHistory": "Process Chat History",
+    "rejected": "Rejected"
   },
   "db": {
     "totalDb": "Total DB",
