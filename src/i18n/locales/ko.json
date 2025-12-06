@@ -104,7 +104,7 @@
     "scheduled": "예정"
   },
   "dashboard": {
-    "pendingIncidents": "승인 대기 인시던트",
+    "pendingIncidents": "인시던트 접수현황",
     "allProcessed": "모든 인시던트가 처리되었습니다",
     "processingHistory": "처리 이력",
     "processHistory": "처리 Chat 이력",
