@@ -48,6 +48,10 @@ interface AgentChatPanelProps {
   isPendingProcessStart?: boolean;
   onStartProcess?: () => void;
   onCancelProcess?: () => void;
+  // 모니터링 Agent용 결과 확인 상태
+  isPendingMonitoringResult?: boolean;
+  onRegisterDetection?: () => void;
+  onCompleteNormal?: () => void;
 }
 
 // 요청 타입별 아이콘 및 색상
@@ -73,7 +77,10 @@ export function AgentChatPanel({
   onNavigateToAgent,
   isPendingProcessStart,
   onStartProcess,
-  onCancelProcess
+  onCancelProcess,
+  isPendingMonitoringResult,
+  onRegisterDetection,
+  onCompleteNormal
 }: AgentChatPanelProps) {
   const { t } = useTranslation();
   const [chatInput, setChatInput] = useState("");
@@ -237,8 +244,33 @@ export function AgentChatPanel({
         </div>
       )}
 
+      {/* 모니터링 결과 확인 상태일 때 비정상감지 등록/정상완료 버튼 표시 */}
+      {isPendingMonitoringResult && activeRequest && (
+        <div className="p-3 border-t border-border bg-amber-500/5">
+          <p className="text-xs text-muted-foreground mb-2 text-center">
+            모니터링 결과를 어떻게 처리하시겠습니까?
+          </p>
+          <div className="flex gap-2 justify-center">
+            <button
+              onClick={onRegisterDetection}
+              className="px-4 py-1.5 rounded-md bg-destructive/10 text-destructive text-sm font-medium hover:bg-destructive/20 transition-colors flex items-center gap-1.5 border border-destructive/20"
+            >
+              <AlertTriangle className="w-3.5 h-3.5" />
+              비정상감지 등록
+            </button>
+            <button
+              onClick={onCompleteNormal}
+              className="px-4 py-1.5 rounded-md bg-status-online/20 text-status-online text-sm font-medium hover:bg-status-online/30 transition-colors flex items-center gap-1.5 border border-status-online/30"
+            >
+              <CheckCircle className="w-3.5 h-3.5" />
+              정상완료
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 일반 상태일 때 퀵 액션 표시 */}
-      {!isPendingApproval && !isPendingProcessStart && (
+      {!isPendingApproval && !isPendingProcessStart && !isPendingMonitoringResult && (
         <div className="p-3 border-t border-border/50">
           <div className="flex flex-wrap gap-2 mb-3">
             {quickActions.map((action, idx) => (

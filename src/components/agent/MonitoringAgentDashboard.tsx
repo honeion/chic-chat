@@ -10,7 +10,7 @@ import type { ChatSession } from "@/pages/AgentDetail";
 // 감지 항목 타입 정의
 type DetectionSeverity = "critical" | "warning" | "info";
 
-interface DetectionItem {
+export interface DetectionItem {
   id: string;
   detectionNo: string;
   severity: DetectionSeverity;
@@ -20,11 +20,20 @@ interface DetectionItem {
   status: "detected" | "in-progress" | "resolved";
 }
 
+// 시스템 정보 타입
+export interface SystemInfo {
+  id: string;
+  name: string;
+}
+
 interface MonitoringAgentDashboardProps {
   onStartChat?: (detection: DetectionItem) => void;
+  onStartMonitoring?: (system: SystemInfo) => void;
   chatSessions?: ChatSession[];
   onSelectSession?: (sessionId: string) => void;
   activeSessionId?: string | null;
+  detections?: DetectionItem[];
+  onAddDetection?: (detection: DetectionItem) => void;
 }
 
 // 심각도별 아이콘 및 색상
@@ -50,12 +59,16 @@ const mockDetections: DetectionItem[] = [
 
 export function MonitoringAgentDashboard({ 
   onStartChat, 
+  onStartMonitoring,
   chatSessions = [], 
   onSelectSession,
-  activeSessionId 
+  activeSessionId,
+  detections: externalDetections,
+  onAddDetection
 }: MonitoringAgentDashboardProps) {
   const { t } = useTranslation();
-  const [detections] = useState<DetectionItem[]>(mockDetections);
+  const [internalDetections] = useState<DetectionItem[]>(mockDetections);
+  const detections = externalDetections || internalDetections;
   const [isCompletedCollapsed, setIsCompletedCollapsed] = useState(true);
 
   const getStatusBadge = (status: string) => {
@@ -151,11 +164,18 @@ export function MonitoringAgentDashboard({
   };
 
   // 운영자 담당 시스템 목록
-  const operatorSystems = [
+  const operatorSystems: SystemInfo[] = [
     { id: "etongmu", name: "e-총무시스템" },
     { id: "purchase", name: "구매시스템" },
     { id: "sales", name: "영업/물류시스템" },
   ];
+
+  // 모니터링 실행 버튼 클릭 핸들러
+  const handleMonitoringStart = (system: SystemInfo) => {
+    if (onStartMonitoring) {
+      onStartMonitoring(system);
+    }
+  };
 
   return (
     <div className="space-y-6 h-full overflow-y-auto">
@@ -169,6 +189,7 @@ export function MonitoringAgentDashboard({
             <span className="text-sm font-medium text-foreground">{system.name}</span>
             <div className="flex items-center gap-2">
               <button
+                onClick={() => handleMonitoringStart(system)}
                 className="p-2 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
                 title="모니터링 실행"
               >

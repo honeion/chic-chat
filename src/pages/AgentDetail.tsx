@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Bot, Settings, Info } from "lucide-react";
 import { SOPAgentDashboard } from "@/components/agent/SOPAgentDashboard";
 import { ITSAgentDashboard } from "@/components/agent/ITSAgentDashboard";
-import { MonitoringAgentDashboard } from "@/components/agent/MonitoringAgentDashboard";
+import { MonitoringAgentDashboard, type DetectionItem, type SystemInfo } from "@/components/agent/MonitoringAgentDashboard";
 import { DBAgentDashboard } from "@/components/agent/DBAgentDashboard";
 import { BizSupportAgentDashboard } from "@/components/agent/BizSupportAgentDashboard";
 import { ChangeManagementAgentDashboard } from "@/components/agent/ChangeManagementAgentDashboard";
@@ -143,6 +143,17 @@ export function AgentDetail({ agentId, agentName, onNavigateToAgent }: AgentDeta
   const [routedRequestsToSOP, setRoutedRequestsToSOP] = useState<RoutedRequest[]>([]);
   const [routedRequestsToChangeManagement, setRoutedRequestsToChangeManagement] = useState<RoutedRequest[]>([]);
   const [routedRequestsToDB, setRoutedRequestsToDB] = useState<RoutedRequest[]>([]);
+  
+  // 모니터링 Agent 감지 목록
+  const [monitoringDetections, setMonitoringDetections] = useState<DetectionItem[]>([
+    { id: "d1", detectionNo: "MON-2024-0045", severity: "critical", title: "API-01 CPU 사용률 임계치 초과", source: "API-01", date: "2024-12-05", status: "detected" },
+    { id: "d2", detectionNo: "MON-2024-0046", severity: "warning", title: "WEB-02 메모리 사용률 높음", source: "WEB-02", date: "2024-12-05", status: "detected" },
+    { id: "d3", detectionNo: "MON-2024-0047", severity: "critical", title: "DB-01 디스크 I/O 지연", source: "DB-01", date: "2024-12-06", status: "detected" },
+    { id: "d4", detectionNo: "MON-2024-0044", severity: "warning", title: "네트워크 대역폭 포화 상태", source: "NETWORK", date: "2024-12-05", status: "in-progress" },
+    { id: "d5", detectionNo: "MON-2024-0043", severity: "critical", title: "SSL 인증서 만료 임박", source: "WEB-01", date: "2024-12-04", status: "in-progress" },
+    { id: "d6", detectionNo: "MON-2024-0042", severity: "info", title: "DB-01 백업 완료", source: "DB-01", date: "2024-12-03", status: "resolved" },
+    { id: "d7", detectionNo: "MON-2024-0041", severity: "warning", title: "WEB-01 응답 지연 해결", source: "WEB-01", date: "2024-12-02", status: "resolved" },
+  ]);
 
   // Agent로 요청 라우팅
   const handleRouteToAgent = (request: ActiveRequest, targetAgentType: AgentType) => {
@@ -627,6 +638,222 @@ ${incident.description || "해당 인시던트에 대한 처리가 필요합니�
     setActiveSessionId(newSessionId);
   };
 
+  // 모니터링 Agent 채팅 시작 핸들러
+  const handleMonitoringStartChat = (detection: DetectionItem) => {
+    const existingSession = chatSessions.find(s => s.request.id === detection.id);
+    if (existingSession) {
+      setActiveSessionId(existingSession.id);
+      return;
+    }
+    
+    const newSessionId = `session-${Date.now()}`;
+    const severityLabel = detection.severity === "critical" ? "심각" : detection.severity === "warning" ? "경고" : "정보";
+    
+    const requestSummaryMessage = `📋 **비정상 감지 상세**
+
+**심각도:** ${severityLabel}
+**감지 번호:** ${detection.detectionNo}
+**제목:** ${detection.title}
+**출처:** ${detection.source}
+**감지 일시:** ${detection.date}
+
+---
+
+해당 비정상 상태에 대한 분석을 진행합니다.`;
+    
+    const newSession: ChatSession = {
+      id: newSessionId,
+      request: { 
+        id: detection.id, 
+        requestNo: detection.detectionNo, 
+        type: "I", 
+        title: detection.title, 
+        date: detection.date 
+      },
+      messages: [{ role: "agent", content: requestSummaryMessage }],
+      status: "in-progress",
+      createdAt: new Date().toISOString(),
+    };
+    
+    setChatSessions(prev => [newSession, ...prev]);
+    setActiveSessionId(newSessionId);
+    
+    setTimeout(() => simulateProcessing(detection.title, newSessionId), 100);
+  };
+
+  // 모니터링 실행 핸들러
+  const handleStartMonitoring = (system: SystemInfo) => {
+    const newSessionId = `session-mon-${Date.now()}`;
+    const requestNo = `MON-RUN-${Date.now()}`;
+    
+    const monitoringItems = [
+      "HTTP API Check",
+      "DB 모니터링",
+      "IF 모니터링",
+      "BATCH 모니터링",
+      "LOG 모니터링",
+      "성능 모니터링"
+    ];
+    
+    const introMessage = `🔍 **${system.name} 모니터링 시작**
+
+모니터링 대상 시스템: **${system.name}**
+실행 시각: ${new Date().toLocaleString('ko-KR')}
+
+다음 항목들에 대한 모니터링을 실시합니다:
+${monitoringItems.map(item => `• ${item}`).join('\n')}
+
+모니터링을 시작합니다...`;
+    
+    const newSession: ChatSession = {
+      id: newSessionId,
+      request: { 
+        id: `mon-${system.id}-${Date.now()}`, 
+        requestNo, 
+        type: "I", 
+        title: `${system.name} 모니터링`, 
+        date: new Date().toISOString().split('T')[0]
+      },
+      messages: [{ role: "agent", content: introMessage }],
+      status: "in-progress",
+      createdAt: new Date().toISOString(),
+    };
+    
+    setChatSessions(prev => [newSession, ...prev]);
+    setActiveSessionId(newSessionId);
+    
+    // 모니터링 단계별 진행
+    const monitoringSteps: ProcessingStep[] = monitoringItems.map((item, idx) => ({
+      id: String(idx + 1),
+      step: item,
+      status: "pending" as const
+    }));
+    
+    setTimeout(() => {
+      updateSessionMessages(newSessionId, prev => [...prev, { 
+        role: "agent", 
+        content: "모니터링 항목 점검 중...", 
+        processingSteps: monitoringSteps 
+      }]);
+      
+      // 각 단계 순차적으로 완료
+      monitoringSteps.forEach((_, index) => {
+        setTimeout(() => {
+          updateSessionMessages(newSessionId, prev => {
+            const updated = [...prev];
+            const lastMsg = updated[updated.length - 1];
+            if (lastMsg.processingSteps) {
+              lastMsg.processingSteps = lastMsg.processingSteps.map((step, i) => ({ 
+                ...step, 
+                status: i < index ? "completed" : i === index ? "running" : "pending" 
+              }));
+            }
+            return [...updated];
+          });
+        }, (index + 1) * 600);
+      });
+      
+      // 모든 단계 완료 후 결과 표시
+      setTimeout(() => {
+        updateSessionMessages(newSessionId, prev => {
+          const updated = [...prev];
+          const lastMsg = updated[updated.length - 1];
+          if (lastMsg.processingSteps) { 
+            lastMsg.processingSteps = lastMsg.processingSteps.map(step => ({ ...step, status: "completed" as const })); 
+          }
+          return [...updated];
+        });
+        
+        // 결과 요약 및 등록 여부 확인
+        setTimeout(() => {
+          const hasIssue = Math.random() > 0.5; // 랜덤하게 이슈 발생 시뮬레이션
+          const resultMessage = hasIssue 
+            ? `📊 **모니터링 결과 요약**
+
+✅ HTTP API Check: 정상
+⚠️ DB 모니터링: **응답 지연 감지** (평균 응답시간 3.2초)
+✅ IF 모니터링: 정상
+✅ BATCH 모니터링: 정상
+⚠️ LOG 모니터링: **오류 로그 다수 발생** (최근 1시간 내 45건)
+✅ 성능 모니터링: 정상
+
+---
+
+**발견된 이슈:**
+• DB 응답 지연 - 임계치(2초) 초과
+• 오류 로그 급증 - 정상 대비 300% 증가
+
+비정상 감지로 등록하시겠습니까?`
+            : `📊 **모니터링 결과 요약**
+
+✅ HTTP API Check: 정상
+✅ DB 모니터링: 정상
+✅ IF 모니터링: 정상
+✅ BATCH 모니터링: 정상
+✅ LOG 모니터링: 정상
+✅ 성능 모니터링: 정상
+
+---
+
+모든 모니터링 항목이 정상입니다.
+
+비정상 감지로 등록하시겠습니까? (정상 완료 처리도 가능합니다)`;
+          
+          updateSessionMessages(newSessionId, prev => [...prev, { role: "agent", content: resultMessage }]);
+          
+          // 세션 상태를 pending-monitoring-result로 변경
+          setChatSessions(prev => prev.map(s => 
+            s.id === newSessionId ? { ...s, status: "pending-monitoring-result" as any } : s
+          ));
+        }, 500);
+      }, monitoringSteps.length * 600 + 500);
+    }, 300);
+  };
+
+  // 비정상 감지 등록 핸들러
+  const handleAddDetection = (detection: DetectionItem) => {
+    setMonitoringDetections(prev => [detection, ...prev]);
+  };
+
+  // 모니터링 결과 - 비정상 감지 등록
+  const handleRegisterDetection = (sessionId: string) => {
+    const session = chatSessions.find(s => s.id === sessionId);
+    if (!session) return;
+    
+    const newDetection: DetectionItem = {
+      id: `d-${Date.now()}`,
+      detectionNo: `MON-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 9000) + 1000).padStart(4, '0')}`,
+      severity: "warning",
+      title: session.request.title,
+      source: session.request.title.split(' ')[0],
+      date: new Date().toISOString().split('T')[0],
+      status: "detected"
+    };
+    
+    setMonitoringDetections(prev => [newDetection, ...prev]);
+    
+    setChatSessions(prev => prev.map(s => 
+      s.id === sessionId ? { ...s, status: "completed" as const } : s
+    ));
+    
+    updateSessionMessages(sessionId, prev => [...prev, 
+      { role: "user", content: "비정상감지 등록" },
+      { role: "agent", content: `✅ 비정상 감지로 등록되었습니다.\n\n**감지 번호:** ${newDetection.detectionNo}\n\n비정상 감지 현황에서 해당 항목을 확인하실 수 있습니다.` }
+    ]);
+  };
+
+  // 모니터링 결과 - 정상 완료
+  const handleCompleteNormal = (sessionId: string) => {
+    setChatSessions(prev => prev.map(s => 
+      s.id === sessionId ? { ...s, status: "completed" as const } : s
+    ));
+    
+    updateSessionMessages(sessionId, prev => [...prev, 
+      { role: "user", content: "정상완료" },
+      { role: "agent", content: "✅ 정상 완료 처리되었습니다.\n\n모니터링 결과가 정상으로 기록되었습니다." }
+    ]);
+  };
+
   // SOP Agent 처리 시작 핸들러
   const handleStartProcess = (sessionId: string) => {
     const session = chatSessions.find(s => s.id === sessionId);
@@ -685,7 +912,17 @@ ${incident.description || "해당 인시던트에 대한 처리가 필요합니�
           activeSessionId={activeSessionId}
         />
       );
-      case "monitoring": return <MonitoringAgentDashboard />;
+      case "monitoring": return (
+        <MonitoringAgentDashboard 
+          onStartChat={handleMonitoringStartChat}
+          onStartMonitoring={handleStartMonitoring}
+          chatSessions={chatSessions}
+          onSelectSession={handleSelectSession}
+          activeSessionId={activeSessionId}
+          detections={monitoringDetections}
+          onAddDetection={handleAddDetection}
+        />
+      );
       case "db": return (
         <DBAgentDashboard 
           routedRequests={routedRequestsToDB}
@@ -750,6 +987,9 @@ ${incident.description || "해당 인시던트에 대한 처리가 필요합니�
         isPendingProcessStart={activeSession?.status === "pending-process-start"}
         onStartProcess={() => activeSessionId && handleStartProcess(activeSessionId)}
         onCancelProcess={() => activeSessionId && handleCancelProcess(activeSessionId)}
+        isPendingMonitoringResult={(activeSession?.status as string) === "pending-monitoring-result"}
+        onRegisterDetection={() => activeSessionId && handleRegisterDetection(activeSessionId)}
+        onCompleteNormal={() => activeSessionId && handleCompleteNormal(activeSessionId)}
       />
     </div>
   );
