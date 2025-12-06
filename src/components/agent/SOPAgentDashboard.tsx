@@ -118,6 +118,8 @@ export function SOPAgentDashboard({
   const completedCount = completedIncidents.length;
 
   const handlePlayClick = (incident: Incident) => {
+    console.log("SOPAgentDashboard handlePlayClick called:", incident);
+    console.log("onStartChat exists:", !!onStartChat);
     if (onStartChat) {
       onStartChat(incident);
     }
