@@ -81,15 +81,24 @@ export function WorkflowPage({
   const [expandedMyAgent, setExpandedMyAgent] = useState<string | null>(null);
   const [isNewAgentModalOpen, setIsNewAgentModalOpen] = useState(false);
   const [selectedMarketAgent, setSelectedMarketAgent] = useState<WorkflowItem | null>(null);
-  const [selectedSystem, setSelectedSystem] = useState<OperatingSystem | null>(null);
-  const [systemDropdownOpen, setSystemDropdownOpen] = useState(false);
+  const [selectedSystems, setSelectedSystems] = useState<OperatingSystem[]>([]);
 
   const displayedMarketAgents = expandedMarket ? agentMarketItems : agentMarketItems.slice(0, 4);
   
-  // Filter my agents by selected system
-  const filteredMyAgents = selectedSystem 
-    ? myAgents.filter(agent => agent.system === selectedSystem)
+  // Filter my agents by selected systems (toggle)
+  const filteredMyAgents = selectedSystems.length > 0
+    ? myAgents.filter(agent => agent.system && selectedSystems.includes(agent.system))
     : myAgents;
+
+  const SYSTEM_BOXES: OperatingSystem[] = ["e-총무", "BiOn", "SATIS"];
+
+  const toggleSystem = (system: OperatingSystem) => {
+    setSelectedSystems(prev => 
+      prev.includes(system) 
+        ? prev.filter(s => s !== system)
+        : [...prev, system]
+    );
+  };
 
   const getStatusStyle = (status: WorkflowItem["status"]) => {
     switch (status) {
@@ -163,54 +172,29 @@ export function WorkflowPage({
           </button>
         </div>
 
-        {/* System Selector */}
+        {/* System Selector Boxes */}
         <div className="mb-6">
-          <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-            {t("sidebar.system")}
+          <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+            담당 시스템
           </div>
-          <div className="relative inline-block">
-            <button
-              onClick={() => setSystemDropdownOpen(!systemDropdownOpen)}
-              className="px-4 py-2 rounded-lg bg-secondary border border-border flex items-center gap-2 hover:bg-secondary/80 transition-colors"
-            >
-              <Folder className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium">
-                {selectedSystem || t("sidebar.allSystems")}
-              </span>
-              <ChevronDown className={cn("w-4 h-4 text-muted-foreground transition-transform", systemDropdownOpen && "rotate-180")} />
-            </button>
-            
-            {systemDropdownOpen && (
-              <div className="absolute z-50 w-48 mt-1 py-1 bg-popover border border-border rounded-lg shadow-lg">
-                <button
-                  onClick={() => {
-                    setSelectedSystem(null);
-                    setSystemDropdownOpen(false);
-                  }}
-                  className={cn(
-                    "w-full px-3 py-2 text-left text-sm hover:bg-secondary transition-colors",
-                    !selectedSystem && "bg-primary/10 text-primary"
-                  )}
-                >
-                  {t("sidebar.allSystems")}
-                </button>
-                {OPERATING_SYSTEMS.map((system) => (
-                  <button
-                    key={system}
-                    onClick={() => {
-                      setSelectedSystem(system);
-                      setSystemDropdownOpen(false);
-                    }}
-                    className={cn(
-                      "w-full px-3 py-2 text-left text-sm hover:bg-secondary transition-colors",
-                      selectedSystem === system && "bg-primary/10 text-primary"
-                    )}
-                  >
-                    {system}
-                  </button>
-                ))}
-              </div>
-            )}
+          <div className="flex gap-3">
+            {SYSTEM_BOXES.map((system) => (
+              <button
+                key={system}
+                onClick={() => toggleSystem(system)}
+                className={cn(
+                  "px-4 py-3 rounded-xl border-2 transition-all font-medium text-sm",
+                  selectedSystems.includes(system)
+                    ? "bg-primary/20 border-primary text-primary shadow-md"
+                    : "bg-card/50 border-border/50 text-muted-foreground hover:border-primary/50 hover:bg-card"
+                )}
+              >
+                <div className="flex items-center gap-2">
+                  <Folder className="w-4 h-4" />
+                  {system}
+                </div>
+              </button>
+            ))}
           </div>
         </div>
 
