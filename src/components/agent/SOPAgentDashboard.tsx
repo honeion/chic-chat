@@ -1,7 +1,19 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CheckCircle, XCircle, Clock, AlertTriangle, FileText, ChevronDown, ChevronUp, Play, Ticket } from "lucide-react";
+import { CheckCircle, XCircle, Clock, AlertTriangle, FileText, ChevronDown, ChevronUp, Play, Ticket, Database, Wrench, User } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+// 요청 타입 정의 (ITS와 동일)
+type RequestType = "I" | "C" | "D" | "A" | "S";
+
+interface RoutedRequest {
+  id: string;
+  requestNo: string;
+  type: RequestType;
+  title: string;
+  date: string;
+  sourceAgent: string;
+}
 
 interface Incident {
   id: string;
@@ -11,6 +23,9 @@ interface Incident {
   priority: "high" | "medium" | "low";
   timestamp: string;
   recommendation?: string;
+  requestNo?: string;
+  type?: RequestType;
+  sourceAgent?: string;
 }
 
 interface HistoryItem {
@@ -24,6 +39,7 @@ interface HistoryItem {
 interface SOPAgentDashboardProps {
   onApprove: (incidentId: string, incident: Incident) => void;
   onReject: (incidentId: string) => void;
+  routedRequests?: RoutedRequest[];
 }
 
 const mockIncidents: Incident[] = [
@@ -39,14 +55,40 @@ const mockHistory: HistoryItem[] = [
   { id: "h3", action: "헬스체크 완료", result: "모든 서비스 정상", timestamp: "08:00", status: "success" }
 ];
 
-export function SOPAgentDashboard({ onApprove, onReject }: SOPAgentDashboardProps) {
+// 요청 타입별 아이콘 및 색상
+const requestTypeConfig: Record<RequestType, { icon: React.ReactNode; label: string; color: string }> = {
+  "I": { icon: <AlertTriangle className="w-4 h-4" />, label: "인시던트", color: "text-destructive" },
+  "C": { icon: <Wrench className="w-4 h-4" />, label: "개선", color: "text-amber-500" },
+  "D": { icon: <Database className="w-4 h-4" />, label: "데이터", color: "text-emerald-500" },
+  "A": { icon: <User className="w-4 h-4" />, label: "계정/권한", color: "text-blue-500" },
+  "S": { icon: <FileText className="w-4 h-4" />, label: "단순", color: "text-muted-foreground" },
+};
+
+export function SOPAgentDashboard({ onApprove, onReject, routedRequests = [] }: SOPAgentDashboardProps) {
   const { t } = useTranslation();
+  
+  // 라우팅된 요청을 인시던트로 변환
+  const routedIncidents: Incident[] = routedRequests.map(req => ({
+    id: req.id,
+    title: req.title,
+    description: `${req.sourceAgent}에서 전달된 요청`,
+    status: "pending" as const,
+    priority: "high" as const,
+    timestamp: req.date,
+    requestNo: req.requestNo,
+    type: req.type,
+    sourceAgent: req.sourceAgent,
+  }));
+  
   const [incidents, setIncidents] = useState<Incident[]>(mockIncidents);
   const [history] = useState<HistoryItem[]>(mockHistory);
   const [isCompletedCollapsed, setIsCompletedCollapsed] = useState(true);
+  
+  // 모든 인시던트 (라우팅된 것 + 기존 것)
+  const allIncidents = [...routedIncidents, ...incidents];
 
   const handleApprove = (incidentId: string) => {
-    const incident = incidents.find(i => i.id === incidentId);
+    const incident = allIncidents.find(i => i.id === incidentId);
     if (incident) {
       setIncidents(prev => prev.map(inc => inc.id === incidentId ? { ...inc, status: "processing" } : inc));
       onApprove(incidentId, incident);
@@ -82,43 +124,50 @@ export function SOPAgentDashboard({ onApprove, onReject }: SOPAgentDashboardProp
     }
   };
 
-  const pendingIncidents = incidents.filter(i => i.status === "pending");
-  const processingIncidents = incidents.filter(i => i.status === "processing");
-  const completedIncidents = incidents.filter(i => i.status === "approved" || i.status === "rejected");
+  const pendingIncidents = allIncidents.filter(i => i.status === "pending");
+  const processingIncidents = allIncidents.filter(i => i.status === "processing");
+  const completedIncidents = allIncidents.filter(i => i.status === "approved" || i.status === "rejected");
 
   const pendingCount = pendingIncidents.length;
   const processingCount = processingIncidents.length;
   const completedCount = completedIncidents.length;
 
-  // 인시던트 아이템 렌더링 컴포넌트
+  // ITS 스타일 인시던트 아이템 렌더링 컴포넌트
   const IncidentListItem = ({ incident, showActions = false }: { incident: Incident; showActions?: boolean }) => {
+    const config = incident.type ? requestTypeConfig[incident.type] : null;
+    
     return (
       <div className="p-2 rounded-lg bg-background/50 hover:bg-background/80 transition-colors">
         <div className="flex items-center gap-2 mb-1">
-          <AlertTriangle className={cn("w-4 h-4 flex-shrink-0", getPriorityStyle(incident.priority).split(' ')[1])} />
-          <p className="text-sm text-foreground truncate flex-1">{incident.title}</p>
+          {config ? (
+            <span className={cn("flex-shrink-0", config.color)} title={config.label}>
+              {config.icon}
+            </span>
+          ) : (
+            <AlertTriangle className={cn("w-4 h-4 flex-shrink-0", getPriorityStyle(incident.priority).split(' ')[1])} />
+          )}
+          <div className="flex-1 min-w-0">
+            <p className="text-sm text-foreground truncate">{incident.title}</p>
+            {incident.requestNo && (
+              <p className="text-xs text-primary/80 font-mono">{incident.requestNo}</p>
+            )}
+          </div>
           <span className={cn("px-1.5 py-0.5 rounded text-xs font-medium flex-shrink-0", getPriorityStyle(incident.priority))}>
             {getPriorityLabel(incident.priority)}
           </span>
           <span className="text-xs text-muted-foreground flex-shrink-0">{incident.timestamp}</span>
+          {showActions && (
+            <button
+              onClick={() => handleApprove(incident.id)}
+              className="p-1.5 rounded-md bg-primary/10 hover:bg-primary/20 text-primary transition-colors flex-shrink-0"
+              title="처리 시작"
+            >
+              <Play className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
-        {showActions && (
-          <div className="flex gap-2 mt-2 ml-6">
-            <button 
-              onClick={() => handleApprove(incident.id)} 
-              className="px-2 py-1 rounded bg-status-online text-white hover:bg-status-online/90 transition-colors text-xs font-medium flex items-center gap-1"
-            >
-              <CheckCircle className="w-3 h-3" />
-              {t("common.approve")}
-            </button>
-            <button 
-              onClick={() => handleReject(incident.id)} 
-              className="px-2 py-1 rounded bg-destructive text-white hover:bg-destructive/90 transition-colors text-xs font-medium flex items-center gap-1"
-            >
-              <XCircle className="w-3 h-3" />
-              {t("common.reject")}
-            </button>
-          </div>
+        {incident.sourceAgent && (
+          <p className="text-xs text-muted-foreground ml-6">📌 {incident.sourceAgent}에서 전달됨</p>
         )}
       </div>
     );
@@ -126,7 +175,7 @@ export function SOPAgentDashboard({ onApprove, onReject }: SOPAgentDashboardProp
 
   return (
     <div className="space-y-6 h-full overflow-y-auto">
-      {/* 접수현황 */}
+      {/* 접수현황 - ITS 스타일 */}
       <div className="rounded-xl border border-border bg-card p-5">
         <h3 className="text-base font-semibold flex items-center gap-2 text-foreground mb-4">
           <Ticket className="w-5 h-5 text-primary" />

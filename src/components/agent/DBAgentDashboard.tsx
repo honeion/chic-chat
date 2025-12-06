@@ -1,7 +1,19 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Database, HardDrive, Activity, Clock, CheckCircle, AlertTriangle, Search, Play, ChevronDown, ChevronUp, Ticket } from "lucide-react";
+import { Database, HardDrive, Clock, CheckCircle, AlertTriangle, Search, Play, ChevronDown, ChevronUp, Ticket, Wrench, User, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+// 요청 타입 정의 (ITS와 동일)
+type RequestType = "I" | "C" | "D" | "A" | "S";
+
+interface RoutedRequest {
+  id: string;
+  requestNo: string;
+  type: RequestType;
+  title: string;
+  date: string;
+  sourceAgent: string;
+}
 
 interface DatabaseInfo {
   id: string;
@@ -26,6 +38,13 @@ interface DBTask {
   dbName: string;
   status: "pending" | "processing" | "completed";
   timestamp: string;
+  requestNo?: string;
+  type?: RequestType;
+  sourceAgent?: string;
+}
+
+interface DBAgentDashboardProps {
+  routedRequests?: RoutedRequest[];
 }
 
 const mockDatabases: DatabaseInfo[] = [
@@ -47,9 +66,32 @@ const mockTasks: DBTask[] = [
   { id: "t4", title: "커넥션 풀 정리", dbName: "DEV_DB", status: "completed", timestamp: "08:30" },
 ];
 
-export function DBAgentDashboard() {
+// 요청 타입별 아이콘 및 색상
+const requestTypeConfig: Record<RequestType, { icon: React.ReactNode; label: string; color: string }> = {
+  "I": { icon: <AlertTriangle className="w-4 h-4" />, label: "인시던트", color: "text-destructive" },
+  "C": { icon: <Wrench className="w-4 h-4" />, label: "개선", color: "text-amber-500" },
+  "D": { icon: <Database className="w-4 h-4" />, label: "데이터", color: "text-emerald-500" },
+  "A": { icon: <User className="w-4 h-4" />, label: "계정/권한", color: "text-blue-500" },
+  "S": { icon: <FileText className="w-4 h-4" />, label: "단순", color: "text-muted-foreground" },
+};
+
+export function DBAgentDashboard({ routedRequests = [] }: DBAgentDashboardProps) {
   const { t } = useTranslation();
   const [isCompletedCollapsed, setIsCompletedCollapsed] = useState(true);
+
+  // 라우팅된 요청을 Task로 변환
+  const routedTasks: DBTask[] = routedRequests.map(req => ({
+    id: req.id,
+    title: req.title,
+    dbName: "PROD_DB",
+    status: "pending" as const,
+    timestamp: req.date,
+    requestNo: req.requestNo,
+    type: req.type,
+    sourceAgent: req.sourceAgent,
+  }));
+
+  const allTasks = [...routedTasks, ...mockTasks];
 
   const getStatusStyle = (status: DatabaseInfo["status"]) => {
     switch (status) {
@@ -75,19 +117,45 @@ export function DBAgentDashboard() {
     }
   };
 
-  const pendingTasks = mockTasks.filter(t => t.status === "pending");
-  const processingTasks = mockTasks.filter(t => t.status === "processing");
-  const completedTasks = mockTasks.filter(t => t.status === "completed");
+  const pendingTasks = allTasks.filter(t => t.status === "pending");
+  const processingTasks = allTasks.filter(t => t.status === "processing");
+  const completedTasks = allTasks.filter(t => t.status === "completed");
 
-  const TaskListItem = ({ task }: { task: DBTask }) => {
+  // ITS 스타일 Task 아이템 렌더링 컴포넌트
+  const TaskListItem = ({ task, showPlay = false }: { task: DBTask; showPlay?: boolean }) => {
+    const config = task.type ? requestTypeConfig[task.type] : null;
+    
     return (
-      <div className="flex items-center gap-2 p-2 rounded-lg bg-background/50 hover:bg-background/80 transition-colors text-sm">
-        <Database className="w-4 h-4 text-primary flex-shrink-0" />
-        <div className="flex-1 min-w-0">
-          <p className="text-sm text-foreground truncate">{task.title}</p>
-          <p className="text-xs text-primary/80 font-mono">{task.dbName}</p>
+      <div className="p-2 rounded-lg bg-background/50 hover:bg-background/80 transition-colors">
+        <div className="flex items-center gap-2">
+          {config ? (
+            <span className={cn("flex-shrink-0", config.color)} title={config.label}>
+              {config.icon}
+            </span>
+          ) : (
+            <Database className="w-4 h-4 text-primary flex-shrink-0" />
+          )}
+          <div className="flex-1 min-w-0">
+            <p className="text-sm text-foreground truncate">{task.title}</p>
+            {task.requestNo ? (
+              <p className="text-xs text-primary/80 font-mono">{task.requestNo}</p>
+            ) : (
+              <p className="text-xs text-primary/80 font-mono">{task.dbName}</p>
+            )}
+          </div>
+          <span className="text-xs text-muted-foreground flex-shrink-0">{task.timestamp}</span>
+          {showPlay && (
+            <button
+              className="p-1.5 rounded-md bg-primary/10 hover:bg-primary/20 text-primary transition-colors flex-shrink-0"
+              title="처리 시작"
+            >
+              <Play className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
-        <span className="text-xs text-muted-foreground flex-shrink-0">{task.timestamp}</span>
+        {task.sourceAgent && (
+          <p className="text-xs text-muted-foreground ml-6 mt-1">📌 {task.sourceAgent}에서 전달됨</p>
+        )}
       </div>
     );
   };
@@ -113,7 +181,7 @@ export function DBAgentDashboard() {
             <div className="p-2 bg-background/50 space-y-1.5 max-h-[280px] overflow-y-auto">
               {pendingTasks.length > 0 ? (
                 pendingTasks.map(task => (
-                  <TaskListItem key={task.id} task={task} />
+                  <TaskListItem key={task.id} task={task} showPlay={true} />
                 ))
               ) : (
                 <p className="text-xs text-muted-foreground text-center py-2">작업 없음</p>
