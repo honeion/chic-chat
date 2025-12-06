@@ -1,6 +1,8 @@
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { X, Workflow, ChevronRight, Plus } from "lucide-react";
+import { X, Workflow, ChevronRight, Plus, Pencil } from "lucide-react";
 import { WorkflowItem } from "@/pages/Index";
+import { Input } from "@/components/ui/input";
 
 interface AgentDetailModalProps {
   isOpen: boolean;
@@ -11,11 +13,24 @@ interface AgentDetailModalProps {
 
 export function AgentDetailModal({ isOpen, onClose, agent, onAddToMyAgent }: AgentDetailModalProps) {
   const { t } = useTranslation();
+  const [customName, setCustomName] = useState("");
+  const [isEditingName, setIsEditingName] = useState(false);
+
+  useEffect(() => {
+    if (agent) {
+      setCustomName(agent.name);
+      setIsEditingName(false);
+    }
+  }, [agent]);
 
   if (!isOpen || !agent) return null;
 
   const handleAdd = () => {
-    onAddToMyAgent(agent);
+    const agentToAdd = {
+      ...agent,
+      name: customName.trim() || agent.name,
+    };
+    onAddToMyAgent(agentToAdd);
     onClose();
   };
 
@@ -30,7 +45,27 @@ export function AgentDetailModal({ isOpen, onClose, agent, onAddToMyAgent }: Age
               <Workflow className="w-6 h-6 text-accent" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold">{agent.name}</h2>
+              {isEditingName ? (
+                <Input
+                  value={customName}
+                  onChange={(e) => setCustomName(e.target.value)}
+                  onBlur={() => setIsEditingName(false)}
+                  onKeyDown={(e) => e.key === "Enter" && setIsEditingName(false)}
+                  className="text-xl font-semibold h-8 w-64"
+                  autoFocus
+                />
+              ) : (
+                <div className="flex items-center gap-2">
+                  <h2 className="text-xl font-semibold">{customName}</h2>
+                  <button
+                    onClick={() => setIsEditingName(true)}
+                    className="p-1 rounded hover:bg-secondary transition-colors"
+                    title={t("common.edit")}
+                  >
+                    <Pencil className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                </div>
+              )}
               <p className="text-sm text-muted-foreground">{t("workflow.agentMarket")}</p>
             </div>
           </div>
