@@ -71,6 +71,8 @@ interface WorkflowPageProps {
   onAddNewAgent: (agent: { name: string; description: string; steps: string[]; instructions: string }) => void;
   selectedTemplateType: AgentTemplateType | null;
   setSelectedTemplateType: (type: AgentTemplateType | null) => void;
+  selectedSystems: OperatingSystem[];
+  setSelectedSystems: (systems: OperatingSystem[]) => void;
 }
 
 export function WorkflowPage({
@@ -81,14 +83,15 @@ export function WorkflowPage({
   onAddFromMarket,
   onAddNewAgent,
   selectedTemplateType,
-  setSelectedTemplateType
+  setSelectedTemplateType,
+  selectedSystems,
+  setSelectedSystems
 }: WorkflowPageProps) {
   const { t } = useTranslation();
   const [expandedMarket, setExpandedMarket] = useState(false);
   const [expandedMyAgent, setExpandedMyAgent] = useState<string | null>(null);
   const [isNewAgentModalOpen, setIsNewAgentModalOpen] = useState(false);
   const [selectedMarketAgent, setSelectedMarketAgent] = useState<WorkflowItem | null>(null);
-  const [selectedSystems, setSelectedSystems] = useState<OperatingSystem[]>([]);
 
   const displayedMarketAgents = expandedMarket ? agentMarketItems : agentMarketItems.slice(0, 4);
   
@@ -109,11 +112,10 @@ export function WorkflowPage({
   const SYSTEM_BOXES: OperatingSystem[] = ["e-총무", "BiOn", "SATIS"];
 
   const toggleSystem = (system: OperatingSystem) => {
-    setSelectedSystems(prev => 
-      prev.includes(system) 
-        ? prev.filter(s => s !== system)
-        : [...prev, system]
-    );
+    const newSystems = selectedSystems.includes(system) 
+      ? selectedSystems.filter(s => s !== system)
+      : [...selectedSystems, system];
+    setSelectedSystems(newSystems);
   };
 
   const getTemplateName = (type: AgentTemplateType) => {
