@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CheckCircle, XCircle, Clock, AlertTriangle, FileText } from "lucide-react";
+import { CheckCircle, XCircle, Clock, AlertTriangle, FileText, ChevronDown, ChevronUp, Play, Ticket } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Incident {
@@ -29,7 +29,8 @@ interface SOPAgentDashboardProps {
 const mockIncidents: Incident[] = [
   { id: "i1", title: "서버 CPU 사용률 90% 초과", description: "서버 A의 CPU 사용률이 임계치를 초과했습니다.", status: "pending", priority: "high", timestamp: "10:45", recommendation: "서버 재시작 또는 프로세스 정리 권장" },
   { id: "i2", title: "DB 연결 지연 감지", description: "데이터베이스 응답 시간이 평소보다 3배 느립니다.", status: "pending", priority: "medium", timestamp: "10:30", recommendation: "쿼리 최적화 또는 인덱스 확인 권장" },
-  { id: "i3", title: "디스크 용량 80% 도달", description: "스토리지 공간이 부족해지고 있습니다.", status: "processing", priority: "low", timestamp: "09:15" }
+  { id: "i3", title: "디스크 용량 80% 도달", description: "스토리지 공간이 부족해지고 있습니다.", status: "processing", priority: "low", timestamp: "09:15" },
+  { id: "i4", title: "네트워크 지연 복구", description: "네트워크 레이턴시가 정상 범위로 복구되었습니다.", status: "approved", priority: "medium", timestamp: "08:30" },
 ];
 
 const mockHistory: HistoryItem[] = [
@@ -42,6 +43,7 @@ export function SOPAgentDashboard({ onApprove, onReject }: SOPAgentDashboardProp
   const { t } = useTranslation();
   const [incidents, setIncidents] = useState<Incident[]>(mockIncidents);
   const [history] = useState<HistoryItem[]>(mockHistory);
+  const [isCompletedCollapsed, setIsCompletedCollapsed] = useState(true);
 
   const handleApprove = (incidentId: string) => {
     const incident = incidents.find(i => i.id === incidentId);
@@ -80,160 +82,171 @@ export function SOPAgentDashboard({ onApprove, onReject }: SOPAgentDashboardProp
     }
   };
 
-  const pendingCount = incidents.filter(i => i.status === "pending").length;
-  const processingCount = incidents.filter(i => i.status === "processing").length;
-  const completedToday = history.length;
+  const pendingIncidents = incidents.filter(i => i.status === "pending");
+  const processingIncidents = incidents.filter(i => i.status === "processing");
+  const completedIncidents = incidents.filter(i => i.status === "approved" || i.status === "rejected");
+
+  const pendingCount = pendingIncidents.length;
+  const processingCount = processingIncidents.length;
+  const completedCount = completedIncidents.length;
+
+  // 인시던트 아이템 렌더링 컴포넌트
+  const IncidentListItem = ({ incident, showActions = false }: { incident: Incident; showActions?: boolean }) => {
+    return (
+      <div className="p-2 rounded-lg bg-background/50 hover:bg-background/80 transition-colors">
+        <div className="flex items-center gap-2 mb-1">
+          <AlertTriangle className={cn("w-4 h-4 flex-shrink-0", getPriorityStyle(incident.priority).split(' ')[1])} />
+          <p className="text-sm text-foreground truncate flex-1">{incident.title}</p>
+          <span className={cn("px-1.5 py-0.5 rounded text-xs font-medium flex-shrink-0", getPriorityStyle(incident.priority))}>
+            {getPriorityLabel(incident.priority)}
+          </span>
+          <span className="text-xs text-muted-foreground flex-shrink-0">{incident.timestamp}</span>
+        </div>
+        {showActions && (
+          <div className="flex gap-2 mt-2 ml-6">
+            <button 
+              onClick={() => handleApprove(incident.id)} 
+              className="px-2 py-1 rounded bg-status-online text-white hover:bg-status-online/90 transition-colors text-xs font-medium flex items-center gap-1"
+            >
+              <CheckCircle className="w-3 h-3" />
+              {t("common.approve")}
+            </button>
+            <button 
+              onClick={() => handleReject(incident.id)} 
+              className="px-2 py-1 rounded bg-destructive text-white hover:bg-destructive/90 transition-colors text-xs font-medium flex items-center gap-1"
+            >
+              <XCircle className="w-3 h-3" />
+              {t("common.reject")}
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
-    <div className="space-y-6">
-      {/* Status Summary */}
-      <div className="grid grid-cols-4 gap-4">
-        <div className="rounded-xl overflow-hidden border border-status-busy/30">
-          <div className="px-4 py-2 bg-status-busy/20 flex items-center gap-2">
-            <Clock className="w-4 h-4 text-status-busy" />
-            <span className="text-sm font-medium text-foreground">{t("common.pending")}</span>
-          </div>
-          <div className="p-4 bg-background/80">
-            <p className="text-3xl font-bold text-foreground">{pendingCount}<span className="text-lg ml-1">{t("common.unit", "건")}</span></p>
-          </div>
-        </div>
-        <div className="rounded-xl overflow-hidden border border-primary/30">
-          <div className="px-4 py-2 bg-primary/20 flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-foreground">{t("common.processing")}</span>
-          </div>
-          <div className="p-4 bg-background/80">
-            <p className="text-3xl font-bold text-foreground">{processingCount}<span className="text-lg ml-1">{t("common.unit", "건")}</span></p>
-          </div>
-        </div>
-        <div className="rounded-xl overflow-hidden border border-status-online/30">
-          <div className="px-4 py-2 bg-status-online/20 flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-status-online" />
-            <span className="text-sm font-medium text-foreground">{t("common.todayCompleted")}</span>
-          </div>
-          <div className="p-4 bg-background/80">
-            <p className="text-3xl font-bold text-foreground">{completedToday}<span className="text-lg ml-1">{t("common.unit", "건")}</span></p>
-          </div>
-        </div>
-        <div className="rounded-xl overflow-hidden border border-accent/30">
-          <div className="px-4 py-2 bg-accent/20 flex items-center gap-2">
-            <FileText className="w-4 h-4 text-accent" />
-            <span className="text-sm font-medium text-foreground">{t("common.dailyReport")}</span>
-          </div>
-          <div className="p-4 bg-background/80">
-            <button className="text-sm text-primary hover:underline font-medium">{t("common.view")}</button>
-          </div>
-        </div>
-      </div>
-
-      {/* Incident List */}
-      <div>
-        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <AlertTriangle className="w-5 h-5 text-status-busy" />
+    <div className="space-y-6 h-full overflow-y-auto">
+      {/* 접수현황 */}
+      <div className="rounded-xl border border-border bg-card p-5">
+        <h3 className="text-base font-semibold flex items-center gap-2 text-foreground mb-4">
+          <Ticket className="w-5 h-5 text-primary" />
           {t("dashboard.pendingIncidents")}
         </h3>
-        <div className="space-y-3">
-          {incidents.filter(i => i.status === "pending" || i.status === "processing").map(incident => (
-            <div key={incident.id} className="rounded-xl overflow-hidden border border-primary/30">
-              <div className="px-4 py-3 bg-primary/20 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <h4 className="font-semibold text-foreground">{incident.title}</h4>
-                  <span className={cn("px-2 py-0.5 rounded text-xs font-medium", getPriorityStyle(incident.priority))}>
-                    {getPriorityLabel(incident.priority)}
-                  </span>
-                  <span className="text-xs text-muted-foreground">{incident.timestamp}</span>
-                </div>
-                <div className="flex gap-2">
-                  {incident.status === "pending" && (
-                    <>
-                      <button onClick={() => handleApprove(incident.id)} className="px-3 py-1.5 rounded-lg bg-status-online text-white hover:bg-status-online/90 transition-colors text-sm font-medium flex items-center gap-1">
-                        <CheckCircle className="w-4 h-4" />
-                        {t("common.approve")}
-                      </button>
-                      <button onClick={() => handleReject(incident.id)} className="px-3 py-1.5 rounded-lg bg-destructive text-white hover:bg-destructive/90 transition-colors text-sm font-medium flex items-center gap-1">
-                        <XCircle className="w-4 h-4" />
-                        {t("common.reject")}
-                      </button>
-                    </>
-                  )}
-                  {incident.status === "processing" && (
-                    <span className="px-3 py-1.5 rounded-lg bg-primary/20 text-primary text-sm">{t("common.processing")}...</span>
-                  )}
-                </div>
-              </div>
-              <div className="p-4 bg-background/80">
-                <p className="mb-3 text-foreground">{incident.description}</p>
-                {incident.recommendation && (
-                  <div className="p-3 rounded-lg bg-status-online/20 border-l-4 border-status-online">
-                    <p className="text-sm"><span className="text-status-online font-semibold">{t("dashboard.aiRecommend")}:</span> <span className="text-foreground">{incident.recommendation}</span></p>
-                  </div>
-                )}
-              </div>
+        <div className="grid grid-cols-2 gap-4">
+          {/* 접수 */}
+          <div className="rounded-lg overflow-hidden border border-destructive/30">
+            <div className="px-4 py-2 bg-destructive/20 flex items-center justify-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-destructive" />
+              <span className="text-sm font-medium text-foreground">{t("common.received")}</span>
             </div>
-          ))}
-          {incidents.filter(i => i.status === "pending" || i.status === "processing").length === 0 && (
-            <div className="p-8 text-center text-muted-foreground">
-              <CheckCircle className="w-12 h-12 mx-auto mb-2 text-status-online/50" />
-              <p>{t("dashboard.allProcessed")}</p>
+            <div className="p-3 bg-background flex items-center justify-center border-b border-border/50">
+              <p className="text-2xl font-bold text-foreground">{pendingCount}</p>
+            </div>
+            <div className="p-2 bg-background/50 space-y-1.5 max-h-[280px] overflow-y-auto">
+              {pendingIncidents.length > 0 ? (
+                pendingIncidents.map(incident => (
+                  <IncidentListItem key={incident.id} incident={incident} showActions={true} />
+                ))
+              ) : (
+                <p className="text-xs text-muted-foreground text-center py-2">인시던트 없음</p>
+              )}
+            </div>
+          </div>
+
+          {/* 처리중 */}
+          <div className="rounded-lg overflow-hidden border border-status-busy/30">
+            <div className="px-4 py-2 bg-status-busy/20 flex items-center justify-center gap-2">
+              <Clock className="w-4 h-4 text-status-busy" />
+              <span className="text-sm font-medium text-foreground">{t("common.processingStatus")}</span>
+            </div>
+            <div className="p-3 bg-background flex items-center justify-center border-b border-border/50">
+              <p className="text-2xl font-bold text-foreground">{processingCount}</p>
+            </div>
+            <div className="p-2 bg-background/50 space-y-1.5 max-h-[280px] overflow-y-auto">
+              {processingIncidents.length > 0 ? (
+                processingIncidents.map(incident => (
+                  <IncidentListItem key={incident.id} incident={incident} />
+                ))
+              ) : (
+                <p className="text-xs text-muted-foreground text-center py-2">인시던트 없음</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* 완료 - 접기 가능 */}
+        <div className="mt-4 rounded-lg overflow-hidden border border-status-online/30">
+          <button
+            onClick={() => setIsCompletedCollapsed(!isCompletedCollapsed)}
+            className="w-full px-4 py-2 bg-status-online/20 flex items-center justify-between hover:bg-status-online/30 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-status-online" />
+              <span className="text-sm font-medium text-foreground">{t("common.completed")}</span>
+              <span className="text-sm font-bold text-foreground ml-2">{completedCount}</span>
+            </div>
+            {isCompletedCollapsed ? (
+              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+            ) : (
+              <ChevronUp className="w-4 h-4 text-muted-foreground" />
+            )}
+          </button>
+          {!isCompletedCollapsed && (
+            <div className="p-2 bg-background/50 space-y-1.5 max-h-[200px] overflow-y-auto">
+              {completedIncidents.length > 0 ? (
+                completedIncidents.map(incident => (
+                  <IncidentListItem key={incident.id} incident={incident} />
+                ))
+              ) : (
+                <p className="text-xs text-muted-foreground text-center py-2">인시던트 없음</p>
+              )}
             </div>
           )}
         </div>
       </div>
 
       {/* Processing History */}
-      <div>
-        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Clock className="w-5 h-5" />
-          {t("dashboard.processingHistory")}
-        </h3>
-        <div className="rounded-xl overflow-hidden border border-primary/30">
-          <div className="px-4 py-3 bg-primary/20 flex items-center gap-2">
-            <Clock className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-foreground">{t("dashboard.recentHistory")}</span>
-          </div>
-          <div className="bg-background/80 divide-y divide-border/30">
-            {history.slice(0, 5).map(item => (
-              <div key={item.id} className="p-3 flex items-center gap-3">
-                {getStatusIcon(item.status)}
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-foreground">{item.action}</p>
-                  <p className="text-xs text-muted-foreground">{item.result}</p>
-                </div>
-                <span className="text-xs text-muted-foreground">{item.timestamp}</span>
+      <div className="rounded-xl border border-border bg-card overflow-hidden">
+        <div className="px-4 py-3 bg-muted/50 border-b border-border flex items-center justify-center gap-2">
+          <Clock className="w-5 h-5 text-primary" />
+          <h4 className="text-sm font-semibold text-foreground">{t("dashboard.processingHistory")}</h4>
+        </div>
+        <div className="divide-y divide-border">
+          {history.slice(0, 5).map(item => (
+            <div key={item.id} className="px-4 py-3 flex items-center gap-3">
+              {getStatusIcon(item.status)}
+              <div className="flex-1">
+                <p className="text-sm font-medium text-foreground">{item.action}</p>
+                <p className="text-xs text-muted-foreground">{item.result}</p>
               </div>
-            ))}
-          </div>
-          <div className="p-3 bg-background/60 border-t border-border/30">
-            <button className="text-sm text-primary hover:underline w-full text-center font-medium">{t("common.viewAll")}</button>
-          </div>
+              <span className="text-xs text-muted-foreground">{item.timestamp}</span>
+            </div>
+          ))}
+        </div>
+        <div className="p-3 bg-background/60 border-t border-border">
+          <button className="text-sm text-primary hover:underline w-full text-center font-medium">{t("common.viewAll")}</button>
         </div>
       </div>
 
       {/* Daily Summary */}
-      <div>
-        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <FileText className="w-5 h-5" />
-          {t("dashboard.todaySummary")}
-        </h3>
-        <div className="rounded-xl overflow-hidden border border-accent/30">
-          <div className="px-4 py-3 bg-accent/20 flex items-center gap-2">
-            <FileText className="w-4 h-4 text-accent" />
-            <span className="text-sm font-medium text-foreground">{t("dashboard.todayPerformance")}</span>
-          </div>
-          <div className="p-4 bg-background/80">
-            <div className="grid grid-cols-3 gap-4 mb-4">
-              <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
-                <p className="text-xs text-muted-foreground mb-1">{t("dashboard.totalProcessed")}</p>
-                <p className="text-xl font-bold text-foreground">{completedToday}</p>
-              </div>
-              <div className="p-3 rounded-lg bg-status-online/10 border border-status-online/20">
-                <p className="text-xs text-muted-foreground mb-1">{t("dashboard.successRate")}</p>
-                <p className="text-xl font-bold text-status-online">92%</p>
-              </div>
-              <div className="p-3 rounded-lg bg-accent/10 border border-accent/20">
-                <p className="text-xs text-muted-foreground mb-1">{t("dashboard.avgProcessTime")}</p>
-                <p className="text-xl font-bold text-foreground">2.3m</p>
-              </div>
+      <div className="rounded-xl border border-border bg-card overflow-hidden">
+        <div className="px-4 py-3 bg-muted/50 border-b border-border flex items-center justify-center gap-2">
+          <FileText className="w-5 h-5 text-primary" />
+          <h4 className="text-sm font-semibold text-foreground">{t("dashboard.todaySummary")}</h4>
+        </div>
+        <div className="p-4">
+          <div className="grid grid-cols-3 gap-4">
+            <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+              <p className="text-xs text-muted-foreground mb-1">{t("dashboard.totalProcessed")}</p>
+              <p className="text-xl font-bold text-foreground">{history.length}</p>
+            </div>
+            <div className="p-3 rounded-lg bg-status-online/10 border border-status-online/20">
+              <p className="text-xs text-muted-foreground mb-1">{t("dashboard.successRate")}</p>
+              <p className="text-xl font-bold text-status-online">92%</p>
+            </div>
+            <div className="p-3 rounded-lg bg-accent/10 border border-accent/20">
+              <p className="text-xs text-muted-foreground mb-1">{t("dashboard.avgProcessTime")}</p>
+              <p className="text-xl font-bold text-foreground">2.3m</p>
             </div>
           </div>
         </div>
