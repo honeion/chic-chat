@@ -13,6 +13,14 @@ type ViewType = "agent" | "workflow" | "assistant";
 export const OPERATING_SYSTEMS = ["e-총무", "BiOn", "SATIS", "ITS"] as const;
 export type OperatingSystem = typeof OPERATING_SYSTEMS[number];
 
+export interface RegisteredAgent {
+  id: string;
+  name: string;
+  system: OperatingSystem;
+  settings?: Record<string, string>;
+  createdAt: string;
+}
+
 export interface WorkflowItem {
   id: string;
   name: string;
@@ -22,6 +30,7 @@ export interface WorkflowItem {
   lastRun?: string;
   system?: OperatingSystem;
   systems?: OperatingSystem[];
+  registeredAgents?: RegisteredAgent[];
 }
 
 export const agentMarketItems: WorkflowItem[] = [
@@ -84,9 +93,28 @@ const Index = () => {
       steps: agent.steps,
       status: "draft",
       systems: agent.systems,
+      registeredAgents: [],
     };
     setMyAgents([...myAgents, newAgent]);
     setSelectedWorkflowAgent(newAgent);
+  };
+
+  const handleAddRegisteredAgent = (agentTypeId: string, registeredAgent: RegisteredAgent) => {
+    const updatedAgents = myAgents.map(agent => {
+      if (agent.id === agentTypeId) {
+        return {
+          ...agent,
+          registeredAgents: [...(agent.registeredAgents || []), registeredAgent],
+        };
+      }
+      return agent;
+    });
+    setMyAgents(updatedAgents);
+    // Update selectedWorkflowAgent too
+    const updatedSelectedAgent = updatedAgents.find(a => a.id === agentTypeId);
+    if (updatedSelectedAgent) {
+      setSelectedWorkflowAgent(updatedSelectedAgent);
+    }
   };
 
   const handleNavigateToAgent = (targetAgentId: string) => {
@@ -121,6 +149,7 @@ const Index = () => {
             setSelectedAgent={setSelectedWorkflowAgent}
             onAddFromMarket={handleAddFromMarket}
             onAddNewAgent={handleAddNewAgent}
+            onAddRegisteredAgent={handleAddRegisteredAgent}
           />
         );
       case "assistant":
