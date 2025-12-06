@@ -334,63 +334,8 @@ export function ChatSidebar({
               {t("sidebar.myAgent")}
             </div>
             
-            {/* System Label */}
-            <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              {t("sidebar.system")}
-            </div>
-            
-            {/* System Selector Dropdown */}
-            <div className="px-2 mb-2">
-              <div className="relative">
-                <button
-                  onClick={() => setSystemDropdownOpen(!systemDropdownOpen)}
-                  className="w-full px-3 py-2 rounded-lg bg-secondary border border-border flex items-center justify-between hover:bg-secondary/80 transition-colors"
-                >
-                  <div className="flex items-center gap-2">
-                    <Folder className="w-4 h-4 text-primary" />
-                    <span className="text-sm font-medium">
-                      {selectedSystem || t("sidebar.allSystems")}
-                    </span>
-                  </div>
-                  <ChevronDown className={cn("w-4 h-4 text-muted-foreground transition-transform", systemDropdownOpen && "rotate-180")} />
-                </button>
-                
-                {systemDropdownOpen && (
-                  <div className="absolute z-50 w-full mt-1 py-1 bg-popover border border-border rounded-lg shadow-lg">
-                    <button
-                      onClick={() => {
-                        setSelectedSystem(null);
-                        setSystemDropdownOpen(false);
-                      }}
-                      className={cn(
-                        "w-full px-3 py-2 text-left text-sm hover:bg-secondary transition-colors",
-                        !selectedSystem && "bg-primary/10 text-primary"
-                      )}
-                    >
-                      {t("sidebar.allSystems")}
-                    </button>
-                    {OPERATING_SYSTEMS.map((system) => (
-                      <button
-                        key={system}
-                        onClick={() => {
-                          setSelectedSystem(system);
-                          setSystemDropdownOpen(false);
-                        }}
-                        className={cn(
-                          "w-full px-3 py-2 text-left text-sm hover:bg-secondary transition-colors",
-                          selectedSystem === system && "bg-primary/10 text-primary"
-                        )}
-                      >
-                        {system}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* My Agent List - Filtered by System */}
-            {filteredMyAgentsBySystem.map((agent, index) => {
+            {/* My Agent List */}
+            {filteredMyAgents.map((agent, index) => {
               const isSelected = selectedWorkflowAgent?.id === agent.id;
               
               return (
