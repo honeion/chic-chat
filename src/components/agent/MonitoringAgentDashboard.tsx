@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { 
   Activity, AlertTriangle, CheckCircle, Clock, AlertCircle, 
-  Play, MessageSquare, ChevronDown, ChevronUp, Server
+  Play, MessageSquare, ChevronDown, ChevronUp, Server, Settings, PlayCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ChatSession } from "@/pages/AgentDetail";
@@ -150,8 +150,41 @@ export function MonitoringAgentDashboard({
     );
   };
 
+  // 운영자 담당 시스템 목록
+  const operatorSystems = [
+    { id: "etongmu", name: "e-총무시스템" },
+    { id: "purchase", name: "구매시스템" },
+    { id: "sales", name: "영업/물류시스템" },
+  ];
+
   return (
     <div className="space-y-6 h-full overflow-y-auto">
+      {/* 운영자 담당 시스템 */}
+      <div className="grid grid-cols-3 gap-4">
+        {operatorSystems.map(system => (
+          <div 
+            key={system.id} 
+            className="rounded-xl border border-border bg-card p-4 flex items-center justify-between"
+          >
+            <span className="text-sm font-medium text-foreground">{system.name}</span>
+            <div className="flex items-center gap-2">
+              <button
+                className="p-2 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
+                title="모니터링 실행"
+              >
+                <PlayCircle className="w-5 h-5" />
+              </button>
+              <button
+                className="p-2 rounded-lg bg-muted hover:bg-muted/80 text-muted-foreground transition-colors"
+                title="모니터링 설정"
+              >
+                <Settings className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
       {/* 비정상 감지 현황 */}
       <div className="rounded-xl border border-border bg-card p-5">
         <h3 className="text-base font-semibold flex items-center gap-2 text-foreground mb-4">
