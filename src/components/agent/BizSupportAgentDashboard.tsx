@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface ChatSession {
   id: string;
@@ -9,21 +10,37 @@ interface ChatSession {
 }
 
 const mockChatHistory: ChatSession[] = [
-  { id: "c1", title: "예산 검토 요청", timestamp: "2024-12-05 14:30", status: "completed" },
-  { id: "c2", title: "HR 데이터 수집 문의", timestamp: "2024-12-05 11:20", status: "completed" },
-  { id: "c3", title: "마케팅 분석 요청", timestamp: "2024-12-04 16:45", status: "completed" },
-  { id: "c4", title: "연간 보고서 초안 작성", timestamp: "2024-12-04 09:15", status: "in-progress" },
+  { id: "c1", title: "e-총무 시스템 접속 오류 문의", timestamp: "2024-12-05 14:30", status: "completed" },
+  { id: "c2", title: "구매시스템 결재 프로세스 문의", timestamp: "2024-12-05 11:20", status: "completed" },
+  { id: "c3", title: "영업시스템 데이터 조회 권한 요청", timestamp: "2024-12-04 16:45", status: "completed" },
+  { id: "c4", title: "물류시스템 재고 현황 조회 방법 안내", timestamp: "2024-12-04 09:15", status: "in-progress" },
+  { id: "c5", title: "SAP 연동 오류 해결 지원", timestamp: "2024-12-03 15:40", status: "completed" },
 ];
 
-export function BizSupportAgentDashboard() {
+interface BizSupportAgentDashboardProps {
+  onNewChat?: () => void;
+}
+
+export function BizSupportAgentDashboard({ onNewChat }: BizSupportAgentDashboardProps) {
   const { t } = useTranslation();
 
   return (
     <div className="space-y-6">
       <div className="rounded-xl overflow-hidden border border-primary/30">
-        <div className="px-4 py-3 bg-primary/20 flex items-center gap-2">
-          <MessageSquare className="w-4 h-4 text-primary" />
-          <span className="text-sm font-medium text-foreground">{t("agent.chatHistory")}</span>
+        <div className="px-4 py-3 bg-primary/20 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <MessageSquare className="w-4 h-4 text-primary" />
+            <span className="text-sm font-medium text-foreground">{t("biz.chatHistory")}</span>
+          </div>
+          <Button 
+            size="sm" 
+            variant="outline" 
+            className="h-7 text-xs gap-1 border-primary/30 hover:bg-primary/10"
+            onClick={onNewChat}
+          >
+            <Plus className="w-3 h-3" />
+            {t("biz.newChat")}
+          </Button>
         </div>
         <div className="bg-background/80 divide-y divide-border/30">
           {mockChatHistory.map(session => (
