@@ -269,8 +269,8 @@ export function SOPAgentDashboard({
           <h4 className="text-sm font-semibold text-foreground">{t("dashboard.processChatHistory")}</h4>
         </div>
         <div className="divide-y divide-border">
-          {chatSessions.length > 0 ? (
-            chatSessions.map(session => {
+          {chatSessions.filter(s => s.request.type === "I").length > 0 ? (
+            chatSessions.filter(s => s.request.type === "I").map(session => {
               const config = session.request.type ? requestTypeConfig[session.request.type] : null;
               const isActive = session.id === activeSessionId;
               return (
