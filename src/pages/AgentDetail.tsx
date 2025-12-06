@@ -227,10 +227,24 @@ export function AgentDetail({ agentId, agentName }: AgentDetailProps) {
     // 새로운 세션 생성
     const newSessionId = `session-${Date.now()}`;
     const requestNo = `ITS-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 9000) + 1000)}`;
+    
+    // 요청 타입에 따른 RequestType 매핑
+    const getRequestType = (type: string): RequestType => {
+      switch (type) {
+        case "account": return "A";
+        case "data": return "D";
+        case "firewall": return "C"; // 방화벽 신청 → 개선요청
+        case "workload": return "I"; // 업무량 등록 → 인시던트
+        case "dbsafer": return "D"; // DB Safer → 데이터요청
+        case "cloud": return "C"; // Cloud 신청 → 개선요청
+        default: return "S";
+      }
+    };
+    
     const newRequest: ActiveRequest = {
       id: `req-${Date.now()}`,
       requestNo,
-      type: requestType === "account" ? "A" : requestType === "data" ? "D" : "S",
+      type: getRequestType(requestType),
       title: label,
       date: new Date().toISOString().split('T')[0],
     };
