@@ -70,7 +70,14 @@ export function WorkflowPage({
   const [newAgentSelectedTools, setNewAgentSelectedTools] = useState<string[]>([]);
   const [newAgentKnowledge, setNewAgentKnowledge] = useState<string[]>([]);
   const [newAgentInstructions, setNewAgentInstructions] = useState("");
-
+  
+  // System filter toggles
+  const [systemFilters, setSystemFilters] = useState<Record<OperatingSystem, boolean>>({
+    "e-총무": true,
+    "BiOn": true,
+    "SATIS": true,
+    "ITS": true,
+  });
   // Mock chat history for agents
   const [chatHistory] = useState([
     { id: "ch1", agentName: "e-총무 점검 Agent", timestamp: "2024-01-15 09:30", status: "completed" as const, summary: "일일 점검 완료" },
@@ -184,7 +191,15 @@ export function WorkflowPage({
     );
   };
 
+  const toggleSystemFilter = (system: OperatingSystem) => {
+    setSystemFilters(prev => ({
+      ...prev,
+      [system]: !prev[system]
+    }));
+  };
+
   const registeredAgents = selectedAgent?.registeredAgents || [];
+  const filteredAgents = registeredAgents.filter(agent => systemFilters[agent.system]);
   const getSystemAgentCount = (system: OperatingSystem) => {
     return registeredAgents.filter(a => a.system === system).length;
   };
@@ -218,21 +233,35 @@ export function WorkflowPage({
               </button>
             </div>
 
-            {/* System Boxes */}
+            {/* System Filter Toggles */}
             <div className="mb-8">
-              <h2 className="text-lg font-semibold mb-4">시스템</h2>
-              <div className="grid grid-cols-3 gap-4">
+              <h2 className="text-lg font-semibold mb-4">시스템 필터</h2>
+              <div className="flex flex-wrap gap-3">
                 {(["e-총무", "BiOn", "SATIS"] as const).map((system) => (
-                  <div
+                  <button
                     key={system}
-                    className="p-6 rounded-xl border-2 border-border/50 bg-card/50 hover:border-primary/50 hover:bg-card transition-all text-center"
+                    onClick={() => toggleSystemFilter(system)}
+                    className={cn(
+                      "px-4 py-2 rounded-lg border-2 font-medium transition-all flex items-center gap-2",
+                      systemFilters[system]
+                        ? "border-primary bg-primary/20 text-primary"
+                        : "border-border/50 bg-card/30 text-muted-foreground hover:border-border"
+                    )}
                   >
-                    <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center mx-auto mb-3">
-                      <Workflow className="w-6 h-6 text-primary" />
+                    <div className={cn(
+                      "w-4 h-4 rounded border-2 flex items-center justify-center transition-all",
+                      systemFilters[system]
+                        ? "border-primary bg-primary"
+                        : "border-muted-foreground"
+                    )}>
+                      {systemFilters[system] && (
+                        <svg className="w-3 h-3 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
                     </div>
-                    <h3 className="font-semibold text-lg">{system}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">등록된 Agent: {getSystemAgentCount(system)}개</p>
-                  </div>
+                    {system}
+                  </button>
                 ))}
               </div>
             </div>
@@ -242,25 +271,29 @@ export function WorkflowPage({
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <Workflow className="w-5 h-5" />
                 등록된 Agent
-                <span className="text-sm font-normal text-muted-foreground">({registeredAgents.length}개)</span>
+                <span className="text-sm font-normal text-muted-foreground">({filteredAgents.length}개)</span>
               </h2>
-              {registeredAgents.length === 0 ? (
+              {filteredAgents.length === 0 ? (
                 <div className="p-8 rounded-xl border border-dashed border-border/50 text-center">
                   <p className="text-muted-foreground mb-4">
-                    이 Agent Type에 등록된 Agent가 없습니다.<br />
-                    Agent 추가 버튼을 눌러 시스템별 Agent를 등록하세요.
+                    {registeredAgents.length === 0 
+                      ? <>이 Agent Type에 등록된 Agent가 없습니다.<br />Agent 추가 버튼을 눌러 시스템별 Agent를 등록하세요.</>
+                      : "선택된 시스템 필터에 해당하는 Agent가 없습니다."
+                    }
                   </p>
-                  <button 
-                    onClick={() => setIsAddAgentModalOpen(true)}
-                    className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors inline-flex items-center gap-2"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Agent 추가
-                  </button>
+                  {registeredAgents.length === 0 && (
+                    <button 
+                      onClick={() => setIsAddAgentModalOpen(true)}
+                      className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors inline-flex items-center gap-2"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Agent 추가
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-4">
-                  {registeredAgents.map((agent) => (
+                  {filteredAgents.map((agent) => (
                     <div
                       key={agent.id}
                       className="p-4 rounded-xl border border-border/50 bg-card/50 hover:border-primary/50 transition-all"
