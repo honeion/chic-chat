@@ -94,16 +94,8 @@
     "recipients": "명 수신"
   },
   "biz": {
-    "totalTasks": "전체 업무",
-    "taskStatus": "업무 현황",
-    "autoReport": "자동 보고서",
-    "kpiStatus": "KPI 현황",
-    "taskProcessRate": "업무 처리율",
-    "goalAchievement": "목표 달성률",
-    "responseTime": "응답 시간",
-    "unprocessed": "미처리 건",
-    "ready": "준비됨",
-    "scheduled": "예정"
+    "chatHistory": "처리 Chat 이력",
+    "newChat": "새 채팅"
   },
   "dashboard": {
     "pendingIncidents": "인시던트 접수현황",
