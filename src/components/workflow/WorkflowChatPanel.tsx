@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Send, Bot, User, Sparkles } from "lucide-react";
+import { Send, Bot, User, Sparkles, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Message {
@@ -10,11 +10,18 @@ interface Message {
   timestamp: Date;
 }
 
-interface WorkflowChatPanelProps {
-  agentName?: string;
+interface ActiveAgent {
+  id: string;
+  name: string;
+  system: string;
 }
 
-export function WorkflowChatPanel({ agentName }: WorkflowChatPanelProps) {
+interface WorkflowChatPanelProps {
+  agentName?: string;
+  activeAgent?: ActiveAgent | null;
+}
+
+export function WorkflowChatPanel({ agentName, activeAgent }: WorkflowChatPanelProps) {
   const { t } = useTranslation();
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -35,6 +42,19 @@ export function WorkflowChatPanel({ agentName }: WorkflowChatPanelProps) {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // When activeAgent changes, add a system message
+  useEffect(() => {
+    if (activeAgent) {
+      const startMessage: Message = {
+        id: Date.now().toString(),
+        role: "assistant",
+        content: `🚀 "${activeAgent.name}" Agent를 실행합니다.\n\n시스템: ${activeAgent.system}\n\n무엇을 도와드릴까요?`,
+        timestamp: new Date(),
+      };
+      setMessages([startMessage]);
+    }
+  }, [activeAgent]);
 
   const handleSend = () => {
     if (!input.trim()) return;
@@ -70,16 +90,18 @@ export function WorkflowChatPanel({ agentName }: WorkflowChatPanelProps) {
   ];
 
   return (
-    <div className="flex flex-col h-full bg-sidebar border-l border-border">
+    <div className="flex-[3] flex flex-col h-full bg-sidebar border-l border-border">
       {/* Header */}
       <div className="p-4 border-b border-border">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
-            <Bot className="w-5 h-5 text-primary" />
+            {activeAgent ? <Play className="w-5 h-5 text-primary" /> : <Bot className="w-5 h-5 text-primary" />}
           </div>
           <div>
-            <h3 className="font-semibold">{agentName || t("workflow.agentChat")}</h3>
-            <p className="text-xs text-muted-foreground">{t("common.online")}</p>
+            <h3 className="font-semibold">{activeAgent?.name || agentName || t("workflow.agentChat")}</h3>
+            <p className="text-xs text-muted-foreground">
+              {activeAgent ? `${activeAgent.system} · 실행 중` : t("common.online")}
+            </p>
           </div>
         </div>
       </div>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Workflow, Plus, Play, Save, Trash2, ChevronRight, ChevronDown, Clock, History, X } from "lucide-react";
+import { Workflow, Plus, Play, Save, Trash2, ChevronRight, ChevronDown, Clock, History, X, Settings, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NewAgentModal } from "@/components/workflow/NewAgentModal";
 import { WorkflowChatPanel } from "@/components/workflow/WorkflowChatPanel";
@@ -61,12 +61,22 @@ export function WorkflowPage({
   const [expandedMyAgent, setExpandedMyAgent] = useState<string | null>(null);
   const [isNewAgentModalOpen, setIsNewAgentModalOpen] = useState(false);
   const [isAddAgentModalOpen, setIsAddAgentModalOpen] = useState(false);
+  const [isEditAgentModalOpen, setIsEditAgentModalOpen] = useState(false);
+  const [editingAgent, setEditingAgent] = useState<RegisteredAgent | null>(null);
+  const [activeAgentForChat, setActiveAgentForChat] = useState<RegisteredAgent | null>(null);
   const [newAgentName, setNewAgentName] = useState("");
   const [newAgentDescription, setNewAgentDescription] = useState("");
   const [newAgentSystem, setNewAgentSystem] = useState<OperatingSystem | null>(null);
   const [newAgentSelectedTools, setNewAgentSelectedTools] = useState<string[]>([]);
   const [newAgentKnowledge, setNewAgentKnowledge] = useState<string[]>([]);
   const [newAgentInstructions, setNewAgentInstructions] = useState("");
+
+  // Mock chat history for agents
+  const [chatHistory] = useState([
+    { id: "ch1", agentName: "e-총무 점검 Agent", timestamp: "2024-01-15 09:30", status: "completed" as const, summary: "일일 점검 완료" },
+    { id: "ch2", agentName: "BiOn 모니터링", timestamp: "2024-01-15 10:15", status: "completed" as const, summary: "시스템 정상 확인" },
+    { id: "ch3", agentName: "SATIS 리포트", timestamp: "2024-01-14 14:00", status: "completed" as const, summary: "주간 리포트 생성" },
+  ]);
 
   const mockKnowledgeBases = [
     { id: "k1", name: "운영 매뉴얼" },
@@ -137,12 +147,29 @@ export function WorkflowPage({
 
   const resetAddAgentModal = () => {
     setIsAddAgentModalOpen(false);
+    setIsEditAgentModalOpen(false);
+    setEditingAgent(null);
     setNewAgentName("");
     setNewAgentDescription("");
     setNewAgentSystem(null);
     setNewAgentSelectedTools([]);
     setNewAgentKnowledge([]);
     setNewAgentInstructions("");
+  };
+
+  const handleEditAgent = (agent: RegisteredAgent) => {
+    setEditingAgent(agent);
+    setNewAgentName(agent.name);
+    setNewAgentDescription(agent.settings?.description || "");
+    setNewAgentSystem(agent.system);
+    setNewAgentSelectedTools(agent.settings?.tools?.split(",").filter(Boolean) || []);
+    setNewAgentKnowledge(agent.settings?.knowledge?.split(",").filter(Boolean) || []);
+    setNewAgentInstructions(agent.settings?.instructions || "");
+    setIsEditAgentModalOpen(true);
+  };
+
+  const handleRunAgent = (agent: RegisteredAgent) => {
+    setActiveAgentForChat(agent);
   };
 
   const toggleTool = (toolId: string) => {
@@ -238,7 +265,7 @@ export function WorkflowPage({
                       key={agent.id}
                       className="p-4 rounded-xl border border-border/50 bg-card/50 hover:border-primary/50 transition-all"
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 mb-3">
                         <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center">
                           <Workflow className="w-5 h-5 text-accent" />
                         </div>
@@ -247,10 +274,66 @@ export function WorkflowPage({
                           <p className="text-xs text-muted-foreground">{agent.system}</p>
                         </div>
                       </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleEditAgent(agent)}
+                          className="flex-1 px-3 py-2 rounded-lg border border-border text-sm hover:bg-muted transition-colors flex items-center justify-center gap-2"
+                        >
+                          <Settings className="w-4 h-4" />
+                          설정
+                        </button>
+                        <button
+                          onClick={() => handleRunAgent(agent)}
+                          className="flex-1 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
+                        >
+                          <Play className="w-4 h-4" />
+                          실행
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
               )}
+            </div>
+
+            {/* 처리 Chat 이력 */}
+            <div className="mt-8">
+              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <MessageSquare className="w-5 h-5" />
+                처리 Chat 이력
+              </h2>
+              <div className="space-y-2">
+                {chatHistory.length === 0 ? (
+                  <div className="p-6 rounded-xl border border-dashed border-border/50 text-center">
+                    <p className="text-muted-foreground">처리된 Chat 이력이 없습니다.</p>
+                  </div>
+                ) : (
+                  chatHistory.map((chat) => (
+                    <div
+                      key={chat.id}
+                      className="p-3 rounded-lg border border-border/50 bg-card/30 hover:bg-card/50 cursor-pointer transition-all"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                            <MessageSquare className="w-4 h-4 text-primary" />
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-medium">{chat.agentName}</h4>
+                            <p className="text-xs text-muted-foreground">{chat.summary}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs text-muted-foreground">{chat.timestamp}</p>
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-status-online/20 text-status-online">
+                            완료
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </>
         ) : (
@@ -350,7 +433,10 @@ export function WorkflowPage({
       </div>
 
       {/* Chat Panel - 30% */}
-      <WorkflowChatPanel agentName={selectedAgent?.name} />
+      <WorkflowChatPanel 
+        agentName={selectedAgent?.name} 
+        activeAgent={activeAgentForChat ? { id: activeAgentForChat.id, name: activeAgentForChat.name, system: activeAgentForChat.system } : null}
+      />
 
       {/* New Agent Type Modal */}
       <NewAgentModal
@@ -493,6 +579,132 @@ export function WorkflowPage({
                 className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 추가
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Registered Agent Modal */}
+      {isEditAgentModalOpen && editingAgent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-2xl max-h-[90vh] bg-background border border-border rounded-xl shadow-xl flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
+              <h2 className="text-lg font-semibold">Agent 수정</h2>
+              <button 
+                onClick={resetAddAgentModal}
+                className="p-1 rounded-lg hover:bg-muted transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-4 space-y-5 overflow-y-auto flex-1">
+              {/* System Display */}
+              <div>
+                <label className="block text-sm font-medium mb-2">시스템</label>
+                <div className="px-3 py-2 rounded-lg border border-border bg-muted/50 text-sm">
+                  {newAgentSystem}
+                </div>
+              </div>
+              
+              {/* Agent Name */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Agent 이름 *</label>
+                <input
+                  type="text"
+                  value={newAgentName}
+                  onChange={(e) => setNewAgentName(e.target.value)}
+                  placeholder="Agent 이름을 입력하세요"
+                  className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
+                />
+              </div>
+
+              {/* Agent Description */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Agent 설명</label>
+                <textarea
+                  value={newAgentDescription}
+                  onChange={(e) => setNewAgentDescription(e.target.value)}
+                  placeholder="Agent의 역할과 기능을 설명하세요"
+                  rows={2}
+                  className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+                />
+              </div>
+
+              {/* Tool Selection */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Tool 선택</label>
+                <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto p-2 border border-border rounded-lg">
+                  {mockTools.map((tool) => (
+                    <button
+                      key={tool.id}
+                      onClick={() => toggleTool(tool.id)}
+                      className={cn(
+                        "p-2 rounded-lg border text-left text-sm transition-all",
+                        newAgentSelectedTools.includes(tool.id)
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border hover:border-primary/50"
+                      )}
+                    >
+                      <div className="font-medium">{tool.name}</div>
+                      <div className="text-xs text-muted-foreground truncate">{tool.description}</div>
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  선택된 Tool: {newAgentSelectedTools.length}개
+                </p>
+              </div>
+
+              {/* Knowledge (RAG) Selection */}
+              <div>
+                <label className="block text-sm font-medium mb-2">지식(RAG) 선택</label>
+                <div className="grid grid-cols-2 gap-2 p-2 border border-border rounded-lg">
+                  {mockKnowledgeBases.map((kb) => (
+                    <button
+                      key={kb.id}
+                      onClick={() => toggleKnowledge(kb.id)}
+                      className={cn(
+                        "p-2 rounded-lg border text-left text-sm transition-all",
+                        newAgentKnowledge.includes(kb.id)
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border hover:border-primary/50"
+                      )}
+                    >
+                      {kb.name}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  선택된 지식: {newAgentKnowledge.length}개
+                </p>
+              </div>
+
+              {/* Instructions */}
+              <div>
+                <label className="block text-sm font-medium mb-2">지침</label>
+                <textarea
+                  value={newAgentInstructions}
+                  onChange={(e) => setNewAgentInstructions(e.target.value)}
+                  placeholder="Agent가 따라야 할 지침을 입력하세요"
+                  rows={4}
+                  className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 p-4 border-t border-border shrink-0">
+              <button
+                onClick={resetAddAgentModal}
+                className="px-4 py-2 rounded-lg border border-border hover:bg-muted transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={resetAddAgentModal}
+                disabled={!newAgentName.trim()}
+                className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                저장
               </button>
             </div>
           </div>
