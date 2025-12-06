@@ -163,23 +163,23 @@ export function AgentChatPanel({
 
       {/* 승인 대기 상태일 때 접수/반려 버튼 표시 */}
       {isPendingApproval && activeRequest && (
-        <div className="p-4 border-t border-border bg-amber-50 dark:bg-amber-900/20">
-          <p className="text-sm text-foreground mb-3 text-center font-medium">
+        <div className="p-3 border-t border-border bg-muted/30">
+          <p className="text-xs text-muted-foreground mb-2 text-center">
             요청을 접수하시겠습니까?
           </p>
-          <div className="flex gap-3">
+          <div className="flex gap-2 justify-center">
             <button
               onClick={onApproveRequest}
-              className="flex-1 px-4 py-2.5 rounded-lg bg-status-online text-white font-medium hover:bg-status-online/90 transition-colors flex items-center justify-center gap-2"
+              className="px-4 py-1.5 rounded-md bg-status-online/20 text-status-online text-sm font-medium hover:bg-status-online/30 transition-colors flex items-center gap-1.5 border border-status-online/30"
             >
-              <CheckCircle className="w-4 h-4" />
+              <CheckCircle className="w-3.5 h-3.5" />
               접수
             </button>
             <button
               onClick={onRejectRequest}
-              className="flex-1 px-4 py-2.5 rounded-lg bg-destructive text-white font-medium hover:bg-destructive/90 transition-colors flex items-center justify-center gap-2"
+              className="px-4 py-1.5 rounded-md bg-destructive/10 text-destructive text-sm font-medium hover:bg-destructive/20 transition-colors flex items-center gap-1.5 border border-destructive/20"
             >
-              <X className="w-4 h-4" />
+              <X className="w-3.5 h-3.5" />
               반려
             </button>
           </div>
