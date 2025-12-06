@@ -41,7 +41,7 @@ export interface ChatSession {
   id: string;
   request: ActiveRequest;
   messages: Message[];
-  status: "pending-approval" | "in-progress" | "completed" | "rejected";
+  status: "pending-approval" | "pending-process-start" | "in-progress" | "completed" | "rejected";
   createdAt: string;
 }
 
@@ -537,8 +537,8 @@ ${getRequestDetailContent(request)}
     setActiveSessionId(newSessionId);
   };
 
-  // SOP Agent 채팅 시작 핸들러
-  const handleSOPStartChat = (incident: { id: string; title: string; requestNo?: string; type?: RequestType; timestamp: string }) => {
+  // SOP Agent 채팅 시작 핸들러 - 요청 요약 및 처리 확인 흐름
+  const handleSOPStartChat = (incident: { id: string; title: string; description?: string; requestNo?: string; type?: RequestType; timestamp: string; priority?: string }) => {
     // 기존 세션 확인
     const existingSession = chatSessions.find(s => s.request.id === incident.id);
     if (existingSession) {
@@ -550,16 +550,23 @@ ${getRequestDetailContent(request)}
     const newSessionId = `session-${Date.now()}`;
     const typeLabel = incident.type ? requestTypeLabels[incident.type] : "인시던트";
     
-    const requestDetailMessage = `📋 **인시던트 상세 정보**
+    // 요청 내용 요약 메시지
+    const requestSummaryMessage = `📋 **인시던트 요청 요약**
 
 **유형:** ${typeLabel}
-**요청 번호:** ${incident.requestNo || 'N/A'}
+**요청 번호:** ${incident.requestNo || `SOP-${Date.now()}`}
 **제목:** ${incident.title}
 **일시:** ${incident.timestamp}
+**우선순위:** ${incident.priority === "high" ? "긴급" : incident.priority === "medium" ? "보통" : "낮음"}
 
 ---
 
-처리를 시작하시겠습니까?`;
+**요청 내용:**
+${incident.description || "해당 인시던트에 대한 처리가 필요합니다."}
+
+---
+
+위 인시던트 내용을 확인하시고, 처리 여부를 결정해 주세요.`;
     
     const newSession: ChatSession = {
       id: newSessionId,
@@ -570,13 +577,49 @@ ${getRequestDetailContent(request)}
         title: incident.title, 
         date: incident.timestamp 
       },
-      messages: [{ role: "agent", content: requestDetailMessage }],
-      status: "pending-approval",
+      messages: [{ role: "agent", content: requestSummaryMessage }],
+      status: "pending-process-start", // 처리 시작 대기 상태
       createdAt: new Date().toISOString(),
     };
     
     setChatSessions(prev => [newSession, ...prev]);
     setActiveSessionId(newSessionId);
+  };
+
+  // SOP Agent 처리 시작 핸들러
+  const handleStartProcess = (sessionId: string) => {
+    const session = chatSessions.find(s => s.id === sessionId);
+    if (!session) return;
+
+    // 상태를 in-progress로 변경
+    setChatSessions(prev => prev.map(s => 
+      s.id === sessionId ? { ...s, status: "in-progress" as const } : s
+    ));
+
+    // 처리 시작 메시지 추가 및 프로세싱 시뮬레이션
+    updateSessionMessages(sessionId, prev => [...prev, { 
+      role: "agent", 
+      content: `"${session.request.title}" 인시던트 처리를 시작합니다.` 
+    }]);
+
+    setTimeout(() => simulateProcessing(session.request.title, sessionId), 100);
+  };
+
+  // SOP Agent 처리 취소 핸들러
+  const handleCancelProcess = (sessionId: string) => {
+    const session = chatSessions.find(s => s.id === sessionId);
+    if (!session) return;
+
+    // 상태를 rejected로 변경
+    setChatSessions(prev => prev.map(s => 
+      s.id === sessionId ? { ...s, status: "rejected" as const } : s
+    ));
+
+    // 취소 메시지 추가
+    updateSessionMessages(sessionId, prev => [...prev, { 
+      role: "agent", 
+      content: "인시던트 처리가 취소되었습니다. 필요시 다시 처리를 시작할 수 있습니다." 
+    }]);
   };
 
   const renderDashboard = () => {
@@ -663,6 +706,9 @@ ${getRequestDetailContent(request)}
         onApproveRequest={() => activeSessionId && handleApproveRequest(activeSessionId)}
         onRejectRequest={() => activeSessionId && handleRejectRequest(activeSessionId)}
         onNavigateToAgent={onNavigateToAgent}
+        isPendingProcessStart={activeSession?.status === "pending-process-start"}
+        onStartProcess={() => activeSessionId && handleStartProcess(activeSessionId)}
+        onCancelProcess={() => activeSessionId && handleCancelProcess(activeSessionId)}
       />
     </div>
   );

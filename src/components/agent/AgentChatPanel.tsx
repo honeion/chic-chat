@@ -44,6 +44,10 @@ interface AgentChatPanelProps {
   onApproveRequest?: () => void;
   onRejectRequest?: () => void;
   onNavigateToAgent?: (agentId: string) => void;
+  // SOP Agent용 처리 시작 확인 상태
+  isPendingProcessStart?: boolean;
+  onStartProcess?: () => void;
+  onCancelProcess?: () => void;
 }
 
 // 요청 타입별 아이콘 및 색상
@@ -66,7 +70,10 @@ export function AgentChatPanel({
   isPendingApproval,
   onApproveRequest,
   onRejectRequest,
-  onNavigateToAgent
+  onNavigateToAgent,
+  isPendingProcessStart,
+  onStartProcess,
+  onCancelProcess
 }: AgentChatPanelProps) {
   const { t } = useTranslation();
   const [chatInput, setChatInput] = useState("");
@@ -205,8 +212,33 @@ export function AgentChatPanel({
         </div>
       )}
 
+      {/* SOP Agent 처리 시작 확인 상태일 때 처리/취소 버튼 표시 */}
+      {isPendingProcessStart && activeRequest && (
+        <div className="p-3 border-t border-border bg-primary/5">
+          <p className="text-xs text-muted-foreground mb-2 text-center">
+            해당 인시던트를 처리하시겠습니까?
+          </p>
+          <div className="flex gap-2 justify-center">
+            <button
+              onClick={onStartProcess}
+              className="px-4 py-1.5 rounded-md bg-primary/20 text-primary text-sm font-medium hover:bg-primary/30 transition-colors flex items-center gap-1.5 border border-primary/30"
+            >
+              <CheckCircle className="w-3.5 h-3.5" />
+              처리
+            </button>
+            <button
+              onClick={onCancelProcess}
+              className="px-4 py-1.5 rounded-md bg-muted text-muted-foreground text-sm font-medium hover:bg-muted/80 transition-colors flex items-center gap-1.5 border border-border"
+            >
+              <X className="w-3.5 h-3.5" />
+              취소
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 일반 상태일 때 퀵 액션 표시 */}
-      {!isPendingApproval && (
+      {!isPendingApproval && !isPendingProcessStart && (
         <div className="p-3 border-t border-border/50">
           <div className="flex flex-wrap gap-2 mb-3">
             {quickActions.map((action, idx) => (
