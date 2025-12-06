@@ -48,7 +48,9 @@
     "next": "다음",
     "success": "성공",
     "failed": "실패",
-    "running": "실행 중"
+    "running": "실행 중",
+    "chatHistory": "처리 Chat 이력",
+    "rejected": "반려"
   },
   "db": {
     "totalDb": "전체 DB",
