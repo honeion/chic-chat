@@ -47,33 +47,30 @@ interface ChatRoom {
   system?: OperatingSystem;
 }
 
-// ITS Agent is pinned at the top
+// Agent list in specified order
 const mockAgents: Agent[] = [
   { 
-    id: "a2", 
+    id: "a1", 
     name: "ITS Agent", 
     status: "online",
     chatHistory: [
-      { id: "a2-c1", title: "티켓 #2024-001", lastMessage: "티켓 처리가 완료되었습니다.", timestamp: "10분 전", unread: 2 },
-      { id: "a2-c2", title: "시스템 점검 요청", lastMessage: "점검 일정을 확인해주세요.", timestamp: "3시간 전", unread: 0 },
+      { id: "a1-c1", title: "티켓 #2024-001", lastMessage: "티켓 처리가 완료되었습니다.", timestamp: "10분 전", unread: 2 },
+      { id: "a1-c2", title: "시스템 점검 요청", lastMessage: "점검 일정을 확인해주세요.", timestamp: "3시간 전", unread: 0 },
     ]
   },
   { 
-    id: "a1", 
-    name: "Biz.Support Agent", 
+    id: "a2", 
+    name: "SOP Agent", 
     status: "online",
     chatHistory: [
-      { id: "a1-c1", title: "업무 지원 요청", lastMessage: "작업이 완료되었습니다.", timestamp: "5분 전", unread: 1 },
-      { id: "a1-c2", title: "보고서 작성 도움", lastMessage: "보고서 초안을 확인해주세요.", timestamp: "1시간 전", unread: 0 },
+      { id: "a2-c1", title: "SOP 문서 조회", lastMessage: "관련 SOP를 찾았습니다.", timestamp: "30분 전", unread: 0 },
     ]
   },
   { 
     id: "a3", 
-    name: "SOP Agent", 
+    name: "변경관리 Agent", 
     status: "online",
-    chatHistory: [
-      { id: "a3-c1", title: "SOP 문서 조회", lastMessage: "관련 SOP를 찾았습니다.", timestamp: "30분 전", unread: 0 },
-    ]
+    chatHistory: []
   },
   { 
     id: "a4", 
@@ -94,16 +91,19 @@ const mockAgents: Agent[] = [
   },
   { 
     id: "a6", 
-    name: "변경관리 Agent", 
-    status: "online",
-    chatHistory: []
-  },
-  { 
-    id: "a7", 
     name: "보고서 Agent", 
     status: "offline",
     chatHistory: [
-      { id: "a7-c1", title: "월간 보고서", lastMessage: "보고서 생성 완료", timestamp: "2시간 전", unread: 0 },
+      { id: "a6-c1", title: "월간 보고서", lastMessage: "보고서 생성 완료", timestamp: "2시간 전", unread: 0 },
+    ]
+  },
+  { 
+    id: "a7", 
+    name: "Biz.Support Agent", 
+    status: "online",
+    chatHistory: [
+      { id: "a7-c1", title: "업무 지원 요청", lastMessage: "작업이 완료되었습니다.", timestamp: "5분 전", unread: 1 },
+      { id: "a7-c2", title: "보고서 작성 도움", lastMessage: "보고서 초안을 확인해주세요.", timestamp: "1시간 전", unread: 0 },
     ]
   },
 ];
