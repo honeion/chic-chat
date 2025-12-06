@@ -42,6 +42,7 @@ export const agentTemplates: { type: AgentTemplateType; name: string; descriptio
   { type: "incident-response", name: "장애 대응 플로우", description: "장애 감지 시 자동 대응 플로우", steps: ["Alert Detect", "Log Analyzer", "Notify", "Escalate"] },
   { type: "weekly-report", name: "주간 리포트", description: "매주 월요일 리포트 생성", steps: ["Data Collect", "Analyze", "Report Gen", "Email Send"] },
   { type: "its-automation", name: "ITS 티켓 자동화", description: "티켓 자동 분류 및 할당", steps: ["Ticket Parse", "Classify", "Assign", "Notify"] },
+  { type: "custom", name: "커스텀 Agent", description: "사용자 정의 Agent", steps: [] },
 ];
 
 export const initialMyAgents: WorkflowItem[] = [
@@ -88,6 +89,7 @@ const Index = () => {
       ...marketAgent,
       id: `m${Date.now()}`,
       status: "active",
+      templateType: "custom", // 마켓에서 추가된 Agent는 커스텀 타입
     };
     setMyAgents([...myAgents, newAgent]);
     setSelectedWorkflowAgent(newAgent);
