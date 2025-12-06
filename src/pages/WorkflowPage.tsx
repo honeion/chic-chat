@@ -214,50 +214,6 @@ export function WorkflowPage({
           </div>
         </div>
 
-        {/* Agent Market - Card Style */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <Store className="w-5 h-5 text-primary" />
-              <h2 className="text-lg font-semibold">{t("workflow.agentMarket")}</h2>
-            </div>
-            <button
-              onClick={() => setExpandedMarket(!expandedMarket)}
-              className="flex items-center gap-1 text-sm text-primary hover:text-primary/80 transition-colors"
-            >
-              {expandedMarket ? t("workflow.collapse") : t("workflow.expandAll")}
-              <ChevronDown className={cn("w-4 h-4 transition-transform", expandedMarket && "rotate-180")} />
-            </button>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            {displayedMarketAgents.map((agent) => (
-              <div
-                key={agent.id}
-                onClick={() => handleMarketAgentClick(agent)}
-                className="p-4 rounded-xl bg-accent/10 border border-accent/30 cursor-pointer transition-all hover:border-accent hover:bg-accent/20"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center flex-shrink-0">
-                    <Workflow className="w-5 h-5 text-accent" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-sm mb-1">{agent.name}</h3>
-                    <p className="text-xs text-muted-foreground mb-2">{agent.description}</p>
-                    <div className="flex flex-wrap gap-1">
-                      {agent.steps.slice(0, 3).map((step, idx) => (
-                        <span key={idx} className="px-2 py-0.5 rounded bg-secondary/50 text-xs">{step}</span>
-                      ))}
-                      {agent.steps.length > 3 && (
-                        <span className="text-xs text-muted-foreground">+{agent.steps.length - 3}</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* My Agent */}
         <div>
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
