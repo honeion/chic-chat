@@ -119,8 +119,10 @@ export function ITSAgentDashboard({
         <span className={cn("flex-shrink-0", config.color)} title={config.label}>
           {config.icon}
         </span>
-        <span className="text-xs text-primary/80 font-mono flex-shrink-0">{request.requestNo}</span>
-        <span className="flex-1 truncate text-foreground">{request.title}</span>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm text-foreground truncate">{request.title}</p>
+          <p className="text-xs text-primary/80 font-mono">{request.requestNo}</p>
+        </div>
         <span className="text-xs text-muted-foreground flex-shrink-0">{request.date}</span>
         {showPlay && (
           <button
@@ -294,7 +296,10 @@ export function ITSAgentDashboard({
                   </span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">{session.request.title}</p>
-                    <p className="text-xs text-muted-foreground">{session.request.date}</p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-primary/80 font-mono">{session.request.requestNo}</span>
+                      <span className="text-xs text-muted-foreground">{session.request.date}</span>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <MessageSquare className="w-4 h-4 text-muted-foreground" />
