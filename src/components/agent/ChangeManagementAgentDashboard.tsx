@@ -260,49 +260,6 @@ export function ChangeManagementAgentDashboard({
         </div>
       </div>
 
-      {/* 변경 요청 관리 */}
-      <div className="rounded-xl overflow-hidden border border-primary/30">
-        <div className="px-4 py-3 bg-primary/20 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <GitBranch className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-foreground">{t("change.changeManagement")}</span>
-          </div>
-          <button className="px-3 py-1 rounded-lg bg-primary text-primary-foreground text-xs hover:bg-primary/90 transition-colors">
-            + {t("common.newChangeRequest")}
-          </button>
-        </div>
-        <div className="bg-background/80 divide-y divide-border/30">
-          {mockChangeRequests.map(cr => (
-            <div key={cr.id} className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-3">
-                  <h4 className="font-semibold text-foreground">{cr.title}</h4>
-                  <span className={cn("px-2 py-0.5 rounded text-xs font-medium", getTypeStyle(cr.type))}>
-                    {getTypeLabel(cr.type)}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Shield className={cn("w-4 h-4", getRiskStyle(cr.risk))} />
-                  <span className={cn("text-xs font-medium", getRiskStyle(cr.risk))}>
-                    {getRiskLabel(cr.risk)}
-                  </span>
-                </div>
-              </div>
-              <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <Users className="w-3 h-3" />
-                  {cr.requester}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Calendar className="w-3 h-3" />
-                  {cr.scheduledDate}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* 처리 Chat 이력 */}
       <div className="rounded-xl overflow-hidden border border-primary/30">
         <div className="px-4 py-3 bg-primary/20 flex items-center gap-2">
@@ -354,40 +311,6 @@ export function ChangeManagementAgentDashboard({
               처리 이력이 없습니다.
             </div>
           )}
-        </div>
-      </div>
-
-      {/* 이번 주 변경 일정 */}
-      <div className="rounded-xl overflow-hidden border border-accent/30">
-        <div className="px-4 py-3 bg-accent/20 flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-accent" />
-          <span className="text-sm font-medium text-foreground">{t("change.weekSchedule")}</span>
-        </div>
-        <div className="p-4 bg-background/80">
-          <div className="space-y-3">
-            <div className="flex items-center gap-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
-              <div className="text-center">
-                <p className="text-lg font-bold text-foreground">10</p>
-                <p className="text-xs text-muted-foreground">Dec</p>
-              </div>
-              <div className="flex-1">
-                <p className="font-medium text-foreground">DB Schema Change</p>
-                <p className="text-xs text-muted-foreground">02:00 - 04:00 | {t("change.highRisk")}</p>
-              </div>
-              <span className="px-2 py-1 rounded bg-primary/20 text-primary text-xs">{t("common.approved")}</span>
-            </div>
-            <div className="flex items-center gap-4 p-3 rounded-lg bg-primary/10 border border-primary/20">
-              <div className="text-center">
-                <p className="text-lg font-bold text-foreground">15</p>
-                <p className="text-xs text-muted-foreground">Dec</p>
-              </div>
-              <div className="flex-1">
-                <p className="font-medium text-foreground">API Version Upgrade</p>
-                <p className="text-xs text-muted-foreground">03:00 - 05:00 | {t("change.mediumRisk")}</p>
-              </div>
-              <span className="px-2 py-1 rounded bg-muted text-muted-foreground text-xs">{t("common.pending")}</span>
-            </div>
-          </div>
         </div>
       </div>
     </div>
