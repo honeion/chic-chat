@@ -230,8 +230,9 @@ export function ITSAgentDashboard({
       </div>
       {/* 처리 Chat 이력 */}
       <div className="rounded-xl border border-border bg-card overflow-hidden">
-        <div className="px-4 py-3 bg-muted/50 border-b border-border">
-          <h4 className="text-sm font-semibold text-foreground text-center">{t("dashboard.processChatHistory")}</h4>
+        <div className="px-4 py-3 bg-muted/50 border-b border-border flex items-center justify-center gap-2">
+          <MessageSquare className="w-5 h-5 text-primary" />
+          <h4 className="text-sm font-semibold text-foreground">{t("dashboard.processChatHistory")}</h4>
         </div>
         <div className="divide-y divide-border">
           {chatSessions.length > 0 ? (
