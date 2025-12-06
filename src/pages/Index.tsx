@@ -45,15 +45,7 @@ export const agentTemplates: { type: AgentTemplateType; name: string; descriptio
   { type: "custom", name: "커스텀 Agent", description: "사용자 정의 Agent", steps: [] },
 ];
 
-export const initialMyAgents: WorkflowItem[] = [
-  { id: "m1", name: "e-총무 일일 점검", description: "e-총무 시스템 매일 아침 점검", steps: ["Health Check", "DB Connect", "Report Gen"], status: "active", lastRun: "오늘 09:00", systems: ["e-총무"], templateType: "daily-check" },
-  { id: "m1-2", name: "BiOn 일일 점검", description: "BiOn 시스템 매일 아침 점검", steps: ["Health Check", "DB Connect", "Report Gen"], status: "active", lastRun: "오늘 09:00", systems: ["BiOn"], templateType: "daily-check" },
-  { id: "m2", name: "BiOn 장애 대응", description: "BiOn 장애 감지 시 자동 대응", steps: ["Alert Detect", "Log Analyzer", "Notify", "Escalate"], status: "draft", systems: ["BiOn"], templateType: "incident-response" },
-  { id: "m2-2", name: "SATIS 장애 대응", description: "SATIS 장애 감지 시 자동 대응", steps: ["Alert Detect", "Log Analyzer", "Notify", "Escalate"], status: "active", systems: ["SATIS"], templateType: "incident-response" },
-  { id: "m3", name: "SATIS 주간 리포트", description: "SATIS 매주 월요일 리포트 생성", steps: ["Data Collect", "Analyze", "Report Gen", "Email Send"], status: "completed", lastRun: "지난주 월요일", systems: ["SATIS"], templateType: "weekly-report" },
-  { id: "m3-2", name: "전체 시스템 주간 리포트", description: "전체 시스템 통합 주간 리포트", steps: ["Data Collect", "Analyze", "Report Gen", "Email Send"], status: "active", systems: ["e-총무", "BiOn", "SATIS"], templateType: "weekly-report" },
-  { id: "m4", name: "ITS 티켓 자동화", description: "티켓 자동 분류 및 할당", steps: ["Ticket Parse", "Classify", "Assign", "Notify"], status: "active", systems: ["ITS"], templateType: "its-automation" },
-];
+export const initialMyAgents: WorkflowItem[] = [];
 
 const Index = () => {
   const [selectedChat, setSelectedChat] = useState<string | null>("1");
