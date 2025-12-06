@@ -19,6 +19,7 @@ type AgentType = "sop" | "its" | "monitoring" | "db" | "biz-support" | "change-m
 type RequestType = "I" | "C" | "D" | "A" | "S";
 interface RequestItem {
   id: string;
+  requestNo: string;
   type: RequestType;
   title: string;
   date: string;
@@ -28,6 +29,7 @@ interface RequestItem {
 // 활성 요청 타입 (채팅 패널용)
 interface ActiveRequest {
   id: string;
+  requestNo: string;
   type: RequestType;
   title: string;
   date: string;
@@ -54,7 +56,7 @@ const requestTypeLabels: Record<RequestType, string> = {
 const initialChatSessions: ChatSession[] = [
   {
     id: "session-r2",
-    request: { id: "r2", type: "C", title: "대시보드 UI 개선 요청", date: "2024-12-05" },
+    request: { id: "r2", requestNo: "ITS-2024-0151", type: "C", title: "대시보드 UI 개선 요청", date: "2024-12-05" },
     messages: [
       { role: "agent", content: "[개선 요청] 대시보드 UI 개선 요청\n일자: 2024-12-05\n\n해당 요청을 분석하고 처리를 시작하겠습니다." },
       { role: "agent", content: "\"대시보드 UI 개선 요청\" 작업을 시작합니다.", processingSteps: [
@@ -71,7 +73,7 @@ const initialChatSessions: ChatSession[] = [
   },
   {
     id: "session-r3",
-    request: { id: "r3", type: "D", title: "월간 매출 데이터 추출 요청", date: "2024-12-04" },
+    request: { id: "r3", requestNo: "ITS-2024-0150", type: "D", title: "월간 매출 데이터 추출 요청", date: "2024-12-04" },
     messages: [
       { role: "agent", content: "[데이터 요청] 월간 매출 데이터 추출 요청\n일자: 2024-12-04\n\n해당 요청을 분석하고 처리를 시작하겠습니다." },
       { role: "agent", content: "\"월간 매출 데이터 추출 요청\" 작업을 시작합니다.", processingSteps: [
@@ -88,7 +90,7 @@ const initialChatSessions: ChatSession[] = [
   },
   {
     id: "session-r5",
-    request: { id: "r5", type: "S", title: "프린터 용지 교체 요청", date: "2024-12-03" },
+    request: { id: "r5", requestNo: "ITS-2024-0148", type: "S", title: "프린터 용지 교체 요청", date: "2024-12-03" },
     messages: [
       { role: "agent", content: "[단순 요청] 프린터 용지 교체 요청\n일자: 2024-12-03\n\n해당 요청을 분석하고 처리를 시작하겠습니다." },
       { role: "agent", content: "\"프린터 용지 교체 요청\" 작업을 시작합니다.", processingSteps: [
@@ -224,8 +226,10 @@ export function AgentDetail({ agentId, agentName }: AgentDetailProps) {
     const label = t(`agentDetail.requestTypes.${requestType}`) || requestType;
     // 새로운 세션 생성
     const newSessionId = `session-${Date.now()}`;
+    const requestNo = `ITS-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 9000) + 1000)}`;
     const newRequest: ActiveRequest = {
       id: `req-${Date.now()}`,
+      requestNo,
       type: requestType === "account" ? "A" : requestType === "data" ? "D" : "S",
       title: label,
       date: new Date().toISOString().split('T')[0],
@@ -264,7 +268,7 @@ export function AgentDetail({ agentId, agentName }: AgentDetailProps) {
     
     const newSession: ChatSession = {
       id: newSessionId,
-      request: { id: request.id, type: request.type, title: request.title, date: request.date },
+      request: { id: request.id, requestNo: request.requestNo, type: request.type, title: request.title, date: request.date },
       messages: [{ role: "agent", content: chatIntro }],
       status: "in-progress",
       createdAt: new Date().toISOString(),
