@@ -40,6 +40,9 @@ interface SOPAgentDashboardProps {
 }
 
 const mockIncidents: Incident[] = [
+  { id: "i1", title: "서버 CPU 과부하 발생", description: "메인 서버의 CPU 사용률이 95%를 초과하여 긴급 조치가 필요합니다. 현재 서비스 응답 지연이 발생하고 있습니다.", status: "pending", priority: "high", timestamp: "10:15", requestNo: "SOP-2024-0001", type: "I" as RequestType },
+  { id: "i2", title: "DB 연결 오류 감지", description: "프로덕션 데이터베이스 연결 풀이 고갈되어 일부 트랜잭션이 실패하고 있습니다.", status: "pending", priority: "medium", timestamp: "09:45", requestNo: "SOP-2024-0002", type: "I" as RequestType },
+  { id: "i3", title: "메모리 누수 의심", description: "애플리케이션 서버의 메모리 사용량이 지속적으로 증가하고 있어 재시작이 필요할 수 있습니다.", status: "processing", priority: "medium", timestamp: "09:00", requestNo: "SOP-2024-0003", type: "I" as RequestType },
   { id: "i4", title: "네트워크 지연 복구", description: "네트워크 레이턴시가 정상 범위로 복구되었습니다.", status: "approved", priority: "medium", timestamp: "08:30" },
 ];
 
