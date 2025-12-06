@@ -222,6 +222,20 @@ export function ChatSidebar({
           </div>
         </div>
         
+        {/* Dashboard Navigation */}
+        <button
+          onClick={() => navigate("/dashboard")}
+          className={cn(
+            "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all mb-3",
+            isDashboard 
+              ? "bg-primary/20 text-primary" 
+              : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+          )}
+        >
+          <LayoutDashboard className="w-5 h-5" />
+          <span className="font-medium">{t("sidebar.dashboard")}</span>
+        </button>
+
         {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -233,22 +247,6 @@ export function ChatSidebar({
             className="w-full pl-10 pr-4 py-2.5 bg-secondary rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
           />
         </div>
-      </div>
-
-      {/* Dashboard Navigation - Above Tabs */}
-      <div className="p-2 border-b border-border">
-        <button
-          onClick={() => navigate("/dashboard")}
-          className={cn(
-            "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all",
-            isDashboard 
-              ? "bg-primary/20 text-primary" 
-              : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-          )}
-        >
-          <LayoutDashboard className="w-5 h-5" />
-          <span className="font-medium">{t("sidebar.dashboard")}</span>
-        </button>
       </div>
 
       {/* Main View Tabs */}
