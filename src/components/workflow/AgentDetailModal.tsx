@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { X, Workflow, ChevronRight, Plus, Pencil, Folder } from "lucide-react";
-import { WorkflowItem, OperatingSystem, AgentTemplateType, agentTemplates } from "@/pages/Index";
+import { WorkflowItem, OperatingSystem } from "@/pages/Index";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
@@ -17,7 +17,6 @@ export function AgentDetailModal({ isOpen, onClose, agent, onAddToMyAgent }: Age
   const [customName, setCustomName] = useState("");
   const [isEditingName, setIsEditingName] = useState(false);
   const [selectedSystems, setSelectedSystems] = useState<OperatingSystem[]>([]);
-  const [selectedTemplateType, setSelectedTemplateType] = useState<AgentTemplateType>("daily-check");
 
   const SYSTEM_BOXES: OperatingSystem[] = ["e-총무", "BiOn", "SATIS"];
 
@@ -26,7 +25,6 @@ export function AgentDetailModal({ isOpen, onClose, agent, onAddToMyAgent }: Age
       setCustomName(agent.name);
       setIsEditingName(false);
       setSelectedSystems([]);
-      setSelectedTemplateType("daily-check");
     }
   }, [agent]);
 
@@ -47,7 +45,6 @@ export function AgentDetailModal({ isOpen, onClose, agent, onAddToMyAgent }: Age
       ...agent,
       name: customName.trim() || agent.name,
       systems: selectedSystems,
-      templateType: selectedTemplateType,
     };
     onAddToMyAgent(agentToAdd);
     onClose();
@@ -95,27 +92,6 @@ export function AgentDetailModal({ isOpen, onClose, agent, onAddToMyAgent }: Age
 
         {/* Content */}
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)]">
-          {/* Template Type Selection */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium mb-3 text-muted-foreground">템플릿 타입 선택 (필수)</label>
-            <div className="flex flex-wrap gap-2">
-              {agentTemplates.map((template) => (
-                <button
-                  key={template.type}
-                  onClick={() => setSelectedTemplateType(template.type)}
-                  className={cn(
-                    "px-4 py-2 rounded-lg text-sm transition-all border",
-                    selectedTemplateType === template.type
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-secondary border-border hover:border-primary/50"
-                  )}
-                >
-                  {template.name}
-                </button>
-              ))}
-            </div>
-          </div>
-
           {/* System Selection */}
           <div className="mb-6">
             <label className="block text-sm font-medium mb-3 text-muted-foreground">대상 시스템 선택 (필수)</label>

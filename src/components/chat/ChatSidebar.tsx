@@ -17,7 +17,7 @@ import {
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { WorkflowItem, agentMarketItems, OPERATING_SYSTEMS, OperatingSystem, AgentTemplateType, agentTemplates } from "@/pages/Index";
+import { WorkflowItem, agentMarketItems, OPERATING_SYSTEMS, OperatingSystem } from "@/pages/Index";
 
 type ViewType = "agent" | "workflow" | "assistant";
 
@@ -125,9 +125,6 @@ interface ChatSidebarProps {
   myAgents: WorkflowItem[];
   selectedWorkflowAgent: WorkflowItem | null;
   onSelectWorkflowAgent: (agent: WorkflowItem | null) => void;
-  selectedTemplateType?: AgentTemplateType | null;
-  onSelectTemplateType?: (type: AgentTemplateType | null) => void;
-  onSelectAllSystems?: () => void;
   onAddFromMarket?: (agent: WorkflowItem) => void;
   selectedMarketAgent?: WorkflowItem | null;
   onSelectMarketAgent?: (agent: WorkflowItem | null) => void;
@@ -143,9 +140,6 @@ export function ChatSidebar({
   myAgents,
   selectedWorkflowAgent,
   onSelectWorkflowAgent,
-  selectedTemplateType,
-  onSelectTemplateType,
-  onSelectAllSystems,
   onAddFromMarket,
   selectedMarketAgent,
   onSelectMarketAgent,
@@ -341,51 +335,56 @@ export function ChatSidebar({
 
         {currentView === "workflow" && (
           <>
-            {/* My Agent Section - Template Based */}
+            {/* My Agent Section */}
             <div className="px-2 py-1.5 text-xs font-semibold text-primary uppercase tracking-wider">
               {t("sidebar.myAgent")}
             </div>
             
-            {/* Template List */}
-            {agentTemplates.map((template, index) => {
-              const count = myAgents.filter(a => a.templateType === template.type).length;
-              const isSelected = selectedTemplateType === template.type;
-              
-              return (
-                <div key={template.type} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
-                  <button
-                    onClick={() => {
-                      onSelectTemplateType?.(template.type);
-                      onSelectAllSystems?.();
-                      if (location.pathname !== "/") {
-                        navigate("/");
-                      }
-                    }}
-                    className={cn(
-                      "w-full p-3 rounded-xl text-left transition-all duration-200 flex items-center gap-3",
-                      "hover:bg-secondary/80",
-                      isSelected && !isDashboard
-                        ? "bg-primary/30 border border-primary/50 shadow-md" 
-                        : "bg-transparent"
-                    )}
-                  >
-                    <div className="relative">
-                      <div className="w-9 h-9 rounded-lg bg-accent/20 flex items-center justify-center">
-                        <Workflow className="w-4 h-4 text-accent" />
+            {/* My Agent List */}
+            {myAgents.length === 0 ? (
+              <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+                등록된 Agent가 없습니다
+              </div>
+            ) : (
+              myAgents.map((agent, index) => {
+                const isSelected = selectedWorkflowAgent?.id === agent.id;
+                return (
+                  <div key={agent.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
+                    <button
+                      onClick={() => {
+                        onSelectWorkflowAgent(agent);
+                        if (location.pathname !== "/") {
+                          navigate("/");
+                        }
+                      }}
+                      className={cn(
+                        "w-full p-3 rounded-xl text-left transition-all duration-200 flex items-center gap-3",
+                        "hover:bg-secondary/80",
+                        isSelected && !isDashboard
+                          ? "bg-primary/30 border border-primary/50 shadow-md" 
+                          : "bg-transparent"
+                      )}
+                    >
+                      <div className="relative">
+                        <div className="w-9 h-9 rounded-lg bg-accent/20 flex items-center justify-center">
+                          <Workflow className="w-4 h-4 text-accent" />
+                        </div>
+                        <span className={cn(
+                          "absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-sidebar",
+                          agent.status === "active" ? "bg-status-online" : "bg-status-offline"
+                        )} />
                       </div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <span className="font-medium text-sm block truncate">{template.name}</span>
-                      <span className="text-xs text-muted-foreground">{count}개 등록됨</span>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                  </button>
-                </div>
-              );
-            })}
+                      <div className="flex-1 min-w-0">
+                        <span className="font-medium text-sm block truncate">{agent.name}</span>
+                        <span className="text-xs text-muted-foreground truncate block">{agent.description}</span>
+                      </div>
+                    </button>
+                  </div>
+                );
+              })
+            )}
 
-
-            {/* Recommended Agent Section (Fixed - from Agent Market) */}
+            {/* Agent Market Section */}
             <div className="px-2 py-1.5 mt-4 text-xs font-semibold text-primary uppercase tracking-wider flex items-center gap-2">
               <Store className="w-3 h-3" />
               {t("workflow.agentMarket")}

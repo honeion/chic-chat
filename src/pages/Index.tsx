@@ -13,8 +13,6 @@ type ViewType = "agent" | "workflow" | "assistant";
 export const OPERATING_SYSTEMS = ["e-총무", "BiOn", "SATIS", "ITS"] as const;
 export type OperatingSystem = typeof OPERATING_SYSTEMS[number];
 
-export type AgentTemplateType = "daily-check" | "incident-response" | "weekly-report" | "its-automation";
-
 export interface WorkflowItem {
   id: string;
   name: string;
@@ -23,25 +21,18 @@ export interface WorkflowItem {
   status: "active" | "draft" | "completed";
   lastRun?: string;
   system?: OperatingSystem;
-  systems?: OperatingSystem[]; // 복수 시스템 지원
-  templateType?: AgentTemplateType; // 템플릿 타입
+  systems?: OperatingSystem[];
 }
 
 export const agentMarketItems: WorkflowItem[] = [
-  { id: "r1", name: "서버 상태 점검 Agent", description: "서버 헬스체크 및 로그 분석", steps: ["Health Check", "Log Analyzer", "Alert Send"], status: "active" },
-  { id: "r2", name: "DB 백업 Agent", description: "데이터베이스 백업 및 검증", steps: ["DB Connect", "Backup Create", "Verify", "Notify"], status: "active" },
-  { id: "r3", name: "배포 자동화 Agent", description: "자동화된 배포 워크플로우", steps: ["Build", "Test", "Deploy", "Health Check"], status: "active" },
-  { id: "r4", name: "로그 모니터링 Agent", description: "실시간 로그 수집 및 분석", steps: ["Log Collect", "Parse", "Analyze", "Alert"], status: "active" },
-  { id: "r5", name: "보안 스캔 Agent", description: "취약점 탐지 및 보고", steps: ["Scan Init", "Vulnerability Check", "Report Gen", "Notify"], status: "active" },
-  { id: "r6", name: "성능 테스트 Agent", description: "부하 테스트 및 성능 측정", steps: ["Load Test", "Metrics Collect", "Analyze", "Report"], status: "active" },
-];
-
-// Agent 템플릿 정의
-export const agentTemplates: { type: AgentTemplateType; name: string; description: string; steps: string[] }[] = [
-  { type: "daily-check", name: "일일 점검 루틴", description: "매일 아침 자동 실행되는 점검 루틴", steps: ["Health Check", "DB Connect", "Report Gen"] },
-  { type: "incident-response", name: "장애 대응 플로우", description: "장애 감지 시 자동 대응 플로우", steps: ["Alert Detect", "Log Analyzer", "Notify", "Escalate"] },
-  { type: "weekly-report", name: "주간 리포트", description: "매주 월요일 리포트 생성", steps: ["Data Collect", "Analyze", "Report Gen", "Email Send"] },
-  { type: "its-automation", name: "ITS 티켓 자동화", description: "티켓 자동 분류 및 할당", steps: ["Ticket Parse", "Classify", "Assign", "Notify"] },
+  { id: "r1", name: "일일 점검 루틴", description: "매일 아침 자동 실행되는 점검 루틴", steps: ["Health Check", "DB Connect", "Report Gen"], status: "active" },
+  { id: "r2", name: "장애 대응 플로우", description: "장애 감지 시 자동 대응 플로우", steps: ["Alert Detect", "Log Analyzer", "Notify", "Escalate"], status: "active" },
+  { id: "r3", name: "주간 리포트", description: "매주 월요일 리포트 생성", steps: ["Data Collect", "Analyze", "Report Gen", "Email Send"], status: "active" },
+  { id: "r4", name: "ITS 티켓 자동화", description: "티켓 자동 분류 및 할당", steps: ["Ticket Parse", "Classify", "Assign", "Notify"], status: "active" },
+  { id: "r5", name: "서버 상태 점검 Agent", description: "서버 헬스체크 및 로그 분석", steps: ["Health Check", "Log Analyzer", "Alert Send"], status: "active" },
+  { id: "r6", name: "DB 백업 Agent", description: "데이터베이스 백업 및 검증", steps: ["DB Connect", "Backup Create", "Verify", "Notify"], status: "active" },
+  { id: "r7", name: "배포 자동화 Agent", description: "자동화된 배포 워크플로우", steps: ["Build", "Test", "Deploy", "Health Check"], status: "active" },
+  { id: "r8", name: "로그 모니터링 Agent", description: "실시간 로그 수집 및 분석", steps: ["Log Collect", "Parse", "Analyze", "Alert"], status: "active" },
 ];
 
 export const initialMyAgents: WorkflowItem[] = [];
@@ -52,18 +43,10 @@ const Index = () => {
   const [selectedAgent, setSelectedAgent] = useState<string | null>("a1");
   const [myAgents, setMyAgents] = useState<WorkflowItem[]>(initialMyAgents);
   const [selectedWorkflowAgent, setSelectedWorkflowAgent] = useState<WorkflowItem | null>(null);
-  const [selectedTemplateType, setSelectedTemplateType] = useState<AgentTemplateType | null>(null);
-  const [selectedSystems, setSelectedSystems] = useState<OperatingSystem[]>([]);
   const [selectedMarketAgent, setSelectedMarketAgent] = useState<WorkflowItem | null>(null);
   const location = useLocation();
   const isDashboard = location.pathname === "/dashboard";
   const { t } = useTranslation();
-
-  const SYSTEM_BOXES: OperatingSystem[] = ["e-총무", "BiOn", "SATIS"];
-
-  const handleSelectAllSystems = () => {
-    setSelectedSystems([...SYSTEM_BOXES]);
-  };
 
   const agentNames: Record<string, string> = {
     "a1": t("agent.its"),
@@ -81,7 +64,6 @@ const Index = () => {
       id: `m${Date.now()}`,
       status: "active",
       systems: marketAgent.systems || [],
-      templateType: marketAgent.templateType || "daily-check",
     };
     setMyAgents([...myAgents, newAgent]);
     setSelectedWorkflowAgent(newAgent);
@@ -94,7 +76,6 @@ const Index = () => {
     steps: string[]; 
     instructions: string;
     systems: OperatingSystem[];
-    templateType: AgentTemplateType;
   }) => {
     const newAgent: WorkflowItem = {
       id: `m${Date.now()}`,
@@ -103,9 +84,9 @@ const Index = () => {
       steps: agent.steps,
       status: "draft",
       systems: agent.systems,
-      templateType: agent.templateType,
     };
     setMyAgents([...myAgents, newAgent]);
+    setSelectedWorkflowAgent(newAgent);
   };
 
   const handleNavigateToAgent = (targetAgentId: string) => {
@@ -140,10 +121,6 @@ const Index = () => {
             setSelectedAgent={setSelectedWorkflowAgent}
             onAddFromMarket={handleAddFromMarket}
             onAddNewAgent={handleAddNewAgent}
-            selectedTemplateType={selectedTemplateType}
-            setSelectedTemplateType={setSelectedTemplateType}
-            selectedSystems={selectedSystems}
-            setSelectedSystems={setSelectedSystems}
           />
         );
       case "assistant":
@@ -164,9 +141,6 @@ const Index = () => {
         myAgents={myAgents}
         selectedWorkflowAgent={selectedWorkflowAgent}
         onSelectWorkflowAgent={setSelectedWorkflowAgent}
-        selectedTemplateType={selectedTemplateType}
-        onSelectTemplateType={setSelectedTemplateType}
-        onSelectAllSystems={handleSelectAllSystems}
         onAddFromMarket={handleAddFromMarket}
         selectedMarketAgent={selectedMarketAgent}
         onSelectMarketAgent={setSelectedMarketAgent}

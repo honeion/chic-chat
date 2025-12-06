@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { X, Plus, ChevronRight, GripVertical, Trash2, Folder } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { OperatingSystem, AgentTemplateType, agentTemplates, OPERATING_SYSTEMS } from "@/pages/Index";
+import { OperatingSystem } from "@/pages/Index";
 
 interface Tool {
   id: string;
@@ -19,13 +19,11 @@ interface NewAgentModalProps {
     steps: string[];
     instructions: string;
     systems: OperatingSystem[];
-    templateType: AgentTemplateType;
   }) => void;
   tools: Tool[];
-  defaultTemplateType?: AgentTemplateType | null;
 }
 
-export function NewAgentModal({ isOpen, onClose, onSave, tools, defaultTemplateType }: NewAgentModalProps) {
+export function NewAgentModal({ isOpen, onClose, onSave, tools }: NewAgentModalProps) {
   const { t } = useTranslation();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -33,9 +31,6 @@ export function NewAgentModal({ isOpen, onClose, onSave, tools, defaultTemplateT
   const [instructions, setInstructions] = useState("");
   const [hoveredTool, setHoveredTool] = useState<Tool | null>(null);
   const [selectedSystems, setSelectedSystems] = useState<OperatingSystem[]>([]);
-  const [selectedTemplateType, setSelectedTemplateType] = useState<AgentTemplateType>(
-    defaultTemplateType || "daily-check"
-  );
 
   const SYSTEM_BOXES: OperatingSystem[] = ["e-총무", "BiOn", "SATIS"];
 
@@ -67,7 +62,6 @@ export function NewAgentModal({ isOpen, onClose, onSave, tools, defaultTemplateT
         steps: selectedTools.map((t) => t.name),
         instructions,
         systems: selectedSystems,
-        templateType: selectedTemplateType,
       });
       // Reset form
       setName("");
@@ -93,27 +87,6 @@ export function NewAgentModal({ isOpen, onClose, onSave, tools, defaultTemplateT
 
         {/* Content */}
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)]">
-          {/* Template Type Selection */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium mb-3">템플릿 타입</label>
-            <div className="flex flex-wrap gap-2">
-              {agentTemplates.map((template) => (
-                <button
-                  key={template.type}
-                  onClick={() => setSelectedTemplateType(template.type)}
-                  className={cn(
-                    "px-4 py-2 rounded-lg text-sm transition-all border",
-                    selectedTemplateType === template.type
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-secondary border-border hover:border-primary/50"
-                  )}
-                >
-                  {template.name}
-                </button>
-              ))}
-            </div>
-          </div>
-
           {/* System Selection */}
           <div className="mb-6">
             <label className="block text-sm font-medium mb-3">대상 시스템 (필수)</label>
