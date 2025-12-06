@@ -33,6 +33,15 @@ interface ActiveRequest {
   date: string;
 }
 
+// 채팅 세션 타입
+export interface ChatSession {
+  id: string;
+  request: ActiveRequest;
+  messages: Message[];
+  status: "in-progress" | "completed";
+  createdAt: string;
+}
+
 const requestTypeLabels: Record<RequestType, string> = {
   "I": "인시던트 요청",
   "C": "개선 요청",
@@ -71,20 +80,38 @@ export function AgentDetail({ agentId, agentName }: AgentDetailProps) {
   };
 
   const quickActions = getQuickActions();
-  const [messages, setMessages] = useState<Message[]>([{ role: "agent", content: t("agentDetail.hello", { agentName }) }]);
-  const [activeRequest, setActiveRequest] = useState<ActiveRequest | null>(null);
+  
+  // 채팅 세션 관리
+  const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  
+  // 현재 활성 세션의 메시지
+  const activeSession = chatSessions.find(s => s.id === activeSessionId);
+  const currentMessages = activeSession?.messages || [{ role: "agent" as const, content: t("agentDetail.hello", { agentName }) }];
+  const activeRequest = activeSession?.request || null;
 
-  const simulateProcessing = (taskName: string) => {
+  // 메시지 업데이트 함수
+  const updateSessionMessages = (sessionId: string, updater: (messages: Message[]) => Message[]) => {
+    setChatSessions(prev => prev.map(session => 
+      session.id === sessionId 
+        ? { ...session, messages: updater(session.messages) }
+        : session
+    ));
+  };
+
+  const simulateProcessing = (taskName: string, sessionId: string) => {
     const steps: ProcessingStep[] = [
       { id: "1", step: t("agentDetail.processing.analyzing"), status: "pending" },
       { id: "2", step: t("agentDetail.processing.collecting"), status: "pending" },
       { id: "3", step: t("agentDetail.processing.executing"), status: "pending" },
       { id: "4", step: t("agentDetail.processing.generating"), status: "pending" },
     ];
-    setMessages(prev => [...prev, { role: "agent", content: t("agentDetail.taskStart", { task: taskName }), processingSteps: steps }]);
+    
+    updateSessionMessages(sessionId, prev => [...prev, { role: "agent", content: t("agentDetail.taskStart", { task: taskName }), processingSteps: steps }]);
+    
     steps.forEach((_, index) => {
       setTimeout(() => {
-        setMessages(prev => {
+        updateSessionMessages(sessionId, prev => {
           const updated = [...prev];
           const lastMsg = updated[updated.length - 1];
           if (lastMsg.processingSteps) {
@@ -94,47 +121,126 @@ export function AgentDetail({ agentId, agentName }: AgentDetailProps) {
         });
       }, (index + 1) * 800);
     });
+    
     setTimeout(() => {
-      setMessages(prev => {
+      updateSessionMessages(sessionId, prev => {
         const updated = [...prev];
         const lastMsg = updated[updated.length - 1];
-        if (lastMsg.processingSteps) { lastMsg.processingSteps = lastMsg.processingSteps.map(step => ({ ...step, status: "completed" as const })); }
+        if (lastMsg.processingSteps) { 
+          lastMsg.processingSteps = lastMsg.processingSteps.map(step => ({ ...step, status: "completed" as const })); 
+        }
         return [...updated];
       });
-      setTimeout(() => { setMessages(prev => [...prev, { role: "agent", content: t("agentDetail.taskComplete", { task: taskName }) }]); }, 500);
+      setTimeout(() => { 
+        updateSessionMessages(sessionId, prev => [...prev, { role: "agent", content: t("agentDetail.taskComplete", { task: taskName }) }]); 
+      }, 500);
     }, steps.length * 800 + 500);
   };
 
-  const handleSendMessage = (message: string) => { setMessages(prev => [...prev, { role: "user", content: message }]); simulateProcessing(message); };
-  const handleQuickAction = (action: string) => {
-    const label = t(`agentDetail.actionLabels.${action}`) || action;
-    setMessages(prev => [...prev, { role: "user", content: label }]); 
-    simulateProcessing(label);
+  const handleSendMessage = (message: string) => { 
+    if (activeSessionId) {
+      updateSessionMessages(activeSessionId, prev => [...prev, { role: "user", content: message }]); 
+      simulateProcessing(message, activeSessionId); 
+    }
   };
-  const handleApprove = (_: string, incident: { title: string }) => { simulateProcessing(`${incident.title} ${t("common.confirm")}`); };
-  const handleReject = () => { setMessages(prev => [...prev, { role: "agent", content: t("agentDetail.rejected") }]); };
+  
+  const handleQuickAction = (action: string) => {
+    if (activeSessionId) {
+      const label = t(`agentDetail.actionLabels.${action}`) || action;
+      updateSessionMessages(activeSessionId, prev => [...prev, { role: "user", content: label }]); 
+      simulateProcessing(label, activeSessionId);
+    }
+  };
+  
+  const handleApprove = (_: string, incident: { title: string }) => { 
+    if (activeSessionId) {
+      simulateProcessing(`${incident.title} ${t("common.confirm")}`, activeSessionId); 
+    }
+  };
+  
+  const handleReject = () => { 
+    if (activeSessionId) {
+      updateSessionMessages(activeSessionId, prev => [...prev, { role: "agent", content: t("agentDetail.rejected") }]); 
+    }
+  };
+  
   const handleITSRequest = (requestType: string) => {
     const label = t(`agentDetail.requestTypes.${requestType}`) || requestType;
-    simulateProcessing(label);
+    // 새로운 세션 생성
+    const newSessionId = `session-${Date.now()}`;
+    const newRequest: ActiveRequest = {
+      id: `req-${Date.now()}`,
+      type: requestType === "account" ? "A" : requestType === "data" ? "D" : "S",
+      title: label,
+      date: new Date().toISOString().split('T')[0],
+    };
+    
+    const typeLabel = requestTypeLabels[newRequest.type];
+    const chatIntro = `[${typeLabel}] ${newRequest.title}\n일자: ${newRequest.date}\n\n해당 요청을 분석하고 처리를 시작하겠습니다.`;
+    
+    const newSession: ChatSession = {
+      id: newSessionId,
+      request: newRequest,
+      messages: [{ role: "agent", content: chatIntro }],
+      status: "in-progress",
+      createdAt: new Date().toISOString(),
+    };
+    
+    setChatSessions(prev => [newSession, ...prev]);
+    setActiveSessionId(newSessionId);
+    
+    setTimeout(() => simulateProcessing(label, newSessionId), 100);
   };
 
   // ITS 요청 채팅 시작 핸들러
   const handleStartChat = (request: RequestItem) => {
+    // 기존 세션 확인
+    const existingSession = chatSessions.find(s => s.request.id === request.id);
+    if (existingSession) {
+      setActiveSessionId(existingSession.id);
+      return;
+    }
+    
+    // 새로운 세션 생성
+    const newSessionId = `session-${Date.now()}`;
     const typeLabel = requestTypeLabels[request.type];
     const chatIntro = `[${typeLabel}] ${request.title}\n일자: ${request.date}\n\n해당 요청을 분석하고 처리를 시작하겠습니다.`;
-    setActiveRequest({ id: request.id, type: request.type, title: request.title, date: request.date });
-    setMessages(prev => [...prev, { role: "agent", content: chatIntro }]);
-    simulateProcessing(request.title);
+    
+    const newSession: ChatSession = {
+      id: newSessionId,
+      request: { id: request.id, type: request.type, title: request.title, date: request.date },
+      messages: [{ role: "agent", content: chatIntro }],
+      status: "in-progress",
+      createdAt: new Date().toISOString(),
+    };
+    
+    setChatSessions(prev => [newSession, ...prev]);
+    setActiveSessionId(newSessionId);
+    
+    setTimeout(() => simulateProcessing(request.title, newSessionId), 100);
   };
 
   const handleCloseRequest = () => {
-    setActiveRequest(null);
+    setActiveSessionId(null);
+  };
+
+  // 이력에서 세션 선택
+  const handleSelectSession = (sessionId: string) => {
+    setActiveSessionId(sessionId);
   };
 
   const renderDashboard = () => {
     switch (agentType) {
       case "sop": return <SOPAgentDashboard onApprove={handleApprove} onReject={handleReject} />;
-      case "its": return <ITSAgentDashboard onRequest={handleITSRequest} onStartChat={handleStartChat} />;
+      case "its": return (
+        <ITSAgentDashboard 
+          onRequest={handleITSRequest} 
+          onStartChat={handleStartChat}
+          chatSessions={chatSessions}
+          onSelectSession={handleSelectSession}
+          activeSessionId={activeSessionId}
+        />
+      );
       case "monitoring": return <MonitoringAgentDashboard />;
       case "db": return <DBAgentDashboard />;
       case "biz-support": return <BizSupportAgentDashboard />;
@@ -161,7 +267,7 @@ export function AgentDetail({ agentId, agentName }: AgentDetailProps) {
       </div>
       <AgentChatPanel 
         agentName={agentName} 
-        messages={messages} 
+        messages={currentMessages} 
         onSendMessage={handleSendMessage} 
         onQuickAction={handleQuickAction} 
         quickActions={quickActions}

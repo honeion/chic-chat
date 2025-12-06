@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { 
   Ticket, UserPlus, Shield, Database, Clock, CheckCircle, AlertCircle, Send, Key,
-  Play, AlertTriangle, Wrench, FileText, User
+  Play, AlertTriangle, Wrench, FileText, User, MessageSquare
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import type { ChatSession } from "@/pages/AgentDetail";
 
 // 요청 타입 정의
 type RequestType = "I" | "C" | "D" | "A" | "S";
@@ -26,6 +27,9 @@ interface RequestItem {
 interface ITSAgentDashboardProps {
   onRequest: (requestType: string) => void;
   onStartChat?: (request: RequestItem) => void;
+  chatSessions?: ChatSession[];
+  onSelectSession?: (sessionId: string) => void;
+  activeSessionId?: string | null;
 }
 
 // 요청 타입별 아이콘 및 색상
@@ -49,14 +53,13 @@ const mockRequests: RequestItem[] = [
   { id: "r5", type: "S", title: "프린터 용지 교체 요청", date: "2024-12-03", status: "resolved" },
 ];
 
-const mockHistory = [
-  { id: 1, title: "", status: "completed" as const },
-  { id: 2, title: "", status: "in-progress" as const },
-  { id: 3, title: "", status: "pending" as const },
-  { id: 4, title: "", status: "pending" as const },
-];
-
-export function ITSAgentDashboard({ onRequest, onStartChat }: ITSAgentDashboardProps) {
+export function ITSAgentDashboard({ 
+  onRequest, 
+  onStartChat, 
+  chatSessions = [], 
+  onSelectSession,
+  activeSessionId 
+}: ITSAgentDashboardProps) {
   const { t } = useTranslation();
   const [requests] = useState<RequestItem[]>(mockRequests);
   const [selectedTicket, setSelectedTicket] = useState<RequestItem | null>(null);
@@ -295,7 +298,7 @@ export function ITSAgentDashboard({ onRequest, onStartChat }: ITSAgentDashboardP
         </div>
       </div>
 
-      {/* 이력 섹션 */}
+      {/* 이력 섹션 - 채팅 세션과 연동 */}
       <div>
         <h3 className="text-base font-semibold text-foreground mb-3">{t("dashboard.historySection")}</h3>
         <div className="rounded-xl border border-border bg-card overflow-hidden">
@@ -303,12 +306,40 @@ export function ITSAgentDashboard({ onRequest, onStartChat }: ITSAgentDashboardP
             <h4 className="text-sm font-semibold text-foreground text-center">{t("dashboard.processHistory")}</h4>
           </div>
           <div className="divide-y divide-border">
-            {mockHistory.map(item => (
-              <div key={item.id} className="px-4 py-3 flex items-center justify-between hover:bg-muted/30 transition-colors">
-                <span className="text-sm font-medium text-foreground">{item.id}</span>
-                {getStatusBadge(item.status)}
+            {chatSessions.length > 0 ? (
+              chatSessions.map(session => {
+                const config = requestTypeConfig[session.request.type];
+                const isActive = session.id === activeSessionId;
+                return (
+                  <button
+                    key={session.id}
+                    onClick={() => onSelectSession?.(session.id)}
+                    className={cn(
+                      "w-full px-4 py-3 flex items-center gap-3 hover:bg-muted/30 transition-colors text-left",
+                      isActive && "bg-primary/10 border-l-2 border-l-primary"
+                    )}
+                  >
+                    <span className={cn("flex-shrink-0", config.color)}>
+                      {config.icon}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{session.request.title}</p>
+                      <p className="text-xs text-muted-foreground">{session.request.date}</p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <MessageSquare className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground">{session.messages.length}</span>
+                      {getStatusBadge(session.status)}
+                    </div>
+                  </button>
+                );
+              })
+            ) : (
+              <div className="px-4 py-6 text-center">
+                <p className="text-sm text-muted-foreground">채팅 이력이 없습니다</p>
+                <p className="text-xs text-muted-foreground mt-1">미접수 요청의 플레이 버튼을 눌러 채팅을 시작하세요</p>
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>
