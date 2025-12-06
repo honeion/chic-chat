@@ -62,7 +62,18 @@ export function WorkflowPage({
   const [isNewAgentModalOpen, setIsNewAgentModalOpen] = useState(false);
   const [isAddAgentModalOpen, setIsAddAgentModalOpen] = useState(false);
   const [newAgentName, setNewAgentName] = useState("");
+  const [newAgentDescription, setNewAgentDescription] = useState("");
   const [newAgentSystem, setNewAgentSystem] = useState<OperatingSystem | null>(null);
+  const [newAgentSelectedTools, setNewAgentSelectedTools] = useState<string[]>([]);
+  const [newAgentKnowledge, setNewAgentKnowledge] = useState<string[]>([]);
+  const [newAgentInstructions, setNewAgentInstructions] = useState("");
+
+  const mockKnowledgeBases = [
+    { id: "k1", name: "운영 매뉴얼" },
+    { id: "k2", name: "장애 대응 가이드" },
+    { id: "k3", name: "시스템 설정 문서" },
+    { id: "k4", name: "FAQ 데이터베이스" },
+  ];
 
   const getStatusStyle = (status: WorkflowItem["status"]) => {
     switch (status) {
@@ -111,13 +122,39 @@ export function WorkflowPage({
       id: `ra${Date.now()}`,
       name: newAgentName.trim(),
       system: newAgentSystem,
+      settings: {
+        description: newAgentDescription,
+        tools: newAgentSelectedTools.join(","),
+        knowledge: newAgentKnowledge.join(","),
+        instructions: newAgentInstructions,
+      },
       createdAt: new Date().toISOString(),
     };
     
     onAddRegisteredAgent(selectedAgent.id, registeredAgent);
+    resetAddAgentModal();
+  };
+
+  const resetAddAgentModal = () => {
     setIsAddAgentModalOpen(false);
     setNewAgentName("");
+    setNewAgentDescription("");
     setNewAgentSystem(null);
+    setNewAgentSelectedTools([]);
+    setNewAgentKnowledge([]);
+    setNewAgentInstructions("");
+  };
+
+  const toggleTool = (toolId: string) => {
+    setNewAgentSelectedTools(prev => 
+      prev.includes(toolId) ? prev.filter(id => id !== toolId) : [...prev, toolId]
+    );
+  };
+
+  const toggleKnowledge = (knowledgeId: string) => {
+    setNewAgentKnowledge(prev => 
+      prev.includes(knowledgeId) ? prev.filter(id => id !== knowledgeId) : [...prev, knowledgeId]
+    );
   };
 
   const registeredAgents = selectedAgent?.registeredAgents || [];
@@ -325,25 +362,21 @@ export function WorkflowPage({
 
       {/* Add Registered Agent Modal */}
       {isAddAgentModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="w-full max-w-md bg-background border border-border rounded-xl shadow-xl">
-            <div className="flex items-center justify-between p-4 border-b border-border">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-2xl max-h-[90vh] bg-background border border-border rounded-xl shadow-xl flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
               <h2 className="text-lg font-semibold">Agent 추가</h2>
               <button 
-                onClick={() => {
-                  setIsAddAgentModalOpen(false);
-                  setNewAgentName("");
-                  setNewAgentSystem(null);
-                }}
+                onClick={resetAddAgentModal}
                 className="p-1 rounded-lg hover:bg-muted transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="p-4 space-y-4">
+            <div className="p-4 space-y-5 overflow-y-auto flex-1">
               {/* System Selection */}
               <div>
-                <label className="block text-sm font-medium mb-2">시스템 선택</label>
+                <label className="block text-sm font-medium mb-2">시스템 선택 *</label>
                 <div className="grid grid-cols-3 gap-2">
                   {(["e-총무", "BiOn", "SATIS"] as const).map((system) => (
                     <button
@@ -364,7 +397,7 @@ export function WorkflowPage({
               
               {/* Agent Name */}
               <div>
-                <label className="block text-sm font-medium mb-2">Agent 이름</label>
+                <label className="block text-sm font-medium mb-2">Agent 이름 *</label>
                 <input
                   type="text"
                   value={newAgentName}
@@ -373,14 +406,83 @@ export function WorkflowPage({
                   className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>
+
+              {/* Agent Description */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Agent 설명</label>
+                <textarea
+                  value={newAgentDescription}
+                  onChange={(e) => setNewAgentDescription(e.target.value)}
+                  placeholder="Agent의 역할과 기능을 설명하세요"
+                  rows={2}
+                  className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+                />
+              </div>
+
+              {/* Tool Selection */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Tool 선택</label>
+                <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto p-2 border border-border rounded-lg">
+                  {mockTools.map((tool) => (
+                    <button
+                      key={tool.id}
+                      onClick={() => toggleTool(tool.id)}
+                      className={cn(
+                        "p-2 rounded-lg border text-left text-sm transition-all",
+                        newAgentSelectedTools.includes(tool.id)
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border hover:border-primary/50"
+                      )}
+                    >
+                      <div className="font-medium">{tool.name}</div>
+                      <div className="text-xs text-muted-foreground truncate">{tool.description}</div>
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  선택된 Tool: {newAgentSelectedTools.length}개
+                </p>
+              </div>
+
+              {/* Knowledge (RAG) Selection */}
+              <div>
+                <label className="block text-sm font-medium mb-2">지식(RAG) 선택</label>
+                <div className="grid grid-cols-2 gap-2 p-2 border border-border rounded-lg">
+                  {mockKnowledgeBases.map((kb) => (
+                    <button
+                      key={kb.id}
+                      onClick={() => toggleKnowledge(kb.id)}
+                      className={cn(
+                        "p-2 rounded-lg border text-left text-sm transition-all",
+                        newAgentKnowledge.includes(kb.id)
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border hover:border-primary/50"
+                      )}
+                    >
+                      {kb.name}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  선택된 지식: {newAgentKnowledge.length}개
+                </p>
+              </div>
+
+              {/* Instructions */}
+              <div>
+                <label className="block text-sm font-medium mb-2">지침</label>
+                <textarea
+                  value={newAgentInstructions}
+                  onChange={(e) => setNewAgentInstructions(e.target.value)}
+                  placeholder="Agent가 따라야 할 지침을 입력하세요"
+                  rows={4}
+                  className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+                />
+              </div>
             </div>
-            <div className="flex justify-end gap-2 p-4 border-t border-border">
+            <div className="flex justify-end gap-2 p-4 border-t border-border shrink-0">
               <button
-                onClick={() => {
-                  setIsAddAgentModalOpen(false);
-                  setNewAgentName("");
-                  setNewAgentSystem(null);
-                }}
+                onClick={resetAddAgentModal}
                 className="px-4 py-2 rounded-lg border border-border hover:bg-muted transition-colors"
               >
                 취소
