@@ -43,8 +43,26 @@ interface DBTask {
   sourceAgent?: string;
 }
 
+interface ChatSession {
+  id: string;
+  request: {
+    id: string;
+    requestNo: string;
+    type: RequestType;
+    title: string;
+    date: string;
+  };
+  messages: any[];
+  status: "pending-approval" | "in-progress" | "completed" | "rejected";
+  createdAt: string;
+}
+
 interface DBAgentDashboardProps {
   routedRequests?: RoutedRequest[];
+  onStartChat?: (task: DBTask) => void;
+  chatSessions?: ChatSession[];
+  onSelectSession?: (sessionId: string) => void;
+  activeSessionId?: string | null;
 }
 
 const mockDatabases: DatabaseInfo[] = [
@@ -75,9 +93,18 @@ const requestTypeConfig: Record<RequestType, { icon: React.ReactNode; label: str
   "S": { icon: <FileText className="w-4 h-4" />, label: "단순", color: "text-muted-foreground" },
 };
 
-export function DBAgentDashboard({ routedRequests = [] }: DBAgentDashboardProps) {
+export function DBAgentDashboard({ 
+  routedRequests = [], 
+  onStartChat,
+  chatSessions = [],
+  onSelectSession,
+  activeSessionId
+}: DBAgentDashboardProps) {
   const { t } = useTranslation();
   const [isCompletedCollapsed, setIsCompletedCollapsed] = useState(true);
+  
+  // DB Agent에 해당하는 채팅 세션만 필터링 (type: D)
+  const dbChatSessions = chatSessions.filter(s => s.request.type === "D");
 
   // 라우팅된 요청을 Task로 변환
   const routedTasks: DBTask[] = routedRequests.map(req => ({
@@ -144,8 +171,9 @@ export function DBAgentDashboard({ routedRequests = [] }: DBAgentDashboardProps)
             )}
           </div>
           <span className="text-xs text-muted-foreground flex-shrink-0">{task.timestamp}</span>
-          {showPlay && (
+          {showPlay && onStartChat && (
             <button
+              onClick={() => onStartChat(task)}
               className="p-1.5 rounded-md bg-primary/10 hover:bg-primary/20 text-primary transition-colors flex-shrink-0"
               title="처리 시작"
             >
@@ -274,6 +302,60 @@ export function DBAgentDashboard({ routedRequests = [] }: DBAgentDashboardProps)
               </div>
             ))}
           </div>
+        </div>
+      </div>
+
+      {/* 처리 Chat 이력 */}
+      <div className="rounded-xl overflow-hidden border border-primary/30">
+        <div className="px-4 py-3 bg-primary/20 flex items-center gap-2">
+          <Clock className="w-4 h-4 text-primary" />
+          <span className="text-sm font-medium text-foreground">{t("common.chatHistory")}</span>
+          <span className="text-xs text-muted-foreground ml-auto">{dbChatSessions.length}건</span>
+        </div>
+        <div className="bg-background/80 divide-y divide-border/30 max-h-[300px] overflow-y-auto">
+          {dbChatSessions.length > 0 ? (
+            dbChatSessions.map(session => {
+              const config = requestTypeConfig[session.request.type];
+              const isActive = session.id === activeSessionId;
+              return (
+                <button
+                  key={session.id}
+                  onClick={() => onSelectSession?.(session.id)}
+                  className={cn(
+                    "w-full p-3 flex items-center gap-3 hover:bg-background transition-colors text-left",
+                    isActive && "bg-primary/10"
+                  )}
+                >
+                  <span className={cn("flex-shrink-0", config.color)}>
+                    {config.icon}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-foreground truncate">{session.request.title}</p>
+                    <p className="text-xs text-muted-foreground">{session.request.requestNo}</p>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className={cn(
+                      "px-1.5 py-0.5 rounded text-xs",
+                      session.status === "completed" ? "bg-status-online/20 text-status-online" :
+                      session.status === "in-progress" ? "bg-status-busy/20 text-status-busy" :
+                      session.status === "rejected" ? "bg-destructive/20 text-destructive" :
+                      "bg-primary/20 text-primary"
+                    )}>
+                      {session.status === "completed" ? t("common.completed") :
+                       session.status === "in-progress" ? t("common.processingStatus") :
+                       session.status === "rejected" ? t("common.rejected") :
+                       t("common.pending")}
+                    </span>
+                    <span className="text-xs text-muted-foreground">{session.request.date}</span>
+                  </div>
+                </button>
+              );
+            })
+          ) : (
+            <div className="p-4 text-center text-sm text-muted-foreground">
+              처리 이력이 없습니다.
+            </div>
+          )}
         </div>
       </div>
 
