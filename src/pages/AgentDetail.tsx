@@ -903,9 +903,12 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
     const session = chatSessions.find(s => s.id === sessionId);
     if (!session) return;
     
+    const detectionId = `d-${Date.now()}`;
+    const detectionNo = `MON-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 9000) + 1000).padStart(4, '0')}`;
+    
     const newDetection: DetectionItem = {
-      id: `d-${Date.now()}`,
-      detectionNo: `MON-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 9000) + 1000).padStart(4, '0')}`,
+      id: detectionId,
+      detectionNo,
       severity: "warning",
       title: session.request.title,
       source: session.request.title.split(' ')[0],
@@ -915,13 +918,18 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
     
     setMonitoringDetections(prev => [newDetection, ...prev]);
     
+    // 세션의 request.id를 새 감지 항목 ID로 업데이트하여 연결 유지
     setChatSessions(prev => prev.map(s => 
-      s.id === sessionId ? { ...s, status: "completed" as const } : s
+      s.id === sessionId ? { 
+        ...s, 
+        status: "pending-detection-action" as any,
+        request: { ...s.request, id: detectionId, requestNo: detectionNo }
+      } : s
     ));
     
     updateSessionMessages(sessionId, prev => [...prev, 
       { role: "user", content: "비정상감지 등록" },
-      { role: "agent", content: `✅ 비정상 감지로 등록되었습니다.\n\n**감지 번호:** ${newDetection.detectionNo}\n\n비정상 감지 현황에서 해당 항목을 확인하실 수 있습니다.` }
+      { role: "agent", content: `✅ 비정상 감지로 등록되었습니다.\n\n**감지 번호:** ${detectionNo}\n\n해당 비정상 상태에 대해 SOP Agent로 이동하여 처리하시겠습니까?\n아니면 운영자가 직접 처리하시겠습니까?` }
     ]);
   };
 
