@@ -6,6 +6,7 @@ import { ChatArea } from "@/components/chat/ChatArea";
 import { AgentDetail } from "./AgentDetail";
 import { WorkflowPage } from "./WorkflowPage";
 import Dashboard from "./Dashboard";
+import { AgentDetailModal } from "@/components/workflow/AgentDetailModal";
 
 type ViewType = "agent" | "workflow" | "assistant";
 
@@ -61,6 +62,7 @@ const Index = () => {
   const [selectedWorkflowAgent, setSelectedWorkflowAgent] = useState<WorkflowItem | null>(null);
   const [selectedTemplateType, setSelectedTemplateType] = useState<AgentTemplateType | null>(null);
   const [selectedSystems, setSelectedSystems] = useState<OperatingSystem[]>([]);
+  const [selectedMarketAgent, setSelectedMarketAgent] = useState<WorkflowItem | null>(null);
   const location = useLocation();
   const isDashboard = location.pathname === "/dashboard";
   const { t } = useTranslation();
@@ -89,6 +91,7 @@ const Index = () => {
     };
     setMyAgents([...myAgents, newAgent]);
     setSelectedWorkflowAgent(newAgent);
+    setSelectedMarketAgent(null);
   };
 
   const handleAddNewAgent = (agent: { name: string; description: string; steps: string[]; instructions: string }) => {
@@ -161,8 +164,19 @@ const Index = () => {
         selectedTemplateType={selectedTemplateType}
         onSelectTemplateType={setSelectedTemplateType}
         onSelectAllSystems={handleSelectAllSystems}
+        onAddFromMarket={handleAddFromMarket}
+        selectedMarketAgent={selectedMarketAgent}
+        onSelectMarketAgent={setSelectedMarketAgent}
       />
       {renderContent()}
+      
+      {/* Agent Market Detail Modal */}
+      <AgentDetailModal
+        isOpen={!!selectedMarketAgent}
+        onClose={() => setSelectedMarketAgent(null)}
+        agent={selectedMarketAgent}
+        onAddToMyAgent={handleAddFromMarket}
+      />
     </div>
   );
 };
