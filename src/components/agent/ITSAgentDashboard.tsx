@@ -45,10 +45,10 @@ const requestTypeConfig: Record<RequestType, { icon: React.ReactNode; label: str
 const mockRequests: RequestItem[] = [
   // 미접수 (open)
   { id: "r1", type: "I", title: "서버 응답 지연 현상 발생", date: "2024-12-05", status: "open" },
-  { id: "r2", type: "C", title: "대시보드 UI 개선 요청", date: "2024-12-05", status: "open" },
+  { id: "r4", type: "A", title: "신규 입사자 계정 발급 요청", date: "2024-12-04", status: "open" },
   // 접수/처리중 (in-progress)
+  { id: "r2", type: "C", title: "대시보드 UI 개선 요청", date: "2024-12-05", status: "in-progress" },
   { id: "r3", type: "D", title: "월간 매출 데이터 추출 요청", date: "2024-12-04", status: "in-progress" },
-  { id: "r4", type: "A", title: "신규 입사자 계정 발급 요청", date: "2024-12-04", status: "in-progress" },
   // 완료 (resolved)
   { id: "r5", type: "S", title: "프린터 용지 교체 요청", date: "2024-12-03", status: "resolved" },
 ];

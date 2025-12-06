@@ -53,6 +53,23 @@ const requestTypeLabels: Record<RequestType, string> = {
 // 초기 채팅 세션 데이터 (기존 처리중/완료 요청들)
 const initialChatSessions: ChatSession[] = [
   {
+    id: "session-r2",
+    request: { id: "r2", type: "C", title: "대시보드 UI 개선 요청", date: "2024-12-05" },
+    messages: [
+      { role: "agent", content: "[개선 요청] 대시보드 UI 개선 요청\n일자: 2024-12-05\n\n해당 요청을 분석하고 처리를 시작하겠습니다." },
+      { role: "agent", content: "\"대시보드 UI 개선 요청\" 작업을 시작합니다.", processingSteps: [
+        { id: "1", step: "요청 분석 중...", status: "completed" },
+        { id: "2", step: "데이터 수집 중...", status: "completed" },
+        { id: "3", step: "처리 실행 중...", status: "running" },
+        { id: "4", step: "결과 생성 중...", status: "pending" },
+      ]},
+      { role: "user", content: "차트 색상을 좀 더 밝게 변경해주세요." },
+      { role: "agent", content: "차트 색상을 밝은 톤으로 변경하는 작업을 진행하겠습니다. 디자인 팀에 검토 요청을 보냈습니다." },
+    ],
+    status: "in-progress",
+    createdAt: "2024-12-05T11:00:00Z",
+  },
+  {
     id: "session-r3",
     request: { id: "r3", type: "D", title: "월간 매출 데이터 추출 요청", date: "2024-12-04" },
     messages: [
@@ -68,23 +85,6 @@ const initialChatSessions: ChatSession[] = [
     ],
     status: "in-progress",
     createdAt: "2024-12-04T10:30:00Z",
-  },
-  {
-    id: "session-r4",
-    request: { id: "r4", type: "A", title: "신규 입사자 계정 발급 요청", date: "2024-12-04" },
-    messages: [
-      { role: "agent", content: "[계정/권한 요청] 신규 입사자 계정 발급 요청\n일자: 2024-12-04\n\n해당 요청을 분석하고 처리를 시작하겠습니다." },
-      { role: "agent", content: "\"신규 입사자 계정 발급 요청\" 작업을 시작합니다.", processingSteps: [
-        { id: "1", step: "요청 분석 중...", status: "completed" },
-        { id: "2", step: "데이터 수집 중...", status: "completed" },
-        { id: "3", step: "처리 실행 중...", status: "running" },
-        { id: "4", step: "결과 생성 중...", status: "pending" },
-      ]},
-      { role: "user", content: "이메일 도메인은 @company.com으로 설정해주세요." },
-      { role: "agent", content: "이메일 도메인을 @company.com으로 설정하여 계정을 생성하겠습니다. 담당 부서에 확인 요청을 보냈습니다." },
-    ],
-    status: "in-progress",
-    createdAt: "2024-12-04T09:15:00Z",
   },
   {
     id: "session-r5",
