@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { 
   FileText, AlertTriangle, ClipboardList, TestTube, FileCheck, 
-  FolderArchive, PlayCircle, Settings, MessageSquare, Clock, CheckCircle
+  FolderArchive, PlayCircle, Settings, MessageSquare, Download, 
+  ChevronDown, ChevronUp, Calendar
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ChatSession } from "@/pages/AgentDetail";
@@ -17,11 +18,23 @@ interface ReportType {
   borderColor: string;
 }
 
+// 생성된 보고서 정의
+interface GeneratedReport {
+  id: string;
+  typeId: string;
+  typeName: string;
+  title: string;
+  generatedAt: string;
+  size: string;
+  status: "ready" | "generating";
+}
+
 interface ReportAgentDashboardProps {
   onStartReport?: (reportType: ReportType) => void;
   chatSessions?: ChatSession[];
   onSelectSession?: (sessionId: string) => void;
   activeSessionId?: string | null;
+  generatedReports?: GeneratedReport[];
 }
 
 const reportTypes: ReportType[] = [
@@ -67,13 +80,30 @@ const reportTypes: ReportType[] = [
   },
 ];
 
+// Mock 생성된 보고서 데이터
+const mockGeneratedReports: GeneratedReport[] = [
+  { id: "gr1", typeId: "incident", typeName: "장애보고서", title: "API 서버 장애 보고서 (2024-12-05)", generatedAt: "2024-12-05 14:30", size: "2.3MB", status: "ready" },
+  { id: "gr2", typeId: "change-plan", typeName: "변경계획서", title: "DB 스키마 변경 계획서", generatedAt: "2024-12-04 10:00", size: "1.5MB", status: "ready" },
+  { id: "gr3", typeId: "test-scenario", typeName: "테스트시나리오", title: "결제 모듈 테스트 시나리오", generatedAt: "2024-12-03 16:45", size: "890KB", status: "ready" },
+  { id: "gr4", typeId: "change-result", typeName: "변경결과보고서", title: "인프라 업그레이드 결과 보고서", generatedAt: "2024-12-02 11:20", size: "3.1MB", status: "ready" },
+  { id: "gr5", typeId: "consolidated", typeName: "취합문서", title: "11월 월간 운영 보고서", generatedAt: "2024-12-01 09:00", size: "8.5MB", status: "ready" },
+];
+
+const getReportTypeConfig = (typeId: string) => {
+  return reportTypes.find(r => r.id === typeId) || reportTypes[0];
+};
+
 export function ReportAgentDashboard({ 
   onStartReport,
   chatSessions = [], 
   onSelectSession,
-  activeSessionId
+  activeSessionId,
+  generatedReports: externalReports
 }: ReportAgentDashboardProps) {
   const { t } = useTranslation();
+  const [isReportsExpanded, setIsReportsExpanded] = useState(true);
+  
+  const generatedReports = externalReports || mockGeneratedReports;
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -87,6 +117,12 @@ export function ReportAgentDashboard({
     if (onStartReport) {
       onStartReport(reportType);
     }
+  };
+
+  const handleDownload = (report: GeneratedReport) => {
+    // 실제 다운로드 로직 (현재는 시뮬레이션)
+    console.log("Downloading report:", report.title);
+    alert(`"${report.title}" 다운로드가 시작됩니다.`);
   };
 
   return (
@@ -128,6 +164,77 @@ export function ReportAgentDashboard({
             </div>
           </div>
         ))}
+      </div>
+
+      {/* 생성된 보고서 목록 */}
+      <div className="rounded-xl border border-border bg-card overflow-hidden">
+        <button
+          onClick={() => setIsReportsExpanded(!isReportsExpanded)}
+          className="w-full px-4 py-3 bg-primary/10 border-b border-border flex items-center justify-between hover:bg-primary/15 transition-colors"
+        >
+          <div className="flex items-center gap-2">
+            <FileText className="w-5 h-5 text-primary" />
+            <h4 className="text-sm font-semibold text-foreground">생성된 보고서</h4>
+            <span className="px-2 py-0.5 rounded-full bg-primary/20 text-primary text-xs font-medium">
+              {generatedReports.length}
+            </span>
+          </div>
+          {isReportsExpanded ? (
+            <ChevronUp className="w-4 h-4 text-muted-foreground" />
+          ) : (
+            <ChevronDown className="w-4 h-4 text-muted-foreground" />
+          )}
+        </button>
+        
+        {isReportsExpanded && (
+          <div className="divide-y divide-border max-h-[280px] overflow-y-auto">
+            {generatedReports.length > 0 ? (
+              generatedReports.map(report => {
+                const typeConfig = getReportTypeConfig(report.typeId);
+                return (
+                  <div 
+                    key={report.id} 
+                    className="px-4 py-3 flex items-center gap-3 hover:bg-muted/30 transition-colors"
+                  >
+                    <span className={cn("flex-shrink-0 p-2 rounded-lg", typeConfig.bgColor, typeConfig.color)}>
+                      {typeConfig.icon}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{report.title}</p>
+                      <div className="flex items-center gap-3 mt-1">
+                        <span className={cn("px-2 py-0.5 rounded text-xs font-medium", typeConfig.bgColor, typeConfig.color)}>
+                          {report.typeName}
+                        </span>
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          {report.generatedAt}
+                        </span>
+                        <span className="text-xs text-muted-foreground">{report.size}</span>
+                      </div>
+                    </div>
+                    {report.status === "ready" ? (
+                      <button
+                        onClick={() => handleDownload(report)}
+                        className="p-2 rounded-lg bg-status-online/20 text-status-online hover:bg-status-online/30 transition-colors flex-shrink-0"
+                        title="다운로드"
+                      >
+                        <Download className="w-4 h-4" />
+                      </button>
+                    ) : (
+                      <span className="px-2 py-1 rounded text-xs font-medium bg-status-busy/20 text-status-busy">
+                        생성 중...
+                      </span>
+                    )}
+                  </div>
+                );
+              })
+            ) : (
+              <div className="px-4 py-6 text-center">
+                <p className="text-sm text-muted-foreground">생성된 보고서가 없습니다</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* 처리 Chat 이력 */}
