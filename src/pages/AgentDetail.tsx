@@ -25,6 +25,14 @@ interface RequestItem {
   status: "open" | "in-progress" | "resolved";
 }
 
+// 활성 요청 타입 (채팅 패널용)
+interface ActiveRequest {
+  id: string;
+  type: RequestType;
+  title: string;
+  date: string;
+}
+
 const requestTypeLabels: Record<RequestType, string> = {
   "I": "인시던트 요청",
   "C": "개선 요청",
@@ -64,6 +72,7 @@ export function AgentDetail({ agentId, agentName }: AgentDetailProps) {
 
   const quickActions = getQuickActions();
   const [messages, setMessages] = useState<Message[]>([{ role: "agent", content: t("agentDetail.hello", { agentName }) }]);
+  const [activeRequest, setActiveRequest] = useState<ActiveRequest | null>(null);
 
   const simulateProcessing = (taskName: string) => {
     const steps: ProcessingStep[] = [
@@ -113,8 +122,13 @@ export function AgentDetail({ agentId, agentName }: AgentDetailProps) {
   const handleStartChat = (request: RequestItem) => {
     const typeLabel = requestTypeLabels[request.type];
     const chatIntro = `[${typeLabel}] ${request.title}\n일자: ${request.date}\n\n해당 요청을 분석하고 처리를 시작하겠습니다.`;
+    setActiveRequest({ id: request.id, type: request.type, title: request.title, date: request.date });
     setMessages(prev => [...prev, { role: "agent", content: chatIntro }]);
     simulateProcessing(request.title);
+  };
+
+  const handleCloseRequest = () => {
+    setActiveRequest(null);
   };
 
   const renderDashboard = () => {
@@ -145,7 +159,15 @@ export function AgentDetail({ agentId, agentName }: AgentDetailProps) {
         </div>
         {renderDashboard()}
       </div>
-      <AgentChatPanel agentName={agentName} messages={messages} onSendMessage={handleSendMessage} onQuickAction={handleQuickAction} quickActions={quickActions} />
+      <AgentChatPanel 
+        agentName={agentName} 
+        messages={messages} 
+        onSendMessage={handleSendMessage} 
+        onQuickAction={handleQuickAction} 
+        quickActions={quickActions}
+        activeRequest={activeRequest}
+        onCloseRequest={handleCloseRequest}
+      />
     </div>
   );
 }
