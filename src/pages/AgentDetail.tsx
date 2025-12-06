@@ -1083,17 +1083,23 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
           activeSessionId={activeSessionId}
         />
       );
-      case "monitoring": return (
-        <MonitoringAgentDashboard 
-          onStartChat={handleMonitoringStartChat}
-          onStartMonitoring={handleStartMonitoring}
-          chatSessions={chatSessions}
-          onSelectSession={handleSelectSession}
-          activeSessionId={activeSessionId}
-          detections={monitoringDetections}
-          onAddDetection={handleAddDetection}
-        />
-      );
+      case "monitoring": {
+        // 모니터링 관련 세션만 필터링 (MON- 으로 시작하는 요청번호)
+        const monitoringSessions = chatSessions.filter(s => 
+          s.request.requestNo.startsWith("MON-")
+        );
+        return (
+          <MonitoringAgentDashboard 
+            onStartChat={handleMonitoringStartChat}
+            onStartMonitoring={handleStartMonitoring}
+            chatSessions={monitoringSessions}
+            onSelectSession={handleSelectSession}
+            activeSessionId={activeSessionId}
+            detections={monitoringDetections}
+            onAddDetection={handleAddDetection}
+          />
+        );
+      }
       case "db": return (
         <DBAgentDashboard 
           routedRequests={routedRequestsToDB}
