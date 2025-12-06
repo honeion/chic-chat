@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { 
   Ticket, UserPlus, Shield, Database, Clock, CheckCircle, AlertCircle, Send, Key,
-  Play, AlertTriangle, Wrench, FileText, User, MessageSquare
+  Play, AlertTriangle, Wrench, FileText, User, MessageSquare, ChevronDown, ChevronUp
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -63,6 +63,7 @@ export function ITSAgentDashboard({
   const { t } = useTranslation();
   const [requests] = useState<RequestItem[]>(mockRequests);
   const [selectedTicket, setSelectedTicket] = useState<RequestItem | null>(null);
+  const [isCompletedCollapsed, setIsCompletedCollapsed] = useState(true);
 
   const requestCards = [
     { id: "account", title: t("dashboard.accountRequest"), description: t("dashboard.accountRequestDesc"), icon: <UserPlus className="w-5 h-5" />, bgColor: "bg-amber-100 dark:bg-amber-900/30", headerColor: "bg-amber-200 dark:bg-amber-800/50" },
@@ -126,7 +127,7 @@ export function ITSAgentDashboard({
             <Ticket className="w-5 h-5 text-primary" />
             {t("dashboard.itsReceptionStatus")}
           </h3>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             {/* 미접수 */}
             <div className="rounded-lg overflow-hidden border border-destructive/30">
               <div className="px-4 py-2 bg-destructive/20 flex items-center justify-center gap-2">
@@ -136,7 +137,7 @@ export function ITSAgentDashboard({
               <div className="p-3 bg-background flex items-center justify-center border-b border-border/50">
                 <p className="text-2xl font-bold text-foreground">{openCount}</p>
               </div>
-              <div className="p-2 bg-background/50 space-y-1.5 max-h-[200px] overflow-y-auto">
+              <div className="p-2 bg-background/50 space-y-1.5 max-h-[280px] overflow-y-auto">
                 {openRequests.length > 0 ? (
                   openRequests.map(request => (
                     <RequestListItem key={request.id} request={request} showPlay={true} />
@@ -156,7 +157,7 @@ export function ITSAgentDashboard({
               <div className="p-3 bg-background flex items-center justify-center border-b border-border/50">
                 <p className="text-2xl font-bold text-foreground">{inProgressCount}</p>
               </div>
-              <div className="p-2 bg-background/50 space-y-1.5 max-h-[200px] overflow-y-auto">
+              <div className="p-2 bg-background/50 space-y-1.5 max-h-[280px] overflow-y-auto">
                 {inProgressRequests.length > 0 ? (
                   inProgressRequests.map(request => (
                     <RequestListItem key={request.id} request={request} />
@@ -166,16 +167,26 @@ export function ITSAgentDashboard({
                 )}
               </div>
             </div>
+          </div>
 
-            {/* 완료 */}
-            <div className="rounded-lg overflow-hidden border border-status-online/30">
-              <div className="px-4 py-2 bg-status-online/20 flex items-center justify-center gap-2">
+          {/* 완료 - 접기 가능 */}
+          <div className="mt-4 rounded-lg overflow-hidden border border-status-online/30">
+            <button
+              onClick={() => setIsCompletedCollapsed(!isCompletedCollapsed)}
+              className="w-full px-4 py-2 bg-status-online/20 flex items-center justify-between hover:bg-status-online/30 transition-colors"
+            >
+              <div className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-status-online" />
                 <span className="text-sm font-medium text-foreground">{t("common.completed")}</span>
+                <span className="text-sm font-bold text-foreground ml-2">{resolvedCount}</span>
               </div>
-              <div className="p-3 bg-background flex items-center justify-center border-b border-border/50">
-                <p className="text-2xl font-bold text-foreground">{resolvedCount}</p>
-              </div>
+              {isCompletedCollapsed ? (
+                <ChevronDown className="w-4 h-4 text-muted-foreground" />
+              ) : (
+                <ChevronUp className="w-4 h-4 text-muted-foreground" />
+              )}
+            </button>
+            {!isCompletedCollapsed && (
               <div className="p-2 bg-background/50 space-y-1.5 max-h-[200px] overflow-y-auto">
                 {resolvedRequests.length > 0 ? (
                   resolvedRequests.map(request => (
@@ -185,7 +196,7 @@ export function ITSAgentDashboard({
                   <p className="text-xs text-muted-foreground text-center py-2">요청 없음</p>
                 )}
               </div>
-            </div>
+            )}
           </div>
         </div>
 
