@@ -47,6 +47,7 @@ const mockRequests: RequestItem[] = [
   // 미접수 (open)
   { id: "r1", requestNo: "ITS-2024-0152", type: "I", title: "서버 응답 지연 현상 발생", date: "2024-12-05", status: "open" },
   { id: "r4", requestNo: "ITS-2024-0149", type: "A", title: "신규 입사자 계정 발급 요청", date: "2024-12-04", status: "open" },
+  { id: "r6", requestNo: "ITS-2024-0153", type: "D", title: "고객별 주문 현황 데이터 추출", date: "2024-12-06", status: "open" },
   // 접수/처리중 (in-progress)
   { id: "r2", requestNo: "ITS-2024-0151", type: "C", title: "대시보드 UI 개선 요청", date: "2024-12-05", status: "in-progress" },
   { id: "r3", requestNo: "ITS-2024-0150", type: "D", title: "월간 매출 데이터 추출 요청", date: "2024-12-04", status: "in-progress" },
