@@ -638,7 +638,7 @@ ${incident.description || "해당 인시던트에 대한 처리가 필요합니�
     setActiveSessionId(newSessionId);
   };
 
-  // 모니터링 Agent 채팅 시작 핸들러
+  // 모니터링 Agent 채팅 시작 핸들러 - SOP Agent 이동 여부 확인
   const handleMonitoringStartChat = (detection: DetectionItem) => {
     const existingSession = chatSessions.find(s => s.request.id === detection.id);
     if (existingSession) {
@@ -659,7 +659,8 @@ ${incident.description || "해당 인시던트에 대한 처리가 필요합니�
 
 ---
 
-해당 비정상 상태에 대한 분석을 진행합니다.`;
+해당 비정상 상태에 대해 SOP Agent로 이동하여 처리하시겠습니까?
+아니면 운영자가 직접 처리하시겠습니까?`;
     
     const newSession: ChatSession = {
       id: newSessionId,
@@ -671,14 +672,96 @@ ${incident.description || "해당 인시던트에 대한 처리가 필요합니�
         date: detection.date 
       },
       messages: [{ role: "agent", content: requestSummaryMessage }],
-      status: "in-progress",
+      status: "pending-detection-action" as any, // SOP 이동 또는 직접 처리 대기 상태
       createdAt: new Date().toISOString(),
     };
     
     setChatSessions(prev => [newSession, ...prev]);
     setActiveSessionId(newSessionId);
+  };
+
+  // 모니터링 감지 → SOP Agent로 이동 핸들러
+  const handleRouteToSOP = (sessionId: string) => {
+    const session = chatSessions.find(s => s.id === sessionId);
+    if (!session) return;
     
-    setTimeout(() => simulateProcessing(detection.title, newSessionId), 100);
+    // 세션 상태를 in-progress로 변경
+    setChatSessions(prev => prev.map(s => 
+      s.id === sessionId ? { ...s, status: "in-progress" as const } : s
+    ));
+    
+    // 메시지 추가 - SOP Agent로 라우팅
+    updateSessionMessages(sessionId, prev => [...prev, 
+      { role: "user", content: "SOP 처리" },
+      { 
+        role: "agent", 
+        content: `✅ SOP Agent로 요청을 전달합니다.\n\n**SOP Agent**의 접수 항목에서 해당 비정상 감지 건을 확인하실 수 있습니다.`,
+        link: {
+          label: "SOP Agent로 이동",
+          agentId: "a2"
+        }
+      }
+    ]);
+    
+    // 감지 항목을 SOP Agent로 라우팅
+    const routedRequest: RoutedRequest = {
+      id: session.request.id,
+      requestNo: session.request.requestNo,
+      type: "I",
+      title: session.request.title,
+      date: session.request.date,
+      sourceAgent: "모니터링 Agent"
+    };
+    setRoutedRequestsToSOP(prev => [routedRequest, ...prev]);
+    
+    // 감지 항목 상태를 in-progress로 변경
+    setMonitoringDetections(prev => prev.map(d => 
+      d.id === session.request.id ? { ...d, status: "in-progress" as const } : d
+    ));
+  };
+
+  // 모니터링 감지 → 운영자 직접 처리 핸들러
+  const handleDirectProcess = (sessionId: string) => {
+    const session = chatSessions.find(s => s.id === sessionId);
+    if (!session) return;
+    
+    // 세션 상태를 pending-direct-complete로 변경
+    setChatSessions(prev => prev.map(s => 
+      s.id === sessionId ? { ...s, status: "pending-direct-complete" as any } : s
+    ));
+    
+    // 감지 항목 상태를 in-progress로 변경
+    setMonitoringDetections(prev => prev.map(d => 
+      d.id === session.request.id ? { ...d, status: "in-progress" as const } : d
+    ));
+    
+    // 메시지 추가
+    updateSessionMessages(sessionId, prev => [...prev, 
+      { role: "user", content: "직접 처리" },
+      { role: "agent", content: "운영자가 직접 처리하는 것으로 진행합니다.\n\n처리가 완료되면 아래 '처리 완료' 버튼을 눌러주세요." }
+    ]);
+  };
+
+  // 모니터링 감지 → 직접 처리 완료 핸들러
+  const handleDirectProcessComplete = (sessionId: string) => {
+    const session = chatSessions.find(s => s.id === sessionId);
+    if (!session) return;
+    
+    // 세션 상태를 completed로 변경
+    setChatSessions(prev => prev.map(s => 
+      s.id === sessionId ? { ...s, status: "completed" as const } : s
+    ));
+    
+    // 감지 항목 상태를 resolved로 변경
+    setMonitoringDetections(prev => prev.map(d => 
+      d.id === session.request.id ? { ...d, status: "resolved" as const } : d
+    ));
+    
+    // 메시지 추가
+    updateSessionMessages(sessionId, prev => [...prev, 
+      { role: "user", content: "처리 완료" },
+      { role: "agent", content: `✅ **${session.request.title}** 건이 완료 처리되었습니다.\n\n비정상 감지 현황의 완료 목록에서 확인하실 수 있습니다.` }
+    ]);
   };
 
   // 모니터링 실행 핸들러
@@ -990,6 +1073,11 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
         isPendingMonitoringResult={(activeSession?.status as string) === "pending-monitoring-result"}
         onRegisterDetection={() => activeSessionId && handleRegisterDetection(activeSessionId)}
         onCompleteNormal={() => activeSessionId && handleCompleteNormal(activeSessionId)}
+        isPendingDetectionAction={(activeSession?.status as string) === "pending-detection-action"}
+        onRouteToSOP={() => activeSessionId && handleRouteToSOP(activeSessionId)}
+        onDirectProcess={() => activeSessionId && handleDirectProcess(activeSessionId)}
+        isPendingDirectComplete={(activeSession?.status as string) === "pending-direct-complete"}
+        onDirectProcessComplete={() => activeSessionId && handleDirectProcessComplete(activeSessionId)}
       />
     </div>
   );

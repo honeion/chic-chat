@@ -52,6 +52,13 @@ interface AgentChatPanelProps {
   isPendingMonitoringResult?: boolean;
   onRegisterDetection?: () => void;
   onCompleteNormal?: () => void;
+  // 모니터링 감지 → SOP/직접처리 선택 상태
+  isPendingDetectionAction?: boolean;
+  onRouteToSOP?: () => void;
+  onDirectProcess?: () => void;
+  // 직접 처리 완료 대기 상태
+  isPendingDirectComplete?: boolean;
+  onDirectProcessComplete?: () => void;
 }
 
 // 요청 타입별 아이콘 및 색상
@@ -80,7 +87,12 @@ export function AgentChatPanel({
   onCancelProcess,
   isPendingMonitoringResult,
   onRegisterDetection,
-  onCompleteNormal
+  onCompleteNormal,
+  isPendingDetectionAction,
+  onRouteToSOP,
+  onDirectProcess,
+  isPendingDirectComplete,
+  onDirectProcessComplete
 }: AgentChatPanelProps) {
   const { t } = useTranslation();
   const [chatInput, setChatInput] = useState("");
@@ -269,8 +281,51 @@ export function AgentChatPanel({
         </div>
       )}
 
+      {/* 감지 항목 SOP/직접처리 선택 상태일 때 버튼 표시 */}
+      {isPendingDetectionAction && activeRequest && (
+        <div className="p-3 border-t border-border bg-primary/5">
+          <p className="text-xs text-muted-foreground mb-2 text-center">
+            처리 방식을 선택해 주세요
+          </p>
+          <div className="flex gap-2 justify-center">
+            <button
+              onClick={onRouteToSOP}
+              className="px-4 py-1.5 rounded-md bg-primary/20 text-primary text-sm font-medium hover:bg-primary/30 transition-colors flex items-center gap-1.5 border border-primary/30"
+            >
+              <ArrowRight className="w-3.5 h-3.5" />
+              SOP 처리
+            </button>
+            <button
+              onClick={onDirectProcess}
+              className="px-4 py-1.5 rounded-md bg-muted text-muted-foreground text-sm font-medium hover:bg-muted/80 transition-colors flex items-center gap-1.5 border border-border"
+            >
+              <Wrench className="w-3.5 h-3.5" />
+              직접 처리
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 직접 처리 완료 대기 상태일 때 버튼 표시 */}
+      {isPendingDirectComplete && activeRequest && (
+        <div className="p-3 border-t border-border bg-status-online/5">
+          <p className="text-xs text-muted-foreground mb-2 text-center">
+            처리가 완료되면 아래 버튼을 눌러주세요
+          </p>
+          <div className="flex gap-2 justify-center">
+            <button
+              onClick={onDirectProcessComplete}
+              className="px-4 py-1.5 rounded-md bg-status-online/20 text-status-online text-sm font-medium hover:bg-status-online/30 transition-colors flex items-center gap-1.5 border border-status-online/30"
+            >
+              <CheckCircle className="w-3.5 h-3.5" />
+              처리 완료
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 일반 상태일 때 퀵 액션 표시 */}
-      {!isPendingApproval && !isPendingProcessStart && !isPendingMonitoringResult && (
+      {!isPendingApproval && !isPendingProcessStart && !isPendingMonitoringResult && !isPendingDetectionAction && !isPendingDirectComplete && (
         <div className="p-3 border-t border-border/50">
           <div className="flex flex-wrap gap-2 mb-3">
             {quickActions.map((action, idx) => (
