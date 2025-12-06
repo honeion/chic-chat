@@ -1025,7 +1025,39 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
     ]);
   };
 
-  // SOP Agent 처리 시작 핸들러
+  // 보고서 Agent 보고서 생성 핸들러
+  const handleStartReport = (reportType: { id: string; name: string }) => {
+    const newSessionId = `session-rpt-${Date.now()}`;
+    const requestNo = `RPT-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 9000) + 1000).padStart(4, '0')}`;
+    
+    const introMessage = `📝 **${reportType.name} 생성 시작**
+
+보고서 유형: **${reportType.name}**
+생성 시각: ${new Date().toLocaleString('ko-KR')}
+
+보고서 생성을 시작합니다...`;
+    
+    const newSession: ChatSession = {
+      id: newSessionId,
+      request: { 
+        id: `rpt-${reportType.id}-${Date.now()}`, 
+        requestNo, 
+        type: "S" as const, 
+        title: `${reportType.name} 생성`, 
+        date: new Date().toISOString().split('T')[0]
+      },
+      messages: [{ role: "agent", content: introMessage }],
+      status: "in-progress",
+      createdAt: new Date().toISOString(),
+    };
+    
+    setChatSessions(prev => [newSession, ...prev]);
+    setActiveSessionId(newSessionId);
+    
+    // 보고서 생성 프로세싱 시뮬레이션
+    setTimeout(() => simulateProcessing(`${reportType.name} 생성`, newSessionId), 300);
+  };
+
   const handleStartProcess = (sessionId: string) => {
     const session = chatSessions.find(s => s.id === sessionId);
     if (!session) return;
@@ -1119,7 +1151,20 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
           activeSessionId={activeSessionId}
         />
       );
-      case "report": return <ReportAgentDashboard />;
+      case "report": {
+        // 보고서 관련 세션만 필터링 (RPT- 으로 시작하는 요청번호)
+        const reportSessions = chatSessions.filter(s => 
+          s.request.requestNo.startsWith("RPT-")
+        );
+        return (
+          <ReportAgentDashboard 
+            onStartReport={handleStartReport}
+            chatSessions={reportSessions}
+            onSelectSession={handleSelectSession}
+            activeSessionId={activeSessionId}
+          />
+        );
+      }
       default: return (
         <SOPAgentDashboard 
           onApprove={handleApprove} 
