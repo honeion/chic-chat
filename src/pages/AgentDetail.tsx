@@ -453,6 +453,90 @@ ${getRequestDetailContent(request)}
     setActiveSessionId(sessionId);
   };
 
+  // DB Agent 채팅 시작 핸들러
+  const handleDBStartChat = (task: { id: string; title: string; requestNo?: string; type?: RequestType; timestamp: string }) => {
+    // 기존 세션 확인
+    const existingSession = chatSessions.find(s => s.request.id === task.id);
+    if (existingSession) {
+      setActiveSessionId(existingSession.id);
+      return;
+    }
+    
+    // 새로운 세션 생성
+    const newSessionId = `session-${Date.now()}`;
+    const typeLabel = task.type ? requestTypeLabels[task.type] : "데이터 요청";
+    
+    const requestDetailMessage = `📋 **DB 요청 상세 정보**
+
+**유형:** ${typeLabel}
+**요청 번호:** ${task.requestNo || 'N/A'}
+**제목:** ${task.title}
+**일시:** ${task.timestamp}
+
+---
+
+처리를 시작하시겠습니까?`;
+    
+    const newSession: ChatSession = {
+      id: newSessionId,
+      request: { 
+        id: task.id, 
+        requestNo: task.requestNo || `DB-${Date.now()}`, 
+        type: task.type || "D", 
+        title: task.title, 
+        date: task.timestamp 
+      },
+      messages: [{ role: "agent", content: requestDetailMessage }],
+      status: "pending-approval",
+      createdAt: new Date().toISOString(),
+    };
+    
+    setChatSessions(prev => [newSession, ...prev]);
+    setActiveSessionId(newSessionId);
+  };
+
+  // 변경관리 Agent 채팅 시작 핸들러
+  const handleChangeManagementStartChat = (request: { id: string; title: string; requestNo?: string; requestType?: RequestType; scheduledDate: string }) => {
+    // 기존 세션 확인
+    const existingSession = chatSessions.find(s => s.request.id === request.id);
+    if (existingSession) {
+      setActiveSessionId(existingSession.id);
+      return;
+    }
+    
+    // 새로운 세션 생성
+    const newSessionId = `session-${Date.now()}`;
+    const typeLabel = request.requestType ? requestTypeLabels[request.requestType] : "개선 요청";
+    
+    const requestDetailMessage = `📋 **변경 요청 상세 정보**
+
+**유형:** ${typeLabel}
+**요청 번호:** ${request.requestNo || 'N/A'}
+**제목:** ${request.title}
+**예정일:** ${request.scheduledDate}
+
+---
+
+처리를 시작하시겠습니까?`;
+    
+    const newSession: ChatSession = {
+      id: newSessionId,
+      request: { 
+        id: request.id, 
+        requestNo: request.requestNo || `CM-${Date.now()}`, 
+        type: request.requestType || "C", 
+        title: request.title, 
+        date: request.scheduledDate 
+      },
+      messages: [{ role: "agent", content: requestDetailMessage }],
+      status: "pending-approval",
+      createdAt: new Date().toISOString(),
+    };
+    
+    setChatSessions(prev => [newSession, ...prev]);
+    setActiveSessionId(newSessionId);
+  };
+
   // SOP Agent 채팅 시작 핸들러
   const handleSOPStartChat = (incident: { id: string; title: string; requestNo?: string; type?: RequestType; timestamp: string }) => {
     // 기존 세션 확인
@@ -518,9 +602,25 @@ ${getRequestDetailContent(request)}
         />
       );
       case "monitoring": return <MonitoringAgentDashboard />;
-      case "db": return <DBAgentDashboard routedRequests={routedRequestsToDB} />;
+      case "db": return (
+        <DBAgentDashboard 
+          routedRequests={routedRequestsToDB}
+          onStartChat={handleDBStartChat}
+          chatSessions={chatSessions}
+          onSelectSession={handleSelectSession}
+          activeSessionId={activeSessionId}
+        />
+      );
       case "biz-support": return <BizSupportAgentDashboard />;
-      case "change-management": return <ChangeManagementAgentDashboard routedRequests={routedRequestsToChangeManagement} />;
+      case "change-management": return (
+        <ChangeManagementAgentDashboard 
+          routedRequests={routedRequestsToChangeManagement}
+          onStartChat={handleChangeManagementStartChat}
+          chatSessions={chatSessions}
+          onSelectSession={handleSelectSession}
+          activeSessionId={activeSessionId}
+        />
+      );
       case "report": return <ReportAgentDashboard />;
       default: return (
         <SOPAgentDashboard 
