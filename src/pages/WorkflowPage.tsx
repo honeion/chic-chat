@@ -115,8 +115,8 @@ export function WorkflowPage({
                   <Workflow className="w-6 h-6 text-accent" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold">{selectedAgent.name}</h1>
-                  <p className="text-sm text-muted-foreground">{selectedAgent.description}</p>
+                  <h1 className="text-2xl font-bold">{selectedAgent?.name}</h1>
+                  <p className="text-sm text-muted-foreground">{selectedAgent?.description}</p>
                 </div>
               </div>
               <button 
