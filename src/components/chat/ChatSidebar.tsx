@@ -381,32 +381,35 @@ export function ChatSidebar({
               <Store className="w-3 h-3" />
               {t("workflow.agentMarket")}
             </div>
-            {filteredMarketAgents.map((agent, index) => (
-              <div key={agent.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
-                <button
-                  onClick={() => {
-                    if (location.pathname !== "/") {
-                      navigate("/");
-                    }
-                  }}
-                  className={cn(
-                    "w-full p-3 rounded-xl text-left transition-all duration-200",
-                    "hover:bg-secondary/80 bg-transparent"
-                  )}
+            <div className="px-2 space-y-2">
+              {filteredMarketAgents.map((agent, index) => (
+                <div 
+                  key={agent.id} 
+                  className="animate-fade-in" 
+                  style={{ animationDelay: `${index * 50}ms` }}
                 >
-                  <div className="flex items-center gap-3 mb-1">
-                    <div className="relative">
-                      <div className="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center">
-                        <Workflow className="w-4 h-4 text-accent" />
+                  <button
+                    onClick={() => {
+                      if (location.pathname !== "/") {
+                        navigate("/");
+                      }
+                    }}
+                    className={cn(
+                      "w-full p-3 rounded-lg text-left transition-all duration-200",
+                      "bg-card/50 border border-border/50 hover:border-primary/50 hover:bg-card"
+                    )}
+                  >
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <div className="w-6 h-6 rounded-md bg-accent/20 flex items-center justify-center">
+                        <Workflow className="w-3.5 h-3.5 text-accent" />
                       </div>
-                      <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-sidebar bg-status-online" />
+                      <span className="font-medium text-sm truncate">{agent.name}</span>
                     </div>
-                    <span className="font-medium text-sm flex-1 truncate">{agent.name}</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground line-clamp-2 pl-11">{agent.description}</p>
-                </button>
-              </div>
-            ))}
+                    <p className="text-xs text-muted-foreground line-clamp-2">{agent.description}</p>
+                  </button>
+                </div>
+              ))}
+            </div>
           </>
         )}
 
