@@ -50,6 +50,62 @@ const requestTypeLabels: Record<RequestType, string> = {
   "S": "단순 요청",
 };
 
+// 초기 채팅 세션 데이터 (기존 처리중/완료 요청들)
+const initialChatSessions: ChatSession[] = [
+  {
+    id: "session-r3",
+    request: { id: "r3", type: "D", title: "월간 매출 데이터 추출 요청", date: "2024-12-04" },
+    messages: [
+      { role: "agent", content: "[데이터 요청] 월간 매출 데이터 추출 요청\n일자: 2024-12-04\n\n해당 요청을 분석하고 처리를 시작하겠습니다." },
+      { role: "agent", content: "\"월간 매출 데이터 추출 요청\" 작업을 시작합니다.", processingSteps: [
+        { id: "1", step: "요청 분석 중...", status: "completed" },
+        { id: "2", step: "데이터 수집 중...", status: "completed" },
+        { id: "3", step: "처리 실행 중...", status: "running" },
+        { id: "4", step: "결과 생성 중...", status: "pending" },
+      ]},
+      { role: "user", content: "데이터 추출 범위를 11월로 지정해주세요." },
+      { role: "agent", content: "11월 매출 데이터로 범위를 지정하여 추출 작업을 진행하겠습니다." },
+    ],
+    status: "in-progress",
+    createdAt: "2024-12-04T10:30:00Z",
+  },
+  {
+    id: "session-r4",
+    request: { id: "r4", type: "A", title: "신규 입사자 계정 발급 요청", date: "2024-12-04" },
+    messages: [
+      { role: "agent", content: "[계정/권한 요청] 신규 입사자 계정 발급 요청\n일자: 2024-12-04\n\n해당 요청을 분석하고 처리를 시작하겠습니다." },
+      { role: "agent", content: "\"신규 입사자 계정 발급 요청\" 작업을 시작합니다.", processingSteps: [
+        { id: "1", step: "요청 분석 중...", status: "completed" },
+        { id: "2", step: "데이터 수집 중...", status: "completed" },
+        { id: "3", step: "처리 실행 중...", status: "running" },
+        { id: "4", step: "결과 생성 중...", status: "pending" },
+      ]},
+      { role: "user", content: "이메일 도메인은 @company.com으로 설정해주세요." },
+      { role: "agent", content: "이메일 도메인을 @company.com으로 설정하여 계정을 생성하겠습니다. 담당 부서에 확인 요청을 보냈습니다." },
+    ],
+    status: "in-progress",
+    createdAt: "2024-12-04T09:15:00Z",
+  },
+  {
+    id: "session-r5",
+    request: { id: "r5", type: "S", title: "프린터 용지 교체 요청", date: "2024-12-03" },
+    messages: [
+      { role: "agent", content: "[단순 요청] 프린터 용지 교체 요청\n일자: 2024-12-03\n\n해당 요청을 분석하고 처리를 시작하겠습니다." },
+      { role: "agent", content: "\"프린터 용지 교체 요청\" 작업을 시작합니다.", processingSteps: [
+        { id: "1", step: "요청 분석 중...", status: "completed" },
+        { id: "2", step: "데이터 수집 중...", status: "completed" },
+        { id: "3", step: "처리 실행 중...", status: "completed" },
+        { id: "4", step: "결과 생성 중...", status: "completed" },
+      ]},
+      { role: "agent", content: "\"프린터 용지 교체 요청\" 작업이 완료되었습니다." },
+      { role: "user", content: "감사합니다. 잘 처리되었습니다." },
+      { role: "agent", content: "도움이 되어 기쁩니다. 추가 요청사항이 있으시면 언제든 말씀해주세요!" },
+    ],
+    status: "completed",
+    createdAt: "2024-12-03T14:00:00Z",
+  },
+];
+
 const getAgentType = (agentName: string): AgentType => {
   const name = agentName.toLowerCase();
   if (name.includes("sop")) return "sop";
@@ -81,8 +137,8 @@ export function AgentDetail({ agentId, agentName }: AgentDetailProps) {
 
   const quickActions = getQuickActions();
   
-  // 채팅 세션 관리
-  const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
+  // 채팅 세션 관리 - 초기 데이터 포함
+  const [chatSessions, setChatSessions] = useState<ChatSession[]>(initialChatSessions);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   
   // 현재 활성 세션의 메시지
