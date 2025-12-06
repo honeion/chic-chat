@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CheckCircle, XCircle, Clock, AlertTriangle, FileText, ChevronDown, ChevronUp, Play, Ticket, Database, Wrench, User } from "lucide-react";
+import { CheckCircle, Clock, AlertTriangle, ChevronDown, ChevronUp, Play, Ticket, Database, Wrench, User, FileText, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { ChatSession } from "@/pages/AgentDetail";
 
 // 요청 타입 정의 (ITS와 동일)
 type RequestType = "I" | "C" | "D" | "A" | "S";
@@ -28,28 +29,18 @@ interface Incident {
   sourceAgent?: string;
 }
 
-interface HistoryItem {
-  id: string;
-  action: string;
-  result: string;
-  timestamp: string;
-  status: "success" | "warning" | "error";
-}
-
 interface SOPAgentDashboardProps {
   onApprove: (incidentId: string, incident: Incident) => void;
   onReject: (incidentId: string) => void;
   routedRequests?: RoutedRequest[];
+  onStartChat?: (incident: Incident) => void;
+  chatSessions?: ChatSession[];
+  onSelectSession?: (sessionId: string) => void;
+  activeSessionId?: string | null;
 }
 
 const mockIncidents: Incident[] = [
   { id: "i4", title: "네트워크 지연 복구", description: "네트워크 레이턴시가 정상 범위로 복구되었습니다.", status: "approved", priority: "medium", timestamp: "08:30" },
-];
-
-const mockHistory: HistoryItem[] = [
-  { id: "h1", action: "메모리 정리 실행", result: "2GB 메모리 확보 완료", timestamp: "09:00", status: "success" },
-  { id: "h2", action: "로그 분석 수행", result: "이상 패턴 3건 발견", timestamp: "08:30", status: "warning" },
-  { id: "h3", action: "헬스체크 완료", result: "모든 서비스 정상", timestamp: "08:00", status: "success" }
 ];
 
 // 요청 타입별 아이콘 및 색상
@@ -61,7 +52,15 @@ const requestTypeConfig: Record<RequestType, { icon: React.ReactNode; label: str
   "S": { icon: <FileText className="w-4 h-4" />, label: "단순", color: "text-muted-foreground" },
 };
 
-export function SOPAgentDashboard({ onApprove, onReject, routedRequests = [] }: SOPAgentDashboardProps) {
+export function SOPAgentDashboard({ 
+  onApprove, 
+  onReject, 
+  routedRequests = [],
+  onStartChat,
+  chatSessions = [],
+  onSelectSession,
+  activeSessionId
+}: SOPAgentDashboardProps) {
   const { t } = useTranslation();
   
   // 라우팅된 요청을 인시던트로 변환
@@ -78,7 +77,6 @@ export function SOPAgentDashboard({ onApprove, onReject, routedRequests = [] }: 
   }));
   
   const [incidents, setIncidents] = useState<Incident[]>(mockIncidents);
-  const [history] = useState<HistoryItem[]>(mockHistory);
   const [isCompletedCollapsed, setIsCompletedCollapsed] = useState(true);
   
   // 모든 인시던트 (라우팅된 것 + 기존 것)
@@ -90,11 +88,6 @@ export function SOPAgentDashboard({ onApprove, onReject, routedRequests = [] }: 
       setIncidents(prev => prev.map(inc => inc.id === incidentId ? { ...inc, status: "processing" } : inc));
       onApprove(incidentId, incident);
     }
-  };
-
-  const handleReject = (incidentId: string) => {
-    setIncidents(prev => prev.map(inc => inc.id === incidentId ? { ...inc, status: "rejected" } : inc));
-    onReject(incidentId);
   };
 
   const getPriorityStyle = (priority: Incident["priority"]) => {
@@ -113,14 +106,6 @@ export function SOPAgentDashboard({ onApprove, onReject, routedRequests = [] }: 
     }
   };
 
-  const getStatusIcon = (status: HistoryItem["status"]) => {
-    switch (status) {
-      case "success": return <CheckCircle className="w-4 h-4 text-status-online" />;
-      case "warning": return <AlertTriangle className="w-4 h-4 text-status-busy" />;
-      case "error": return <XCircle className="w-4 h-4 text-destructive" />;
-    }
-  };
-
   const pendingIncidents = allIncidents.filter(i => i.status === "pending");
   const processingIncidents = allIncidents.filter(i => i.status === "processing");
   const completedIncidents = allIncidents.filter(i => i.status === "approved" || i.status === "rejected");
@@ -128,6 +113,27 @@ export function SOPAgentDashboard({ onApprove, onReject, routedRequests = [] }: 
   const pendingCount = pendingIncidents.length;
   const processingCount = processingIncidents.length;
   const completedCount = completedIncidents.length;
+
+  const handlePlayClick = (incident: Incident) => {
+    if (onStartChat) {
+      onStartChat(incident);
+    }
+  };
+
+  // 세션 ID 찾기 헬퍼 함수
+  const findSessionByIncidentId = (incidentId: string) => {
+    return chatSessions.find(session => session.request.id === incidentId);
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "completed": return <span className="px-3 py-1 text-xs rounded border bg-status-online/10 text-status-online border-status-online/30">{t("common.completed")}</span>;
+      case "in-progress": return <span className="px-3 py-1 text-xs rounded border bg-status-busy/10 text-status-busy border-status-busy/30">{t("common.inProgress")}</span>;
+      case "pending-approval": return <span className="px-3 py-1 text-xs rounded border bg-amber-500/10 text-amber-500 border-amber-500/30">접수 대기</span>;
+      case "rejected": return <span className="px-3 py-1 text-xs rounded border bg-destructive/10 text-destructive border-destructive/30">반려</span>;
+      default: return null;
+    }
+  };
 
   // ITS 스타일 인시던트 아이템 렌더링 컴포넌트
   const IncidentListItem = ({ incident, showActions = false }: { incident: Incident; showActions?: boolean }) => {
@@ -155,7 +161,7 @@ export function SOPAgentDashboard({ onApprove, onReject, routedRequests = [] }: 
           <span className="text-xs text-muted-foreground flex-shrink-0">{incident.timestamp}</span>
           {showActions && (
             <button
-              onClick={() => handleApprove(incident.id)}
+              onClick={() => handlePlayClick(incident)}
               className="p-1.5 rounded-md bg-primary/10 hover:bg-primary/20 text-primary transition-colors flex-shrink-0"
               title="처리 시작"
             >
@@ -251,50 +257,50 @@ export function SOPAgentDashboard({ onApprove, onReject, routedRequests = [] }: 
         </div>
       </div>
 
-      {/* Processing History */}
+      {/* 처리 Chat 이력 */}
       <div className="rounded-xl border border-border bg-card overflow-hidden">
         <div className="px-4 py-3 bg-muted/50 border-b border-border flex items-center justify-center gap-2">
-          <Clock className="w-5 h-5 text-primary" />
-          <h4 className="text-sm font-semibold text-foreground">{t("dashboard.processingHistory")}</h4>
+          <MessageSquare className="w-5 h-5 text-primary" />
+          <h4 className="text-sm font-semibold text-foreground">{t("dashboard.processChatHistory")}</h4>
         </div>
         <div className="divide-y divide-border">
-          {history.slice(0, 5).map(item => (
-            <div key={item.id} className="px-4 py-3 flex items-center gap-3">
-              {getStatusIcon(item.status)}
-              <div className="flex-1">
-                <p className="text-sm font-medium text-foreground">{item.action}</p>
-                <p className="text-xs text-muted-foreground">{item.result}</p>
-              </div>
-              <span className="text-xs text-muted-foreground">{item.timestamp}</span>
+          {chatSessions.length > 0 ? (
+            chatSessions.map(session => {
+              const config = session.request.type ? requestTypeConfig[session.request.type] : null;
+              const isActive = session.id === activeSessionId;
+              return (
+                <button
+                  key={session.id}
+                  onClick={() => onSelectSession?.(session.id)}
+                  className={cn(
+                    "w-full px-4 py-3 flex items-center gap-3 hover:bg-muted/30 transition-colors text-left",
+                    isActive && "bg-primary/10 border-l-2 border-l-primary"
+                  )}
+                >
+                  <span className={cn("flex-shrink-0", config?.color || "text-primary")}>
+                    {config?.icon || <AlertTriangle className="w-4 h-4" />}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{session.request.title}</p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-primary/80 font-mono">{session.request.requestNo}</span>
+                      <span className="text-xs text-muted-foreground">{session.request.date}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <MessageSquare className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">{session.messages.length}</span>
+                    {getStatusBadge(session.status)}
+                  </div>
+                </button>
+              );
+            })
+          ) : (
+            <div className="px-4 py-6 text-center">
+              <p className="text-sm text-muted-foreground">채팅 이력이 없습니다</p>
+              <p className="text-xs text-muted-foreground mt-1">접수 항목의 플레이 버튼을 눌러 채팅을 시작하세요</p>
             </div>
-          ))}
-        </div>
-        <div className="p-3 bg-background/60 border-t border-border">
-          <button className="text-sm text-primary hover:underline w-full text-center font-medium">{t("common.viewAll")}</button>
-        </div>
-      </div>
-
-      {/* Daily Summary */}
-      <div className="rounded-xl border border-border bg-card overflow-hidden">
-        <div className="px-4 py-3 bg-muted/50 border-b border-border flex items-center justify-center gap-2">
-          <FileText className="w-5 h-5 text-primary" />
-          <h4 className="text-sm font-semibold text-foreground">{t("dashboard.todaySummary")}</h4>
-        </div>
-        <div className="p-4">
-          <div className="grid grid-cols-3 gap-4">
-            <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
-              <p className="text-xs text-muted-foreground mb-1">{t("dashboard.totalProcessed")}</p>
-              <p className="text-xl font-bold text-foreground">{history.length}</p>
-            </div>
-            <div className="p-3 rounded-lg bg-status-online/10 border border-status-online/20">
-              <p className="text-xs text-muted-foreground mb-1">{t("dashboard.successRate")}</p>
-              <p className="text-xl font-bold text-status-online">92%</p>
-            </div>
-            <div className="p-3 rounded-lg bg-accent/10 border border-accent/20">
-              <p className="text-xs text-muted-foreground mb-1">{t("dashboard.avgProcessTime")}</p>
-              <p className="text-xl font-bold text-foreground">2.3m</p>
-            </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

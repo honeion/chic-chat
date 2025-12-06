@@ -453,9 +453,61 @@ ${getRequestDetailContent(request)}
     setActiveSessionId(sessionId);
   };
 
+  // SOP Agent 채팅 시작 핸들러
+  const handleSOPStartChat = (incident: { id: string; title: string; requestNo?: string; type?: RequestType; timestamp: string }) => {
+    // 기존 세션 확인
+    const existingSession = chatSessions.find(s => s.request.id === incident.id);
+    if (existingSession) {
+      setActiveSessionId(existingSession.id);
+      return;
+    }
+    
+    // 새로운 세션 생성
+    const newSessionId = `session-${Date.now()}`;
+    const typeLabel = incident.type ? requestTypeLabels[incident.type] : "인시던트";
+    
+    const requestDetailMessage = `📋 **인시던트 상세 정보**
+
+**유형:** ${typeLabel}
+**요청 번호:** ${incident.requestNo || 'N/A'}
+**제목:** ${incident.title}
+**일시:** ${incident.timestamp}
+
+---
+
+처리를 시작하시겠습니까?`;
+    
+    const newSession: ChatSession = {
+      id: newSessionId,
+      request: { 
+        id: incident.id, 
+        requestNo: incident.requestNo || `SOP-${Date.now()}`, 
+        type: incident.type || "I", 
+        title: incident.title, 
+        date: incident.timestamp 
+      },
+      messages: [{ role: "agent", content: requestDetailMessage }],
+      status: "pending-approval",
+      createdAt: new Date().toISOString(),
+    };
+    
+    setChatSessions(prev => [newSession, ...prev]);
+    setActiveSessionId(newSessionId);
+  };
+
   const renderDashboard = () => {
     switch (agentType) {
-      case "sop": return <SOPAgentDashboard onApprove={handleApprove} onReject={handleReject} routedRequests={routedRequestsToSOP} />;
+      case "sop": return (
+        <SOPAgentDashboard 
+          onApprove={handleApprove} 
+          onReject={handleReject} 
+          routedRequests={routedRequestsToSOP}
+          onStartChat={handleSOPStartChat}
+          chatSessions={chatSessions}
+          onSelectSession={handleSelectSession}
+          activeSessionId={activeSessionId}
+        />
+      );
       case "its": return (
         <ITSAgentDashboard 
           onRequest={handleITSRequest} 
@@ -470,7 +522,17 @@ ${getRequestDetailContent(request)}
       case "biz-support": return <BizSupportAgentDashboard />;
       case "change-management": return <ChangeManagementAgentDashboard routedRequests={routedRequestsToChangeManagement} />;
       case "report": return <ReportAgentDashboard />;
-      default: return <SOPAgentDashboard onApprove={handleApprove} onReject={handleReject} routedRequests={routedRequestsToSOP} />;
+      default: return (
+        <SOPAgentDashboard 
+          onApprove={handleApprove} 
+          onReject={handleReject} 
+          routedRequests={routedRequestsToSOP}
+          onStartChat={handleSOPStartChat}
+          chatSessions={chatSessions}
+          onSelectSession={handleSelectSession}
+          activeSessionId={activeSessionId}
+        />
+      );
     }
   };
 
