@@ -141,11 +141,30 @@ export function SOPAgentDashboard({
   };
 
   // ITS 스타일 인시던트 아이템 렌더링 컴포넌트
-  const IncidentListItem = ({ incident, showActions = false }: { incident: Incident; showActions?: boolean }) => {
+  const IncidentListItem = ({ incident, showActions = false, clickable = false }: { incident: Incident; showActions?: boolean; clickable?: boolean }) => {
     const config = incident.type ? requestTypeConfig[incident.type] : null;
+    const session = findSessionByIncidentId(incident.id);
+    const isActive = session?.id === activeSessionId;
+    
+    const handleItemClick = () => {
+      if (clickable) {
+        if (session) {
+          onSelectSession?.(session.id);
+        } else if (onStartChat) {
+          onStartChat(incident);
+        }
+      }
+    };
     
     return (
-      <div className="p-2 rounded-lg bg-background/50 hover:bg-background/80 transition-colors">
+      <div 
+        className={cn(
+          "p-2 rounded-lg bg-background/50 hover:bg-background/80 transition-colors",
+          clickable && "cursor-pointer",
+          isActive && "ring-1 ring-primary bg-primary/10"
+        )}
+        onClick={clickable ? handleItemClick : undefined}
+      >
         <div className="flex items-center gap-2 mb-1">
           {config ? (
             <span className={cn("flex-shrink-0", config.color)} title={config.label}>
@@ -166,7 +185,10 @@ export function SOPAgentDashboard({
           <span className="text-xs text-muted-foreground flex-shrink-0">{incident.timestamp}</span>
           {showActions && (
             <button
-              onClick={() => handlePlayClick(incident)}
+              onClick={(e) => {
+                e.stopPropagation();
+                handlePlayClick(incident);
+              }}
               className="p-1.5 rounded-md bg-primary/10 hover:bg-primary/20 text-primary transition-colors flex-shrink-0"
               title="처리 시작"
             >
@@ -222,7 +244,7 @@ export function SOPAgentDashboard({
             <div className="p-2 bg-background/50 space-y-1.5 max-h-[280px] overflow-y-auto">
               {processingIncidents.length > 0 ? (
                 processingIncidents.map(incident => (
-                  <IncidentListItem key={incident.id} incident={incident} />
+                  <IncidentListItem key={incident.id} incident={incident} clickable={true} />
                 ))
               ) : (
                 <p className="text-xs text-muted-foreground text-center py-2">인시던트 없음</p>
@@ -252,7 +274,7 @@ export function SOPAgentDashboard({
             <div className="p-2 bg-background/50 space-y-1.5 max-h-[200px] overflow-y-auto">
               {completedIncidents.length > 0 ? (
                 completedIncidents.map(incident => (
-                  <IncidentListItem key={incident.id} incident={incident} />
+                  <IncidentListItem key={incident.id} incident={incident} clickable={true} />
                 ))
               ) : (
                 <p className="text-xs text-muted-foreground text-center py-2">인시던트 없음</p>
