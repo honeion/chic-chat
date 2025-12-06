@@ -148,12 +148,36 @@ export function DBAgentDashboard({
   const processingTasks = allTasks.filter(t => t.status === "processing");
   const completedTasks = allTasks.filter(t => t.status === "completed");
 
+  // 세션 ID 찾기 헬퍼 함수
+  const findSessionByTaskId = (taskId: string) => {
+    return chatSessions.find(session => session.request.id === taskId);
+  };
+
   // ITS 스타일 Task 아이템 렌더링 컴포넌트
-  const TaskListItem = ({ task, showPlay = false }: { task: DBTask; showPlay?: boolean }) => {
+  const TaskListItem = ({ task, showPlay = false, clickable = false }: { task: DBTask; showPlay?: boolean; clickable?: boolean }) => {
     const config = task.type ? requestTypeConfig[task.type] : null;
+    const session = findSessionByTaskId(task.id);
+    const isActive = session?.id === activeSessionId;
+    
+    const handleItemClick = () => {
+      if (clickable) {
+        if (session) {
+          onSelectSession?.(session.id);
+        } else if (onStartChat) {
+          onStartChat(task);
+        }
+      }
+    };
     
     return (
-      <div className="p-2 rounded-lg bg-background/50 hover:bg-background/80 transition-colors">
+      <div 
+        className={cn(
+          "p-2 rounded-lg bg-background/50 hover:bg-background/80 transition-colors",
+          clickable && "cursor-pointer",
+          isActive && "ring-1 ring-primary bg-primary/10"
+        )}
+        onClick={clickable ? handleItemClick : undefined}
+      >
         <div className="flex items-center gap-2">
           {config ? (
             <span className={cn("flex-shrink-0", config.color)} title={config.label}>
@@ -173,7 +197,10 @@ export function DBAgentDashboard({
           <span className="text-xs text-muted-foreground flex-shrink-0">{task.timestamp}</span>
           {showPlay && onStartChat && (
             <button
-              onClick={() => onStartChat(task)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onStartChat(task);
+              }}
               className="p-1.5 rounded-md bg-primary/10 hover:bg-primary/20 text-primary transition-colors flex-shrink-0"
               title="처리 시작"
             >
@@ -229,7 +256,7 @@ export function DBAgentDashboard({
             <div className="p-2 bg-background/50 space-y-1.5 max-h-[280px] overflow-y-auto">
               {processingTasks.length > 0 ? (
                 processingTasks.map(task => (
-                  <TaskListItem key={task.id} task={task} />
+                  <TaskListItem key={task.id} task={task} clickable={true} />
                 ))
               ) : (
                 <p className="text-xs text-muted-foreground text-center py-2">작업 없음</p>
@@ -259,7 +286,7 @@ export function DBAgentDashboard({
             <div className="p-2 bg-background/50 space-y-1.5 max-h-[200px] overflow-y-auto">
               {completedTasks.length > 0 ? (
                 completedTasks.map(task => (
-                  <TaskListItem key={task.id} task={task} />
+                  <TaskListItem key={task.id} task={task} clickable={true} />
                 ))
               ) : (
                 <p className="text-xs text-muted-foreground text-center py-2">작업 없음</p>

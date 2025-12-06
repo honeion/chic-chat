@@ -131,12 +131,36 @@ export function ChangeManagementAgentDashboard({
   const inProgressRequests = allChangeRequests.filter(cr => cr.status === "in-progress");
   const completedRequests = allChangeRequests.filter(cr => cr.status === "completed" || cr.status === "rejected");
 
+  // 세션 ID 찾기 헬퍼 함수
+  const findSessionByRequestId = (requestId: string) => {
+    return chatSessions.find(session => session.request.id === requestId);
+  };
+
   // ITS 스타일 ChangeRequest 아이템 렌더링 컴포넌트
-  const ChangeRequestListItem = ({ request, showPlay = false }: { request: ChangeRequest; showPlay?: boolean }) => {
+  const ChangeRequestListItem = ({ request, showPlay = false, clickable = false }: { request: ChangeRequest; showPlay?: boolean; clickable?: boolean }) => {
     const config = request.requestType ? requestTypeConfig[request.requestType] : null;
+    const session = findSessionByRequestId(request.id);
+    const isActive = session?.id === activeSessionId;
+    
+    const handleItemClick = () => {
+      if (clickable) {
+        if (session) {
+          onSelectSession?.(session.id);
+        } else if (onStartChat) {
+          onStartChat(request);
+        }
+      }
+    };
     
     return (
-      <div className="p-2 rounded-lg bg-background/50 hover:bg-background/80 transition-colors">
+      <div 
+        className={cn(
+          "p-2 rounded-lg bg-background/50 hover:bg-background/80 transition-colors",
+          clickable && "cursor-pointer",
+          isActive && "ring-1 ring-primary bg-primary/10"
+        )}
+        onClick={clickable ? handleItemClick : undefined}
+      >
         <div className="flex items-center gap-2 mb-1">
           {config ? (
             <span className={cn("flex-shrink-0", config.color)} title={config.label}>
@@ -164,7 +188,10 @@ export function ChangeManagementAgentDashboard({
           <span className="text-xs text-muted-foreground flex-shrink-0">{request.scheduledDate}</span>
           {showPlay && onStartChat && (
             <button
-              onClick={() => onStartChat(request)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onStartChat(request);
+              }}
               className="p-1.5 rounded-md bg-primary/10 hover:bg-primary/20 text-primary transition-colors flex-shrink-0"
               title="처리 시작"
             >
@@ -220,7 +247,7 @@ export function ChangeManagementAgentDashboard({
             <div className="p-2 bg-background/50 space-y-1.5 max-h-[280px] overflow-y-auto">
               {inProgressRequests.length > 0 ? (
                 inProgressRequests.map(request => (
-                  <ChangeRequestListItem key={request.id} request={request} />
+                  <ChangeRequestListItem key={request.id} request={request} clickable={true} />
                 ))
               ) : (
                 <p className="text-xs text-muted-foreground text-center py-2">변경 요청 없음</p>
@@ -250,7 +277,7 @@ export function ChangeManagementAgentDashboard({
             <div className="p-2 bg-background/50 space-y-1.5 max-h-[200px] overflow-y-auto">
               {completedRequests.length > 0 ? (
                 completedRequests.map(request => (
-                  <ChangeRequestListItem key={request.id} request={request} />
+                  <ChangeRequestListItem key={request.id} request={request} clickable={true} />
                 ))
               ) : (
                 <p className="text-xs text-muted-foreground text-center py-2">변경 요청 없음</p>
