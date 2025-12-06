@@ -379,7 +379,7 @@ export function ChatSidebar({
             {/* Recommended Agent Section (Fixed - from Agent Market) */}
             <div className="px-2 py-1.5 mt-4 text-xs font-semibold text-primary uppercase tracking-wider flex items-center gap-2">
               <Store className="w-3 h-3" />
-              {t("workflow.recommendedAgent")}
+              {t("workflow.agentMarket")}
             </div>
             {filteredMarketAgents.map((agent, index) => (
               <div key={agent.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
@@ -390,18 +390,20 @@ export function ChatSidebar({
                     }
                   }}
                   className={cn(
-                    "w-full p-3 rounded-xl text-left transition-all duration-200 flex items-center gap-3",
+                    "w-full p-3 rounded-xl text-left transition-all duration-200",
                     "hover:bg-secondary/80 bg-transparent"
                   )}
                 >
-                  <div className="relative">
-                    <div className="w-9 h-9 rounded-lg bg-accent/20 flex items-center justify-center">
-                      <Workflow className="w-4 h-4 text-accent" />
+                  <div className="flex items-center gap-3 mb-1">
+                    <div className="relative">
+                      <div className="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center">
+                        <Workflow className="w-4 h-4 text-accent" />
+                      </div>
+                      <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-sidebar bg-status-online" />
                     </div>
-                    <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-sidebar bg-status-online" />
+                    <span className="font-medium text-sm flex-1 truncate">{agent.name}</span>
                   </div>
-                  <span className="font-medium text-sm flex-1 truncate">{agent.name}</span>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  <p className="text-xs text-muted-foreground line-clamp-2 pl-11">{agent.description}</p>
                 </button>
               </div>
             ))}
