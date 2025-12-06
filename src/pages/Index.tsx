@@ -79,6 +79,11 @@ const Index = () => {
     setMyAgents([...myAgents, newAgent]);
   };
 
+  const handleNavigateToAgent = (targetAgentId: string) => {
+    setSelectedAgent(targetAgentId);
+    setCurrentView("agent");
+  };
+
   const renderContent = () => {
     if (isDashboard) {
       return <Dashboard />;
@@ -89,7 +94,8 @@ const Index = () => {
         return selectedAgent ? (
           <AgentDetail 
             agentId={selectedAgent} 
-            agentName={agentNames[selectedAgent] || "Agent"} 
+            agentName={agentNames[selectedAgent] || "Agent"}
+            onNavigateToAgent={handleNavigateToAgent}
           />
         ) : (
           <div className="flex-1 flex items-center justify-center text-muted-foreground">

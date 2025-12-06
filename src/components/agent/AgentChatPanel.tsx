@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { MessageSquare, Send, CheckCircle, Clock, Loader2, X, AlertTriangle, Wrench, Database, User, FileText } from "lucide-react";
+import { MessageSquare, Send, CheckCircle, Clock, Loader2, X, AlertTriangle, Wrench, Database, User, FileText, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ProcessingStep {
@@ -10,10 +10,16 @@ interface ProcessingStep {
   detail?: string;
 }
 
+interface MessageLink {
+  label: string;
+  agentId: string;
+}
+
 interface Message {
   role: "user" | "agent";
   content: string;
   processingSteps?: ProcessingStep[];
+  link?: MessageLink;
 }
 
 // 현재 처리 중인 요청 정보
@@ -37,6 +43,7 @@ interface AgentChatPanelProps {
   isPendingApproval?: boolean;
   onApproveRequest?: () => void;
   onRejectRequest?: () => void;
+  onNavigateToAgent?: (agentId: string) => void;
 }
 
 // 요청 타입별 아이콘 및 색상
@@ -58,7 +65,8 @@ export function AgentChatPanel({
   onCloseRequest,
   isPendingApproval,
   onApproveRequest,
-  onRejectRequest
+  onRejectRequest,
+  onNavigateToAgent
 }: AgentChatPanelProps) {
   const { t } = useTranslation();
   const [chatInput, setChatInput] = useState("");
@@ -126,7 +134,18 @@ export function AgentChatPanel({
                 ? "bg-primary text-primary-foreground" 
                 : "bg-chat-user/50 border border-border/50"
             )}>
-              <p className="text-sm">{msg.content}</p>
+              <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+              
+              {/* Agent 이동 링크 */}
+              {msg.link && onNavigateToAgent && (
+                <button
+                  onClick={() => onNavigateToAgent(msg.link!.agentId)}
+                  className="mt-3 w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-primary/20 text-primary hover:bg-primary/30 transition-colors text-sm font-medium border border-primary/30"
+                >
+                  <ArrowRight className="w-4 h-4" />
+                  {msg.link.label}
+                </button>
+              )}
             </div>
             
             {msg.processingSteps && msg.processingSteps.length > 0 && (

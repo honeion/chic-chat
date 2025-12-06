@@ -11,8 +11,9 @@ import { ReportAgentDashboard } from "@/components/agent/ReportAgentDashboard";
 import { AgentChatPanel } from "@/components/agent/AgentChatPanel";
 
 interface ProcessingStep { id: string; step: string; status: "pending" | "running" | "completed"; detail?: string; }
-interface Message { role: "user" | "agent"; content: string; processingSteps?: ProcessingStep[]; }
-interface AgentDetailProps { agentId: string; agentName: string; }
+interface MessageLink { label: string; agentId: string; }
+interface Message { role: "user" | "agent"; content: string; processingSteps?: ProcessingStep[]; link?: MessageLink; }
+interface AgentDetailProps { agentId: string; agentName: string; onNavigateToAgent?: (agentId: string) => void; }
 type AgentType = "sop" | "its" | "monitoring" | "db" | "biz-support" | "change-management" | "report";
 
 // RequestItem 타입 (ITSAgentDashboard와 동일)
@@ -134,7 +135,7 @@ interface AgentDetailExtendedProps extends AgentDetailProps {
   onRouteToAgent?: (request: ActiveRequest, targetAgentType: AgentType) => void;
 }
 
-export function AgentDetail({ agentId, agentName }: AgentDetailProps) {
+export function AgentDetail({ agentId, agentName, onNavigateToAgent }: AgentDetailProps) {
   const { t } = useTranslation();
   const agentType = getAgentType(agentName);
   
@@ -379,11 +380,11 @@ ${getRequestDetailContent(request)}
   };
   
   // 요청 타입에 따른 라우팅 Agent 결정
-  const getTargetAgentInfo = (requestType: RequestType): { agentName: string; agentType: AgentType } | null => {
+  const getTargetAgentInfo = (requestType: RequestType): { agentName: string; agentType: AgentType; agentId: string } | null => {
     switch (requestType) {
-      case "I": return { agentName: "SOP Agent", agentType: "sop" };
-      case "C": return { agentName: "변경관리 Agent", agentType: "change-management" };
-      case "D": return { agentName: "DB Agent", agentType: "db" };
+      case "I": return { agentName: "SOP Agent", agentType: "sop", agentId: "a2" };
+      case "C": return { agentName: "변경관리 Agent", agentType: "change-management", agentId: "a3" };
+      case "D": return { agentName: "DB Agent", agentType: "db", agentId: "a4" };
       default: return null;
     }
   };
@@ -403,10 +404,17 @@ ${getRequestDetailContent(request)}
     }));
     
     if (targetAgent) {
-      // 다른 Agent로 라우팅되는 경우
+      // 다른 Agent로 라우팅되는 경우 - 링크 정보 포함
       updateSessionMessages(sessionId, prev => [...prev, 
         { role: "user", content: "접수" },
-        { role: "agent", content: `✅ 요청이 접수되었습니다.\n\n📌 **${targetAgent.agentName}**로 요청을 전달합니다.\n해당 Agent의 접수 항목에서 처리 현황을 확인하실 수 있습니다.` }
+        { 
+          role: "agent", 
+          content: `✅ 요청이 접수되었습니다.\n\n📌 **${targetAgent.agentName}**로 요청을 전달합니다.\n해당 Agent의 접수 항목에서 처리 현황을 확인하실 수 있습니다.`,
+          link: {
+            label: `${targetAgent.agentName}로 이동`,
+            agentId: targetAgent.agentId
+          }
+        }
       ]);
       
       // 해당 Agent의 접수 목록에 추가
@@ -492,6 +500,7 @@ ${getRequestDetailContent(request)}
         isPendingApproval={activeSession?.status === "pending-approval"}
         onApproveRequest={() => activeSessionId && handleApproveRequest(activeSessionId)}
         onRejectRequest={() => activeSessionId && handleRejectRequest(activeSessionId)}
+        onNavigateToAgent={onNavigateToAgent}
       />
     </div>
   );
