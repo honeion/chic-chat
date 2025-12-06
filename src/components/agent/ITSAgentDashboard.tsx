@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { 
   Ticket, UserPlus, Shield, Database, Clock, CheckCircle, AlertCircle, Send, Key,
-  Play, AlertTriangle, Wrench, FileText, User, MessageSquare, ChevronDown, ChevronUp
+  Play, AlertTriangle, Wrench, FileText, User, MessageSquare, ChevronDown, ChevronUp, Cloud
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -67,10 +67,10 @@ export function ITSAgentDashboard({
   const [isCompletedCollapsed, setIsCompletedCollapsed] = useState(true);
 
   const requestCards = [
-    { id: "account", title: t("dashboard.accountRequest"), description: t("dashboard.accountRequestDesc"), icon: <UserPlus className="w-5 h-5" />, bgColor: "bg-amber-100 dark:bg-amber-900/30", headerColor: "bg-amber-200 dark:bg-amber-800/50" },
-    { id: "firewall", title: t("dashboard.firewallRequest"), description: t("dashboard.firewallRequestDesc"), icon: <Shield className="w-5 h-5" />, bgColor: "bg-orange-100 dark:bg-orange-900/30", headerColor: "bg-orange-200 dark:bg-orange-800/50" },
-    { id: "data", title: t("dashboard.dataRequest"), description: t("dashboard.dataRequestDesc"), icon: <Database className="w-5 h-5" />, bgColor: "bg-emerald-100 dark:bg-emerald-900/30", headerColor: "bg-emerald-200 dark:bg-emerald-800/50" },
-    { id: "access", title: t("dashboard.accessRequest"), description: t("dashboard.accessRequestDesc"), icon: <Key className="w-5 h-5" />, bgColor: "bg-green-100 dark:bg-green-900/30", headerColor: "bg-green-200 dark:bg-green-800/50" },
+    { id: "workload", title: t("dashboard.workloadRegister"), icon: <FileText className="w-5 h-5" />, bgColor: "bg-amber-100 dark:bg-amber-900/30", headerColor: "bg-amber-200 dark:bg-amber-800/50" },
+    { id: "firewall", title: t("dashboard.firewallRequest"), icon: <Shield className="w-5 h-5" />, bgColor: "bg-orange-100 dark:bg-orange-900/30", headerColor: "bg-orange-200 dark:bg-orange-800/50" },
+    { id: "dbsafer", title: t("dashboard.dbSaferRequest"), icon: <Database className="w-5 h-5" />, bgColor: "bg-emerald-100 dark:bg-emerald-900/30", headerColor: "bg-emerald-200 dark:bg-emerald-800/50" },
+    { id: "cloud", title: t("dashboard.cloudRequest"), icon: <Cloud className="w-5 h-5" />, bgColor: "bg-blue-100 dark:bg-blue-900/30", headerColor: "bg-blue-200 dark:bg-blue-800/50" },
   ];
 
   const getStatusBadge = (status: string) => {
@@ -259,12 +259,9 @@ export function ITSAgentDashboard({
                   card.bgColor
                 )}
               >
-                <div className={cn("px-3 py-2 flex items-center justify-center gap-2", card.headerColor)}>
+                <div className={cn("px-4 py-3 flex items-center justify-center gap-2", card.headerColor)}>
                   <div className="text-foreground/80">{card.icon}</div>
                   <span className="font-medium text-sm text-foreground">{card.title}</span>
-                </div>
-                <div className="p-3">
-                  <p className="text-xs text-muted-foreground text-center">{card.description}</p>
                 </div>
               </button>
             ))}

@@ -116,7 +116,7 @@
     "aiRecommend": "AI 권장",
     "itsReceptionStatus": "ITS 접수현황",
     "itsOperations": "ITS 운영",
-    "itsRequests": "ITS 요청",
+    "itsRequests": "ITS로 요청하기",
     "ticketStatus": "ITS 티켓 현황",
     "statusSection": "현황 섹션",
     "historySection": "이력 섹션",
@@ -125,14 +125,10 @@
     "ticketType": "티켓종류",
     "ticketTitle": "티켓제목",
     "recentRequests": "최근 요청 내역",
-    "accountRequest": "계정 발급 신청",
-    "accountRequestDesc": "신규 사용자 계정 생성 요청",
-    "firewallRequest": "방화벽 신청",
-    "firewallRequestDesc": "IP/포트 오픈 요청",
-    "dataRequest": "데이터 추출 요청",
-    "dataRequestDesc": "DB 데이터 추출 신청",
-    "accessRequest": "접근 권한 신청",
-    "accessRequestDesc": "시스템 접근 권한 요청"
+    "workloadRegister": "업무량 등록하기",
+    "firewallRequest": "방화벽 신청하기",
+    "dbSaferRequest": "DB Safer 신청하기",
+    "cloudRequest": "Cloud 신청하기"
   },
   "agentChat": {
     "conversation": "대화",
