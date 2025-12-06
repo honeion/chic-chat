@@ -269,41 +269,6 @@ export function DBAgentDashboard({
         </div>
       </div>
 
-      {/* DB 현황 */}
-      <div className="rounded-xl overflow-hidden border border-primary/30">
-        <div className="px-4 py-3 bg-primary/20 flex items-center gap-2">
-          <HardDrive className="w-4 h-4 text-primary" />
-          <span className="text-sm font-medium text-foreground">{t("db.totalDb")}</span>
-        </div>
-        <div className="bg-background/80">
-          <div className="grid grid-cols-3 gap-4 p-4">
-            {mockDatabases.map(db => (
-              <div key={db.id} className="p-4 rounded-lg border border-border/30 bg-background/50">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="font-semibold text-foreground">{db.name}</span>
-                  <span className={cn("px-2 py-0.5 rounded text-xs font-medium", getStatusStyle(db.status))}>
-                    {getStatusLabel(db.status)}
-                  </span>
-                </div>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Type</span>
-                    <span className="text-foreground">{db.type}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Size</span>
-                    <span className="text-foreground">{db.size}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Connections</span>
-                    <span className="text-foreground">{db.connections}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
 
       {/* 처리 Chat 이력 */}
       <div className="rounded-xl overflow-hidden border border-primary/30">
@@ -359,30 +324,6 @@ export function DBAgentDashboard({
         </div>
       </div>
 
-      {/* 쿼리 모니터링 */}
-      <div className="rounded-xl overflow-hidden border border-accent/30">
-        <div className="px-4 py-3 bg-accent/20 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Search className="w-4 h-4 text-accent" />
-            <span className="text-sm font-medium text-foreground">{t("db.queryMonitoring")}</span>
-          </div>
-          <button className="px-3 py-1 rounded-lg bg-primary/20 text-primary text-xs hover:bg-primary/30 transition-colors flex items-center gap-1">
-            <Play className="w-3 h-3" />
-            {t("db.runQuery")}
-          </button>
-        </div>
-        <div className="bg-background/80 divide-y divide-border/30">
-          {mockQueries.map(query => (
-            <div key={query.id} className="p-3 flex items-center gap-3">
-              <code className="flex-1 text-xs text-muted-foreground font-mono truncate">{query.query}</code>
-              <span className={cn("px-2 py-0.5 rounded text-xs font-medium", getQueryStatusStyle(query.status))}>
-                {query.duration}
-              </span>
-              <span className="text-xs text-muted-foreground">{query.timestamp}</span>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
