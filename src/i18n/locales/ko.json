@@ -34,6 +34,8 @@
     "inProgress": "처리중",
     "notReceived": "미접수",
     "receivedProcessing": "접수/처리중",
+    "received": "접수",
+    "processingStatus": "처리중",
     "approved": "승인완료",
     "reviewing": "검토중",
     "maintenance": "점검중",
