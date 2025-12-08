@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { 
   FileText, AlertTriangle, ClipboardList, TestTube, FileCheck, 
   FolderArchive, PlayCircle, Settings, MessageSquare, Download, 
-  ChevronDown, ChevronUp, Calendar
+  ChevronDown, ChevronUp, Calendar, Database
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ChatSession } from "@/pages/AgentDetail";
@@ -19,7 +19,7 @@ interface ReportType {
 }
 
 // 생성된 보고서 정의
-interface GeneratedReport {
+export interface GeneratedReport {
   id: string;
   typeId: string;
   typeName: string;
@@ -27,6 +27,7 @@ interface GeneratedReport {
   generatedAt: string;
   size: string;
   status: "ready" | "generating";
+  savedToRAG?: boolean;
 }
 
 interface ReportAgentDashboardProps {
@@ -210,6 +211,17 @@ export function ReportAgentDashboard({
                           {report.generatedAt}
                         </span>
                         <span className="text-xs text-muted-foreground">{report.size}</span>
+                        {report.savedToRAG !== undefined && (
+                          <span className={cn(
+                            "px-2 py-0.5 rounded text-xs font-medium flex items-center gap-1",
+                            report.savedToRAG 
+                              ? "bg-primary/20 text-primary" 
+                              : "bg-muted text-muted-foreground"
+                          )}>
+                            <Database className="w-3 h-3" />
+                            {report.savedToRAG ? "RAG 저장됨" : "RAG 미저장"}
+                          </span>
+                        )}
                       </div>
                     </div>
                     {report.status === "ready" ? (
