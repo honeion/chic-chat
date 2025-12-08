@@ -41,9 +41,10 @@ export interface ChatSession {
   id: string;
   request: ActiveRequest;
   messages: Message[];
-  status: "pending-approval" | "pending-process-start" | "in-progress" | "completed" | "rejected" | "pending-report-confirm" | "pending-report-start" | "pending-report-review" | "pending-knowledge-save";
+  status: "pending-approval" | "pending-process-start" | "in-progress" | "completed" | "rejected" | "pending-report-confirm" | "pending-report-start" | "pending-report-review" | "pending-knowledge-save" | "pending-its-complete";
   createdAt: string;
   sourceIncidentSession?: string; // Report Agent에서 원본 인시던트 세션 ID 저장
+  originalITSRequestNo?: string; // 원본 ITS 요청번호 저장
 }
 
 const requestTypeLabels: Record<RequestType, string> = {
@@ -1240,6 +1241,11 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
 인시던트 처리 내용을 기반으로 장애보고서를 작성합니다.
 아래 '작성시작' 버튼을 클릭하면 AI가 자동으로 보고서를 생성합니다.`;
 
+    // 원본 ITS 요청번호 저장 (ITS-로 시작하는 경우)
+    const originalITSRequestNo = session.request.requestNo.startsWith("ITS-") 
+      ? session.request.requestNo 
+      : undefined;
+
     // 기존 세션 업데이트: 메시지 추가 + 요청번호를 RPT-로 변경 + 상태를 pending-report-start로 변경
     setChatSessions(prev => prev.map(s => 
       s.id === sessionId 
@@ -1256,7 +1262,8 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
               { role: "agent" as const, content: reportIntroMessage }
             ],
             status: "pending-report-start" as const,
-            sourceIncidentSession: sessionId
+            sourceIncidentSession: sessionId,
+            originalITSRequestNo
           } 
         : s
     ));
@@ -1420,17 +1427,6 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
     const session = chatSessions.find(s => s.id === sessionId);
     if (!session) return;
 
-    // 상태를 completed로 변경
-    setChatSessions(prev => prev.map(s => 
-      s.id === sessionId ? { ...s, status: "completed" as const } : s
-    ));
-
-    // 메시지 추가
-    updateSessionMessages(sessionId, prev => [...prev, 
-      { role: "user", content: "저장하기" },
-      { role: "agent", content: "✅ 장애지식 RAG에 성공적으로 저장되었습니다.\n\n📌 **저장된 정보:**\n- 장애 유형: 서비스 장애\n- 원인: 리소스 과부하\n- 해결 방법: 리소스 확장 및 최적화\n\n향후 유사 장애 발생 시 AI가 이 정보를 참조하여 더 빠른 해결을 지원합니다." }
-    ]);
-
     // 생성된 보고서 목록에 추가
     const newReport: GeneratedReport = {
       id: `gr-${Date.now()}`,
@@ -1443,23 +1439,35 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
       savedToRAG: true
     };
     setGeneratedReports(prev => [newReport, ...prev]);
+
+    // 메시지 추가
+    updateSessionMessages(sessionId, prev => [...prev, 
+      { role: "user", content: "저장하기" },
+      { role: "agent", content: "✅ 장애지식 RAG에 성공적으로 저장되었습니다.\n\n📌 **저장된 정보:**\n- 장애 유형: 서비스 장애\n- 원인: 리소스 과부하\n- 해결 방법: 리소스 확장 및 최적화\n\n향후 유사 장애 발생 시 AI가 이 정보를 참조하여 더 빠른 해결을 지원합니다." }
+    ]);
+
+    // 원본 ITS 요청 여부 확인 후 ITS 완료 처리 상태로 전환
+    if (session.originalITSRequestNo) {
+      setTimeout(() => {
+        updateSessionMessages(sessionId, prev => [...prev, 
+          { role: "agent", content: `📋 원본 ITS 요청 건(**${session.originalITSRequestNo}**)의 완료 처리를 진행하시겠습니까?\n\nITS Agent에서 해당 요청을 완료 상태로 변경합니다.` }
+        ]);
+        setChatSessions(prev => prev.map(s => 
+          s.id === sessionId ? { ...s, status: "pending-its-complete" as const } : s
+        ));
+      }, 800);
+    } else {
+      // ITS 요청이 아닌 경우 바로 완료
+      setChatSessions(prev => prev.map(s => 
+        s.id === sessionId ? { ...s, status: "completed" as const } : s
+      ));
+    }
   };
 
   // 보고서 Agent 장애지식RAG 저장 건너뛰기 핸들러
   const handleSkipKnowledgeSave = (sessionId: string) => {
     const session = chatSessions.find(s => s.id === sessionId);
     if (!session) return;
-
-    // 상태를 completed로 변경
-    setChatSessions(prev => prev.map(s => 
-      s.id === sessionId ? { ...s, status: "completed" as const } : s
-    ));
-
-    // 메시지 추가
-    updateSessionMessages(sessionId, prev => [...prev, 
-      { role: "user", content: "건너뛰기" },
-      { role: "agent", content: "✅ 장애보고서 작성이 완료되었습니다." }
-    ]);
 
     // 생성된 보고서 목록에 추가 (RAG 미저장)
     const newReport: GeneratedReport = {
@@ -1473,6 +1481,72 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
       savedToRAG: false
     };
     setGeneratedReports(prev => [newReport, ...prev]);
+
+    // 메시지 추가
+    updateSessionMessages(sessionId, prev => [...prev, 
+      { role: "user", content: "건너뛰기" },
+      { role: "agent", content: "✅ 장애보고서 작성이 완료되었습니다." }
+    ]);
+
+    // 원본 ITS 요청 여부 확인 후 ITS 완료 처리 상태로 전환
+    if (session.originalITSRequestNo) {
+      setTimeout(() => {
+        updateSessionMessages(sessionId, prev => [...prev, 
+          { role: "agent", content: `📋 원본 ITS 요청 건(**${session.originalITSRequestNo}**)의 완료 처리를 진행하시겠습니까?\n\nITS Agent에서 해당 요청을 완료 상태로 변경합니다.` }
+        ]);
+        setChatSessions(prev => prev.map(s => 
+          s.id === sessionId ? { ...s, status: "pending-its-complete" as const } : s
+        ));
+      }, 800);
+    } else {
+      // ITS 요청이 아닌 경우 바로 완료
+      setChatSessions(prev => prev.map(s => 
+        s.id === sessionId ? { ...s, status: "completed" as const } : s
+      ));
+    }
+  };
+
+  // ITS 완료 처리 핸들러
+  const handleCompleteITS = (sessionId: string) => {
+    const session = chatSessions.find(s => s.id === sessionId);
+    if (!session) return;
+
+    // 메시지 추가
+    updateSessionMessages(sessionId, prev => [...prev, 
+      { role: "user", content: "ITS 완료 처리" },
+      { 
+        role: "agent", 
+        content: `✅ ITS 요청 건(**${session.originalITSRequestNo}**)이 완료 처리되었습니다.\n\nITS Agent에서 해당 요청의 상태가 "완료"로 변경되었습니다.`,
+        link: {
+          label: "ITS Agent로 이동",
+          agentId: "a1"
+        }
+      }
+    ]);
+
+    // 상태를 completed로 변경
+    setChatSessions(prev => prev.map(s => 
+      s.id === sessionId ? { ...s, status: "completed" as const } : s
+    ));
+
+    // ITS Agent로 자동 이동
+    if (onNavigateToAgent) {
+      onNavigateToAgent("a1");
+    }
+  };
+
+  // ITS 완료 처리 건너뛰기 핸들러
+  const handleSkipITSComplete = (sessionId: string) => {
+    // 메시지 추가
+    updateSessionMessages(sessionId, prev => [...prev, 
+      { role: "user", content: "건너뛰기" },
+      { role: "agent", content: "✅ 장애보고서 작성 워크플로우가 완료되었습니다.\n\nITS 요청 건은 수동으로 완료 처리해 주세요." }
+    ]);
+
+    // 상태를 completed로 변경
+    setChatSessions(prev => prev.map(s => 
+      s.id === sessionId ? { ...s, status: "completed" as const } : s
+    ));
   };
 
   const renderDashboard = () => {
@@ -1623,6 +1697,9 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
         isPendingKnowledgeSave={activeSession?.status === "pending-knowledge-save"}
         onSaveToKnowledge={() => activeSessionId && handleSaveToKnowledge(activeSessionId)}
         onSkipKnowledgeSave={() => activeSessionId && handleSkipKnowledgeSave(activeSessionId)}
+        isPendingITSComplete={activeSession?.status === "pending-its-complete"}
+        onCompleteITS={() => activeSessionId && handleCompleteITS(activeSessionId)}
+        onSkipITSComplete={() => activeSessionId && handleSkipITSComplete(activeSessionId)}
       />
     </div>
   );

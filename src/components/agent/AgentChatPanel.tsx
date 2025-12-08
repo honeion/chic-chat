@@ -74,6 +74,10 @@ interface AgentChatPanelProps {
   isPendingKnowledgeSave?: boolean;
   onSaveToKnowledge?: () => void;
   onSkipKnowledgeSave?: () => void;
+  // ITS 완료 처리 확인 상태
+  isPendingITSComplete?: boolean;
+  onCompleteITS?: () => void;
+  onSkipITSComplete?: () => void;
 }
 
 // 요청 타입별 아이콘 및 색상
@@ -118,7 +122,10 @@ export function AgentChatPanel({
   onCompleteReport,
   isPendingKnowledgeSave,
   onSaveToKnowledge,
-  onSkipKnowledgeSave
+  onSkipKnowledgeSave,
+  isPendingITSComplete,
+  onCompleteITS,
+  onSkipITSComplete
 }: AgentChatPanelProps) {
   const { t } = useTranslation();
   const [chatInput, setChatInput] = useState("");
@@ -434,6 +441,31 @@ export function AgentChatPanel({
             </button>
             <button
               onClick={onSkipKnowledgeSave}
+              className="px-4 py-1.5 rounded-md bg-muted text-muted-foreground text-sm font-medium hover:bg-muted/80 transition-colors flex items-center gap-1.5 border border-border"
+            >
+              <X className="w-3.5 h-3.5" />
+              건너뛰기
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ITS 완료 처리 확인 */}
+      {isPendingITSComplete && activeRequest && (
+        <div className="p-3 border-t border-border bg-blue-500/5">
+          <p className="text-xs text-muted-foreground mb-2 text-center">
+            원본 ITS 요청 건의 완료 처리를 진행하시겠습니까?
+          </p>
+          <div className="flex gap-2 justify-center">
+            <button
+              onClick={onCompleteITS}
+              className="px-4 py-1.5 rounded-md bg-blue-500/20 text-blue-600 dark:text-blue-400 text-sm font-medium hover:bg-blue-500/30 transition-colors flex items-center gap-1.5 border border-blue-500/30"
+            >
+              <CheckCircle className="w-3.5 h-3.5" />
+              ITS 완료 처리
+            </button>
+            <button
+              onClick={onSkipITSComplete}
               className="px-4 py-1.5 rounded-md bg-muted text-muted-foreground text-sm font-medium hover:bg-muted/80 transition-colors flex items-center gap-1.5 border border-border"
             >
               <X className="w-3.5 h-3.5" />
