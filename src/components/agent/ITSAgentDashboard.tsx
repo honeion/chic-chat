@@ -162,10 +162,21 @@ export function ITSAgentDashboard({
       <div className="rounded-xl border border-border bg-card p-5">
         {/* ITS접수현황 */}
         <div className="mb-6">
-          <h3 className="text-base font-semibold flex items-center gap-2 text-foreground mb-4">
-            <Ticket className="w-5 h-5 text-primary" />
-            {t("dashboard.itsReceptionStatus")}
-          </h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-base font-semibold flex items-center gap-2 text-foreground">
+              <Ticket className="w-5 h-5 text-primary" />
+              {t("dashboard.itsReceptionStatus")}
+            </h3>
+            {/* 요청 타입 범례 */}
+            <div className="flex items-center gap-3 text-xs">
+              {(Object.entries(requestTypeConfig) as [RequestType, typeof requestTypeConfig[RequestType]][]).map(([type, config]) => (
+                <div key={type} className="flex items-center gap-1">
+                  <span className={config.color}>{config.icon}</span>
+                  <span className="text-muted-foreground">{config.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
           <div className="grid grid-cols-2 gap-4">
             {/* 미접수 */}
             <div className="rounded-lg overflow-hidden border border-destructive/30">
