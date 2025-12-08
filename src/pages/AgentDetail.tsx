@@ -45,6 +45,7 @@ export interface ChatSession {
   createdAt: string;
   sourceIncidentSession?: string; // Report Agent에서 원본 인시던트 세션 ID 저장
   originalITSRequestNo?: string; // 원본 ITS 요청번호 저장
+  agentType?: AgentType; // 세션을 생성한 Agent 타입
 }
 
 const requestTypeLabels: Record<RequestType, string> = {
@@ -549,6 +550,7 @@ ${getRequestDetailContent(request)}
       messages: [{ role: "agent", content: requestDetailMessage }],
       status: "pending-approval", // 승인 대기 상태
       createdAt: new Date().toISOString(),
+      agentType: "its", // ITS Agent에서 생성된 세션
     };
     
     setChatSessions(prev => [newSession, ...prev]);
@@ -833,6 +835,7 @@ ${incident.description || "해당 인시던트에 대한 처리가 필요합니�
       messages: [{ role: "agent", content: requestSummaryMessage }],
       status: "pending-process-start", // 처리 시작 대기 상태
       createdAt: new Date().toISOString(),
+      agentType: "sop", // SOP Agent에서 생성된 세션
     };
     
     setChatSessions(prev => [newSession, ...prev]);

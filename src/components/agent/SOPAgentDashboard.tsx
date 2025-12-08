@@ -66,19 +66,23 @@ export function SOPAgentDashboard({
 }: SOPAgentDashboardProps) {
   const { t } = useTranslation();
   
-  // 라우팅된 요청을 인시던트로 변환 - chatSessions 상태 기반으로 status 결정
+  // 라우팅된 요청을 인시던트로 변환 - SOP Agent용 chatSessions 상태 기반으로 status 결정
   const routedIncidents: Incident[] = routedRequests.map(req => {
-    const session = chatSessions.find(s => s.request.id === req.id);
+    // SOP Agent에서 생성된 세션만 찾기 (agentType === "sop")
+    const sopSession = chatSessions.find(s => 
+      s.request.id === req.id && s.agentType === "sop"
+    );
+    
     let status: Incident["status"] = "pending";
     
-    if (session) {
-      if (session.status === "in-progress" || session.status === "pending-report-confirm") {
+    if (sopSession) {
+      if (sopSession.status === "in-progress" || sopSession.status === "pending-report-confirm") {
         status = "processing";
-      } else if (session.status === "completed") {
+      } else if (sopSession.status === "completed") {
         status = "approved";
-      } else if (session.status === "rejected") {
+      } else if (sopSession.status === "rejected") {
         status = "rejected";
-      } else if (session.status === "pending-process-start") {
+      } else if (sopSession.status === "pending-process-start") {
         status = "pending";
       }
     }
