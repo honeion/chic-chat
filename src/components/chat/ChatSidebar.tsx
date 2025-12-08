@@ -271,13 +271,13 @@ export function ChatSidebar({
               }
             }}
             className={cn(
-              "flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-medium transition-colors border-b-2",
+              "flex-1 flex items-center justify-center gap-2 py-4 text-sm font-semibold transition-colors border-b-3",
               currentView === view && !isDashboard
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground"
+                ? "border-primary text-primary bg-primary/5"
+                : "border-transparent text-muted-foreground hover:text-foreground hover:bg-secondary/50"
             )}
           >
-            <Icon className="w-4 h-4" />
+            <Icon className="w-5 h-5" />
             {label}
           </button>
         ))}
