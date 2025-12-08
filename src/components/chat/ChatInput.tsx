@@ -5,6 +5,8 @@ import { cn } from "@/lib/utils";
 import { ToolSelector } from "./ToolSelector";
 import { SystemSelector } from "./SystemSelector";
 import { InstructionSelector } from "./InstructionSelector";
+import { KnowledgeRAGSelector } from "./KnowledgeRAGSelector";
+import { KnowledgeGraphSelector } from "./KnowledgeGraphSelector";
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -58,6 +60,8 @@ export function ChatInput({ onSend, disabled, showToolSelector = false, showQuic
             <SystemSelector />
             <InstructionSelector />
             <ToolSelector />
+            <KnowledgeRAGSelector />
+            <KnowledgeGraphSelector />
           </div>
         )}
 
