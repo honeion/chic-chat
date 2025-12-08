@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { X, Plus, ChevronRight, GripVertical, Trash2, Folder, FileInput } from "lucide-react";
+import { X, Plus, ChevronRight, GripVertical, Trash2, Folder, FileInput, Edit3, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { OperatingSystem } from "@/pages/Index";
 import { InstructionImportModal } from "./InstructionImportModal";
 import { Instruction, defaultInstructions } from "@/data/instructions";
+import ReactMarkdown from "react-markdown";
 
 interface Tool {
   id: string;
@@ -35,6 +36,7 @@ export function NewAgentModal({ isOpen, onClose, onSave, tools }: NewAgentModalP
   const [selectedSystems, setSelectedSystems] = useState<OperatingSystem[]>([]);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [availableInstructions] = useState<Instruction[]>(defaultInstructions);
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
 
   const SYSTEM_BOXES: OperatingSystem[] = ["e-총무", "BiOn", "SATIS"];
 
@@ -137,6 +139,65 @@ export function NewAgentModal({ isOpen, onClose, onSave, tools }: NewAgentModalP
             </div>
           </div>
 
+          {/* Instructions - positioned below description */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-medium">{t("workflow.instructions")}</label>
+              <div className="flex items-center gap-2">
+                <div className="flex rounded-lg overflow-hidden border border-border">
+                  <button
+                    onClick={() => setIsPreviewMode(false)}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 text-xs transition-colors",
+                      !isPreviewMode
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-secondary text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <Edit3 className="w-3.5 h-3.5" />
+                    {t("workflow.edit", "편집")}
+                  </button>
+                  <button
+                    onClick={() => setIsPreviewMode(true)}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 text-xs transition-colors",
+                      isPreviewMode
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-secondary text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    {t("workflow.preview", "미리보기")}
+                  </button>
+                </div>
+                <button
+                  onClick={() => setIsImportModalOpen(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs bg-secondary hover:bg-secondary/80 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <FileInput className="w-3.5 h-3.5" />
+                  {t("workflow.importInstruction", "지침 불러오기")}
+                </button>
+              </div>
+            </div>
+            {isPreviewMode ? (
+              <div className="w-full min-h-[120px] max-h-[200px] overflow-y-auto px-4 py-2.5 rounded-lg bg-secondary border border-border prose prose-sm prose-invert max-w-none">
+                {instructions ? (
+                  <ReactMarkdown>{instructions}</ReactMarkdown>
+                ) : (
+                  <p className="text-muted-foreground">{t("workflow.instructionsPlaceholder")}</p>
+                )}
+              </div>
+            ) : (
+              <textarea
+                value={instructions}
+                onChange={(e) => setInstructions(e.target.value)}
+                placeholder={t("workflow.instructionsPlaceholder")}
+                rows={5}
+                className="w-full px-4 py-2.5 rounded-lg bg-secondary border border-border focus:border-primary/50 focus:outline-none transition-colors resize-none"
+              />
+            )}
+          </div>
+
           {/* Tool Selection with Description */}
           <div className="mb-6">
             <label className="block text-sm font-medium mb-3">{t("workflow.selectTools")}</label>
@@ -209,26 +270,6 @@ export function NewAgentModal({ isOpen, onClose, onSave, tools }: NewAgentModalP
             )}
           </div>
 
-          {/* Instructions */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-sm font-medium">{t("workflow.instructions")}</label>
-              <button
-                onClick={() => setIsImportModalOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs bg-secondary hover:bg-secondary/80 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <FileInput className="w-3.5 h-3.5" />
-                {t("workflow.importInstruction", "지침 불러오기")}
-              </button>
-            </div>
-            <textarea
-              value={instructions}
-              onChange={(e) => setInstructions(e.target.value)}
-              placeholder={t("workflow.instructionsPlaceholder")}
-              rows={4}
-              className="w-full px-4 py-2.5 rounded-lg bg-secondary border border-border focus:border-primary/50 focus:outline-none transition-colors resize-none"
-            />
-          </div>
         </div>
 
         {/* Footer */}
