@@ -385,8 +385,11 @@ export function AgentDetail({ agentId, agentName, onNavigateToAgent }: AgentDeta
         updateSessionMessages(sessionId, prev => [...prev, { role: "agent", content: t("agentDetail.taskComplete", { task: taskName }) }]); 
         
         // SOP Agent의 인시던트 처리 완료 시 장애보고서 작성 여부 확인
+        // SOP Agent는 인시던트 유형(I)이면 보고서 작성 여부를 묻는다 (SOP- 또는 ITS-로 시작하는 요청번호 포함)
         const session = chatSessions.find(s => s.id === sessionId);
-        if (session && session.request.type === "I" && session.request.requestNo.startsWith("SOP-")) {
+        const isSOPIncident = session && session.request.type === "I" && 
+          (session.request.requestNo.startsWith("SOP-") || session.request.requestNo.startsWith("ITS-"));
+        if (isSOPIncident) {
           setTimeout(() => {
             updateSessionMessages(sessionId, prev => [...prev, { 
               role: "agent", 
