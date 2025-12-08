@@ -443,7 +443,7 @@ export function WorkflowPage({
             <div>
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <Workflow className="w-5 h-5" />
-                등록된 Agent Type
+                등록된 Agent
                 <span className="text-sm font-normal text-muted-foreground">
                   ({myAgents.length}개)
                 </span>
