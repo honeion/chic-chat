@@ -1227,9 +1227,6 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
     const session = chatSessions.find(s => s.id === sessionId);
     if (!session) return;
 
-    // 새로운 보고서 요청번호 생성
-    const reportRequestNo = `RPT-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 9000) + 1000).padStart(4, '0')}`;
-    
     const reportIntroMessage = `📋 **장애보고서 작성 준비**
 
 **원본 인시던트:** ${session.request.title}
@@ -1246,14 +1243,14 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
       ? session.request.requestNo 
       : undefined;
 
-    // 기존 세션 업데이트: 메시지 추가 + 요청번호를 RPT-로 변경 + 상태를 pending-report-start로 변경
+    // 기존 세션 업데이트: 메시지 추가 + 기존 요청번호 유지 + 상태를 pending-report-start로 변경
     setChatSessions(prev => prev.map(s => 
       s.id === sessionId 
         ? { 
             ...s, 
             request: {
               ...s.request,
-              requestNo: reportRequestNo,
+              // 기존 요청번호 유지 (RPT-로 변경하지 않음)
               title: `장애보고서 - ${s.request.title}`
             },
             messages: [
@@ -1620,9 +1617,14 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
         />
       );
       case "report": {
-        // 보고서 관련 세션만 필터링 (RPT- 으로 시작하는 요청번호)
+        // 보고서 관련 세션 필터링: 
+        // 1. RPT-로 시작 (Report Agent에서 직접 생성)
+        // 2. 또는 pending-report-start/pending-report-review/pending-knowledge-save/pending-its-complete 상태 (SOP에서 넘어온 보고서 작성 건)
+        const reportStatuses = ["pending-report-start", "pending-report-review", "pending-knowledge-save", "pending-its-complete"];
         const reportSessions = chatSessions.filter(s => 
-          s.request.requestNo.startsWith("RPT-")
+          s.request.requestNo.startsWith("RPT-") || 
+          reportStatuses.includes(s.status) ||
+          s.request.title.startsWith("장애보고서 -")
         );
         return (
           <ReportAgentDashboard 
