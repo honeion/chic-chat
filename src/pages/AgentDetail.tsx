@@ -1214,6 +1214,9 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
       s.id === sessionId ? { ...s, status: "in-progress" as const } : s
     ));
 
+    // 원본 ITS 요청 상태도 in-progress로 유지 (이미 접수 시 변경됨)
+    // SOP 처리시작이므로 별도 ITS 상태 변경 불필요 - 이미 in-progress 상태
+
     // 처리 시작 메시지 추가 및 프로세싱 시뮬레이션
     updateSessionMessages(sessionId, prev => [...prev, { 
       role: "agent", 

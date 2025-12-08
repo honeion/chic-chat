@@ -66,18 +66,35 @@ export function SOPAgentDashboard({
 }: SOPAgentDashboardProps) {
   const { t } = useTranslation();
   
-  // 라우팅된 요청을 인시던트로 변환
-  const routedIncidents: Incident[] = routedRequests.map(req => ({
-    id: req.id,
-    title: req.title,
-    description: `${req.sourceAgent}에서 전달된 요청`,
-    status: "pending" as const,
-    priority: "high" as const,
-    timestamp: req.date,
-    requestNo: req.requestNo,
-    type: req.type,
-    sourceAgent: req.sourceAgent,
-  }));
+  // 라우팅된 요청을 인시던트로 변환 - chatSessions 상태 기반으로 status 결정
+  const routedIncidents: Incident[] = routedRequests.map(req => {
+    const session = chatSessions.find(s => s.request.id === req.id);
+    let status: Incident["status"] = "pending";
+    
+    if (session) {
+      if (session.status === "in-progress" || session.status === "pending-report-confirm") {
+        status = "processing";
+      } else if (session.status === "completed") {
+        status = "approved";
+      } else if (session.status === "rejected") {
+        status = "rejected";
+      } else if (session.status === "pending-process-start") {
+        status = "pending";
+      }
+    }
+    
+    return {
+      id: req.id,
+      title: req.title,
+      description: `${req.sourceAgent}에서 전달된 요청`,
+      status,
+      priority: "high" as const,
+      timestamp: req.date,
+      requestNo: req.requestNo,
+      type: req.type,
+      sourceAgent: req.sourceAgent,
+    };
+  });
   
   const [incidents, setIncidents] = useState<Incident[]>(mockIncidents);
   const [isCompletedCollapsed, setIsCompletedCollapsed] = useState(true);
