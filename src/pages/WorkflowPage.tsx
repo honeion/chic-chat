@@ -426,7 +426,7 @@ export function WorkflowPage({
                   <Workflow className="w-6 h-6 text-accent" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold">{t("sidebar.myAgent")}</h1>
+                  <h1 className="text-2xl font-bold">My Agent 마켓</h1>
                   <p className="text-sm text-muted-foreground">{t("workflow.subtitle")}</p>
                 </div>
               </div>
