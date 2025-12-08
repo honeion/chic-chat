@@ -7,7 +7,7 @@ import { MonitoringAgentDashboard, type DetectionItem, type SystemInfo } from "@
 import { DBAgentDashboard } from "@/components/agent/DBAgentDashboard";
 import { BizSupportAgentDashboard } from "@/components/agent/BizSupportAgentDashboard";
 import { ChangeManagementAgentDashboard } from "@/components/agent/ChangeManagementAgentDashboard";
-import { ReportAgentDashboard } from "@/components/agent/ReportAgentDashboard";
+import { ReportAgentDashboard, type GeneratedReport } from "@/components/agent/ReportAgentDashboard";
 import { AgentChatPanel } from "@/components/agent/AgentChatPanel";
 
 interface ProcessingStep { id: string; step: string; status: "pending" | "running" | "completed"; detail?: string; }
@@ -295,6 +295,9 @@ export function AgentDetail({ agentId, agentName, onNavigateToAgent }: AgentDeta
     { id: "d6", detectionNo: "MON-2024-0042", severity: "info", title: "DB-01 백업 완료", source: "DB-01", date: "2024-12-03", status: "resolved" },
     { id: "d7", detectionNo: "MON-2024-0041", severity: "warning", title: "WEB-01 응답 지연 해결", source: "WEB-01", date: "2024-12-02", status: "resolved" },
   ]);
+
+  // 생성된 보고서 목록
+  const [generatedReports, setGeneratedReports] = useState<GeneratedReport[]>([]);
 
   // Agent로 요청 라우팅
   const handleRouteToAgent = (request: ActiveRequest, targetAgentType: AgentType) => {
@@ -1414,6 +1417,9 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
 
   // 보고서 Agent 장애지식RAG 저장 핸들러
   const handleSaveToKnowledge = (sessionId: string) => {
+    const session = chatSessions.find(s => s.id === sessionId);
+    if (!session) return;
+
     // 상태를 completed로 변경
     setChatSessions(prev => prev.map(s => 
       s.id === sessionId ? { ...s, status: "completed" as const } : s
@@ -1424,10 +1430,26 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
       { role: "user", content: "저장하기" },
       { role: "agent", content: "✅ 장애지식 RAG에 성공적으로 저장되었습니다.\n\n📌 **저장된 정보:**\n- 장애 유형: 서비스 장애\n- 원인: 리소스 과부하\n- 해결 방법: 리소스 확장 및 최적화\n\n향후 유사 장애 발생 시 AI가 이 정보를 참조하여 더 빠른 해결을 지원합니다." }
     ]);
+
+    // 생성된 보고서 목록에 추가
+    const newReport: GeneratedReport = {
+      id: `gr-${Date.now()}`,
+      typeId: "incident",
+      typeName: "장애보고서",
+      title: session.request.title,
+      generatedAt: new Date().toLocaleString('ko-KR'),
+      size: `${Math.floor(Math.random() * 3) + 1}.${Math.floor(Math.random() * 9)}MB`,
+      status: "ready",
+      savedToRAG: true
+    };
+    setGeneratedReports(prev => [newReport, ...prev]);
   };
 
   // 보고서 Agent 장애지식RAG 저장 건너뛰기 핸들러
   const handleSkipKnowledgeSave = (sessionId: string) => {
+    const session = chatSessions.find(s => s.id === sessionId);
+    if (!session) return;
+
     // 상태를 completed로 변경
     setChatSessions(prev => prev.map(s => 
       s.id === sessionId ? { ...s, status: "completed" as const } : s
@@ -1438,6 +1460,19 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
       { role: "user", content: "건너뛰기" },
       { role: "agent", content: "✅ 장애보고서 작성이 완료되었습니다." }
     ]);
+
+    // 생성된 보고서 목록에 추가 (RAG 미저장)
+    const newReport: GeneratedReport = {
+      id: `gr-${Date.now()}`,
+      typeId: "incident",
+      typeName: "장애보고서",
+      title: session.request.title,
+      generatedAt: new Date().toLocaleString('ko-KR'),
+      size: `${Math.floor(Math.random() * 3) + 1}.${Math.floor(Math.random() * 9)}MB`,
+      status: "ready",
+      savedToRAG: false
+    };
+    setGeneratedReports(prev => [newReport, ...prev]);
   };
 
   const renderDashboard = () => {
@@ -1521,6 +1556,7 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
             chatSessions={reportSessions}
             onSelectSession={handleSelectSession}
             activeSessionId={activeSessionId}
+            generatedReports={generatedReports}
           />
         );
       }
