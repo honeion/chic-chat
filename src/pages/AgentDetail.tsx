@@ -783,19 +783,19 @@ ${request.description || "해당 변경 작업에 대한 처리가 필요합니�
   const handleSOPStartChat = (incident: { id: string; title: string; description?: string; requestNo?: string; type?: RequestType; timestamp: string; priority?: string }) => {
     console.log("handleSOPStartChat called with incident:", incident);
     
-    // 기존 세션 확인 - 기존 세션이 있으면 상태를 pending-process-start로 리셋하고 활성화
-    const existingSession = chatSessions.find(s => s.request.id === incident.id);
-    if (existingSession) {
-      console.log("Existing session found:", existingSession.id);
+    // 기존 SOP 세션 확인 - SOP Agent에서 생성된 세션만 찾기
+    const existingSOPSession = chatSessions.find(s => s.request.id === incident.id && s.agentType === "sop");
+    if (existingSOPSession) {
+      console.log("Existing SOP session found:", existingSOPSession.id);
       // 기존 세션의 상태가 pending-process-start가 아니면 리셋
-      if (existingSession.status !== "pending-process-start") {
+      if (existingSOPSession.status !== "pending-process-start") {
         setChatSessions(prev => prev.map(s => 
-          s.id === existingSession.id 
+          s.id === existingSOPSession.id 
             ? { ...s, status: "pending-process-start" as const }
             : s
         ));
       }
-      setActiveSessionId(existingSession.id);
+      setActiveSessionId(existingSOPSession.id);
       return;
     }
     
