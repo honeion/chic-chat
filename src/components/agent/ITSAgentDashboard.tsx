@@ -11,26 +11,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { ChatSession } from "@/pages/AgentDetail";
+import type { ChatSession, ITSRequest } from "@/pages/AgentDetail";
 
 // 요청 타입 정의
 type RequestType = "I" | "C" | "D" | "A" | "S";
 
-interface RequestItem {
-  id: string;
-  requestNo: string;
-  type: RequestType;
-  title: string;
-  date: string;
-  status: "open" | "in-progress" | "resolved";
-}
-
 interface ITSAgentDashboardProps {
   onRequest: (requestType: string) => void;
-  onStartChat?: (request: RequestItem) => void;
+  onStartChat?: (request: ITSRequest) => void;
   chatSessions?: ChatSession[];
   onSelectSession?: (sessionId: string) => void;
   activeSessionId?: string | null;
+  requests?: ITSRequest[];
 }
 
 // 요청 타입별 아이콘 및 색상
@@ -42,8 +34,8 @@ const requestTypeConfig: Record<RequestType, { icon: React.ReactNode; label: str
   "S": { icon: <FileText className="w-4 h-4" />, label: "단순", color: "text-muted-foreground" },
 };
 
-// Mock 요청 데이터 - 각 타입별 1개씩
-const mockRequests: RequestItem[] = [
+// Default Mock 요청 데이터 - 각 타입별 1개씩
+const defaultMockRequests: ITSRequest[] = [
   // 미접수 (open)
   { id: "r1", requestNo: "ITS-2024-0152", type: "I", title: "서버 응답 지연 현상 발생", date: "2024-12-05", status: "open" },
   { id: "r4", requestNo: "ITS-2024-0149", type: "A", title: "신규 입사자 계정 발급 요청", date: "2024-12-04", status: "open" },
@@ -60,11 +52,12 @@ export function ITSAgentDashboard({
   onStartChat, 
   chatSessions = [], 
   onSelectSession,
-  activeSessionId 
+  activeSessionId,
+  requests: propRequests
 }: ITSAgentDashboardProps) {
   const { t } = useTranslation();
-  const [requests] = useState<RequestItem[]>(mockRequests);
-  const [selectedTicket, setSelectedTicket] = useState<RequestItem | null>(null);
+  const requests = propRequests || defaultMockRequests;
+  const [selectedTicket, setSelectedTicket] = useState<ITSRequest | null>(null);
   const [isCompletedCollapsed, setIsCompletedCollapsed] = useState(true);
 
   const requestCards = [
@@ -92,7 +85,7 @@ export function ITSAgentDashboard({
   const inProgressCount = inProgressRequests.length;
   const resolvedCount = resolvedRequests.length;
 
-  const handlePlayClick = (request: RequestItem) => {
+  const handlePlayClick = (request: ITSRequest) => {
     if (onStartChat) {
       onStartChat(request);
     }
@@ -104,7 +97,7 @@ export function ITSAgentDashboard({
   };
 
   // 요청 아이템 클릭 핸들러
-  const handleRequestClick = (request: RequestItem) => {
+  const handleRequestClick = (request: ITSRequest) => {
     const session = findSessionByRequestId(request.id);
     if (session && onSelectSession) {
       onSelectSession(session.id);
@@ -112,7 +105,7 @@ export function ITSAgentDashboard({
   };
 
   // 요청 아이템 렌더링 컴포넌트
-  const RequestListItem = ({ request, showPlay = false, clickable = false }: { request: RequestItem; showPlay?: boolean; clickable?: boolean }) => {
+  const RequestListItem = ({ request, showPlay = false, clickable = false }: { request: ITSRequest; showPlay?: boolean; clickable?: boolean }) => {
     const config = requestTypeConfig[request.type];
     const session = findSessionByRequestId(request.id);
     const isActive = session?.id === activeSessionId;

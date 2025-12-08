@@ -18,7 +18,7 @@ type AgentType = "sop" | "its" | "monitoring" | "db" | "biz-support" | "change-m
 
 // RequestItem 타입 (ITSAgentDashboard와 동일)
 type RequestType = "I" | "C" | "D" | "A" | "S";
-interface RequestItem {
+export interface ITSRequest {
   id: string;
   requestNo: string;
   type: RequestType;
@@ -300,6 +300,19 @@ export function AgentDetail({ agentId, agentName, onNavigateToAgent }: AgentDeta
   // 생성된 보고서 목록
   const [generatedReports, setGeneratedReports] = useState<GeneratedReport[]>([]);
 
+  // ITS 요청 상태 관리
+  const [itsRequests, setItsRequests] = useState<ITSRequest[]>([
+    // 미접수 (open)
+    { id: "r1", requestNo: "ITS-2024-0152", type: "I", title: "서버 응답 지연 현상 발생", date: "2024-12-05", status: "open" },
+    { id: "r4", requestNo: "ITS-2024-0149", type: "A", title: "신규 입사자 계정 발급 요청", date: "2024-12-04", status: "open" },
+    { id: "r6", requestNo: "ITS-2024-0153", type: "D", title: "고객별 주문 현황 데이터 추출", date: "2024-12-06", status: "open" },
+    // 접수/처리중 (in-progress)
+    { id: "r2", requestNo: "ITS-2024-0151", type: "C", title: "대시보드 UI 개선 요청", date: "2024-12-05", status: "in-progress" },
+    { id: "r3", requestNo: "ITS-2024-0150", type: "D", title: "월간 매출 데이터 추출 요청", date: "2024-12-04", status: "in-progress" },
+    // 완료 (resolved)
+    { id: "r5", requestNo: "ITS-2024-0148", type: "S", title: "프린터 용지 교체 요청", date: "2024-12-03", status: "resolved" },
+  ]);
+
   // Agent로 요청 라우팅
   const handleRouteToAgent = (request: ActiveRequest, targetAgentType: AgentType) => {
     const routedRequest: RoutedRequest = {
@@ -501,7 +514,7 @@ export function AgentDetail({ agentId, agentName, onNavigateToAgent }: AgentDeta
   };
 
   // ITS 요청 채팅 시작 핸들러 (미접수 → 접수 확인 흐름)
-  const handleStartChat = (request: RequestItem) => {
+  const handleStartChat = (request: ITSRequest) => {
     // 기존 세션 확인
     const existingSession = chatSessions.find(s => s.request.id === request.id);
     if (existingSession) {
@@ -543,7 +556,7 @@ ${getRequestDetailContent(request)}
   };
   
   // 요청 타입별 상세 내용 (mock)
-  const getRequestDetailContent = (request: RequestItem): string => {
+  const getRequestDetailContent = (request: ITSRequest): string => {
     switch (request.type) {
       case "I":
         return `• 증상: 서버 응답 시간이 평균 5초 이상 지연되고 있습니다.
@@ -596,6 +609,11 @@ ${getRequestDetailContent(request)}
       }
       return s;
     }));
+
+    // ITS 요청 상태를 in-progress로 변경
+    setItsRequests(prev => prev.map(r => 
+      r.id === session.request.id ? { ...r, status: "in-progress" as const } : r
+    ));
     
     if (targetAgent) {
       // 다른 Agent로 라우팅되는 경우 - 링크 정보 포함
@@ -1550,6 +1568,13 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
       { role: "agent", content: `✅ ITS 요청 건(**${session.originalITSRequestNo}**)이 완료 처리되었습니다.\n\n모든 워크플로우가 성공적으로 완료되었습니다.` }
     ]);
 
+    // 원본 ITS 요청을 resolved로 변경
+    if (session.originalITSRequestNo) {
+      setItsRequests(prev => prev.map(r => 
+        r.requestNo === session.originalITSRequestNo ? { ...r, status: "resolved" as const } : r
+      ));
+    }
+
     // 상태를 completed로 변경
     setChatSessions(prev => prev.map(s => 
       s.id === sessionId ? { ...s, status: "completed" as const } : s
@@ -1590,6 +1615,7 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
           chatSessions={chatSessions}
           onSelectSession={handleSelectSession}
           activeSessionId={activeSessionId}
+          requests={itsRequests}
         />
       );
       case "monitoring": {
