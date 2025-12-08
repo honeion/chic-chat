@@ -41,7 +41,7 @@ export interface ChatSession {
   id: string;
   request: ActiveRequest;
   messages: Message[];
-  status: "pending-approval" | "pending-process-start" | "in-progress" | "completed" | "rejected" | "pending-report-confirm" | "pending-report-start" | "pending-report-review" | "pending-knowledge-save" | "pending-its-complete";
+  status: "pending-approval" | "pending-process-start" | "in-progress" | "completed" | "rejected" | "pending-report-confirm" | "pending-report-start" | "pending-report-review" | "pending-knowledge-save" | "pending-its-navigate" | "pending-its-complete";
   createdAt: string;
   sourceIncidentSession?: string; // Report Agent에서 원본 인시던트 세션 ID 저장
   originalITSRequestNo?: string; // 원본 ITS 요청번호 저장
@@ -1443,14 +1443,14 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
       { role: "agent", content: "✅ 장애지식 RAG에 성공적으로 저장되었습니다.\n\n📌 **저장된 정보:**\n- 장애 유형: 서비스 장애\n- 원인: 리소스 과부하\n- 해결 방법: 리소스 확장 및 최적화\n\n향후 유사 장애 발생 시 AI가 이 정보를 참조하여 더 빠른 해결을 지원합니다." }
     ]);
 
-    // 원본 ITS 요청 여부 확인 후 ITS 완료 처리 상태로 전환
+    // 원본 ITS 요청 여부 확인 후 ITS Agent 이동 여부 상태로 전환
     if (session.originalITSRequestNo) {
       setTimeout(() => {
         updateSessionMessages(sessionId, prev => [...prev, 
-          { role: "agent", content: `📋 원본 ITS 요청 건(**${session.originalITSRequestNo}**)의 완료 처리를 진행하시겠습니까?\n\nITS Agent에서 해당 요청을 완료 상태로 변경합니다.` }
+          { role: "agent", content: `📋 원본 ITS 요청 건(**${session.originalITSRequestNo}**)을 완료 처리하기 위해 ITS Agent로 이동하시겠습니까?` }
         ]);
         setChatSessions(prev => prev.map(s => 
-          s.id === sessionId ? { ...s, status: "pending-its-complete" as const } : s
+          s.id === sessionId ? { ...s, status: "pending-its-navigate" as const } : s
         ));
       }, 800);
     } else {
@@ -1485,14 +1485,14 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
       { role: "agent", content: "✅ 장애보고서 작성이 완료되었습니다." }
     ]);
 
-    // 원본 ITS 요청 여부 확인 후 ITS 완료 처리 상태로 전환
+    // 원본 ITS 요청 여부 확인 후 ITS Agent 이동 여부 상태로 전환
     if (session.originalITSRequestNo) {
       setTimeout(() => {
         updateSessionMessages(sessionId, prev => [...prev, 
-          { role: "agent", content: `📋 원본 ITS 요청 건(**${session.originalITSRequestNo}**)의 완료 처리를 진행하시겠습니까?\n\nITS Agent에서 해당 요청을 완료 상태로 변경합니다.` }
+          { role: "agent", content: `📋 원본 ITS 요청 건(**${session.originalITSRequestNo}**)을 완료 처리하기 위해 ITS Agent로 이동하시겠습니까?` }
         ]);
         setChatSessions(prev => prev.map(s => 
-          s.id === sessionId ? { ...s, status: "pending-its-complete" as const } : s
+          s.id === sessionId ? { ...s, status: "pending-its-navigate" as const } : s
         ));
       }, 800);
     } else {
@@ -1503,7 +1503,43 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
     }
   };
 
-  // ITS 완료 처리 핸들러
+  // ITS Agent 이동 핸들러
+  const handleNavigateToITS = (sessionId: string) => {
+    const session = chatSessions.find(s => s.id === sessionId);
+    if (!session) return;
+
+    // 메시지 추가
+    updateSessionMessages(sessionId, prev => [...prev, 
+      { role: "user", content: "ITS Agent로 이동" },
+      { role: "agent", content: `✅ ITS Agent로 이동합니다.\n\nITS Agent에서 원본 요청 건(**${session.originalITSRequestNo}**)의 완료 처리를 진행해 주세요.` }
+    ]);
+
+    // 상태를 pending-its-complete로 변경 (ITS Agent에서 완료 처리 대기)
+    setChatSessions(prev => prev.map(s => 
+      s.id === sessionId ? { ...s, status: "pending-its-complete" as const } : s
+    ));
+
+    // ITS Agent로 이동
+    if (onNavigateToAgent) {
+      onNavigateToAgent("a1");
+    }
+  };
+
+  // ITS Agent 이동 건너뛰기 핸들러
+  const handleSkipITSNavigate = (sessionId: string) => {
+    // 메시지 추가
+    updateSessionMessages(sessionId, prev => [...prev, 
+      { role: "user", content: "건너뛰기" },
+      { role: "agent", content: "✅ 장애보고서 작성 워크플로우가 완료되었습니다.\n\nITS 요청 건은 수동으로 완료 처리해 주세요." }
+    ]);
+
+    // 상태를 completed로 변경
+    setChatSessions(prev => prev.map(s => 
+      s.id === sessionId ? { ...s, status: "completed" as const } : s
+    ));
+  };
+
+  // ITS 완료 처리 핸들러 (ITS Agent에서 호출)
   const handleCompleteITS = (sessionId: string) => {
     const session = chatSessions.find(s => s.id === sessionId);
     if (!session) return;
@@ -1511,25 +1547,13 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
     // 메시지 추가
     updateSessionMessages(sessionId, prev => [...prev, 
       { role: "user", content: "ITS 완료 처리" },
-      { 
-        role: "agent", 
-        content: `✅ ITS 요청 건(**${session.originalITSRequestNo}**)이 완료 처리되었습니다.\n\nITS Agent에서 해당 요청의 상태가 "완료"로 변경되었습니다.`,
-        link: {
-          label: "ITS Agent로 이동",
-          agentId: "a1"
-        }
-      }
+      { role: "agent", content: `✅ ITS 요청 건(**${session.originalITSRequestNo}**)이 완료 처리되었습니다.\n\n모든 워크플로우가 성공적으로 완료되었습니다.` }
     ]);
 
     // 상태를 completed로 변경
     setChatSessions(prev => prev.map(s => 
       s.id === sessionId ? { ...s, status: "completed" as const } : s
     ));
-
-    // ITS Agent로 자동 이동
-    if (onNavigateToAgent) {
-      onNavigateToAgent("a1");
-    }
   };
 
   // ITS 완료 처리 건너뛰기 핸들러
@@ -1537,7 +1561,7 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
     // 메시지 추가
     updateSessionMessages(sessionId, prev => [...prev, 
       { role: "user", content: "건너뛰기" },
-      { role: "agent", content: "✅ 장애보고서 작성 워크플로우가 완료되었습니다.\n\nITS 요청 건은 수동으로 완료 처리해 주세요." }
+      { role: "agent", content: "✅ ITS 완료 처리를 건너뛰었습니다.\n\nITS 요청 건은 수동으로 완료 처리해 주세요." }
     ]);
 
     // 상태를 completed로 변경
@@ -1699,6 +1723,9 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
         isPendingKnowledgeSave={activeSession?.status === "pending-knowledge-save"}
         onSaveToKnowledge={() => activeSessionId && handleSaveToKnowledge(activeSessionId)}
         onSkipKnowledgeSave={() => activeSessionId && handleSkipKnowledgeSave(activeSessionId)}
+        isPendingITSNavigate={activeSession?.status === "pending-its-navigate"}
+        onNavigateToITS={() => activeSessionId && handleNavigateToITS(activeSessionId)}
+        onSkipITSNavigate={() => activeSessionId && handleSkipITSNavigate(activeSessionId)}
         isPendingITSComplete={activeSession?.status === "pending-its-complete"}
         onCompleteITS={() => activeSessionId && handleCompleteITS(activeSessionId)}
         onSkipITSComplete={() => activeSessionId && handleSkipITSComplete(activeSessionId)}
