@@ -1272,6 +1272,12 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
     };
 
     setChatSessions(prev => [newReportSession, ...prev]);
+    
+    // 새 세션을 활성화하고 보고서 Agent로 자동 이동
+    setActiveSessionId(newReportSessionId);
+    if (onNavigateToAgent) {
+      onNavigateToAgent("a6");
+    }
   };
 
   // SOP Agent 장애보고서 작성 건너뛰기 핸들러
