@@ -1,12 +1,17 @@
-import { User, Mail, Shield, Bell, Palette, LogOut, Globe } from "lucide-react";
+import { useState } from "react";
+import { User, Mail, Shield, Bell, Palette, LogOut, Globe, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { InstructionSettingsModal } from "@/components/chat/InstructionSettingsModal";
+import { Instruction, defaultInstructions } from "@/data/instructions";
 
 const MyPage = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const [isInstructionModalOpen, setIsInstructionModalOpen] = useState(false);
+  const [instructions, setInstructions] = useState<Instruction[]>(defaultInstructions);
 
   const menuItems = [
     { icon: User, label: t("mypage.profile"), description: t("mypage.profileDesc") },
@@ -81,6 +86,20 @@ const MyPage = () => {
             </div>
           </div>
 
+          {/* Instruction Settings */}
+          <button
+            onClick={() => setIsInstructionModalOpen(true)}
+            className="w-full p-4 rounded-2xl bg-card border border-border hover:bg-secondary/50 transition-colors text-left flex items-center gap-3"
+          >
+            <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
+              <FileText className="w-5 h-5 text-muted-foreground" />
+            </div>
+            <div>
+              <p className="font-medium">{t("mypage.instructionSettings", "지침 설정")}</p>
+              <p className="text-sm text-muted-foreground">{t("mypage.instructionSettingsDesc", "Agent 및 Assistant에서 사용할 지침을 관리합니다")}</p>
+            </div>
+          </button>
+
           {/* Menu Items */}
           <div className="space-y-2">
             {menuItems.map((item) => (
@@ -111,6 +130,14 @@ const MyPage = () => {
           </button>
         </div>
       </div>
+
+      {/* Instruction Settings Modal */}
+      <InstructionSettingsModal
+        isOpen={isInstructionModalOpen}
+        onClose={() => setIsInstructionModalOpen(false)}
+        instructions={instructions}
+        onSave={setInstructions}
+      />
     </div>
   );
 };
