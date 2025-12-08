@@ -38,7 +38,7 @@ interface ChatSession {
     date: string;
   };
   messages: any[];
-  status: "pending-approval" | "pending-process-start" | "in-progress" | "completed" | "rejected";
+  status: string;
   createdAt: string;
 }
 

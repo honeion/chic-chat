@@ -41,8 +41,9 @@ export interface ChatSession {
   id: string;
   request: ActiveRequest;
   messages: Message[];
-  status: "pending-approval" | "pending-process-start" | "in-progress" | "completed" | "rejected";
+  status: "pending-approval" | "pending-process-start" | "in-progress" | "completed" | "rejected" | "pending-report-confirm" | "pending-report-start" | "pending-report-review" | "pending-knowledge-save";
   createdAt: string;
+  sourceIncidentSession?: string; // Report Agent에서 원본 인시던트 세션 ID 저장
 }
 
 const requestTypeLabels: Record<RequestType, string> = {
@@ -382,6 +383,20 @@ export function AgentDetail({ agentId, agentName, onNavigateToAgent }: AgentDeta
       });
       setTimeout(() => { 
         updateSessionMessages(sessionId, prev => [...prev, { role: "agent", content: t("agentDetail.taskComplete", { task: taskName }) }]); 
+        
+        // SOP Agent의 인시던트 처리 완료 시 장애보고서 작성 여부 확인
+        const session = chatSessions.find(s => s.id === sessionId);
+        if (session && session.request.type === "I" && session.request.requestNo.startsWith("SOP-")) {
+          setTimeout(() => {
+            updateSessionMessages(sessionId, prev => [...prev, { 
+              role: "agent", 
+              content: "✅ 인시던트 처리가 완료되었습니다.\n\n📝 해당 인시던트에 대한 **장애보고서**를 작성하시겠습니까?" 
+            }]);
+            setChatSessions(prev => prev.map(s => 
+              s.id === sessionId ? { ...s, status: "pending-report-confirm" as const } : s
+            ));
+          }, 800);
+        }
       }, 500);
     }, steps.length * 800 + 500);
   };
@@ -1200,6 +1215,238 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
     }]);
   };
 
+  // SOP Agent 장애보고서 작성 선택 핸들러
+  const handleCreateReport = (sessionId: string) => {
+    const session = chatSessions.find(s => s.id === sessionId);
+    if (!session) return;
+
+    // SOP 세션 상태를 completed로 변경
+    setChatSessions(prev => prev.map(s => 
+      s.id === sessionId ? { ...s, status: "completed" as const } : s
+    ));
+
+    // 메시지 추가 - 보고서 Agent로 이동
+    updateSessionMessages(sessionId, prev => [...prev, 
+      { role: "user", content: "작성하기" },
+      { 
+        role: "agent", 
+        content: `📝 장애보고서 작성을 위해 **보고서 Agent**로 이동합니다.\n\n보고서 Agent에서 장애보고서 작성을 시작해 주세요.`,
+        link: {
+          label: "보고서 Agent로 이동",
+          agentId: "a7"
+        }
+      }
+    ]);
+
+    // 보고서 Agent에 새로운 세션 생성
+    const newReportSessionId = `session-rpt-${Date.now()}`;
+    const requestNo = `RPT-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 9000) + 1000).padStart(4, '0')}`;
+    
+    const reportIntroMessage = `📋 **장애보고서 작성 준비**
+
+**원본 인시던트:** ${session.request.title}
+**인시던트 번호:** ${session.request.requestNo}
+**처리 일시:** ${new Date().toLocaleString('ko-KR')}
+
+---
+
+인시던트 처리 내용을 기반으로 장애보고서를 작성합니다.
+아래 '작성시작' 버튼을 클릭하면 AI가 자동으로 보고서를 생성합니다.`;
+
+    const newReportSession: ChatSession = {
+      id: newReportSessionId,
+      request: { 
+        id: `rpt-incident-${Date.now()}`, 
+        requestNo, 
+        type: "S" as RequestType, 
+        title: `장애보고서 - ${session.request.title}`, 
+        date: new Date().toISOString().split('T')[0]
+      },
+      messages: [{ role: "agent", content: reportIntroMessage }],
+      status: "pending-report-start",
+      createdAt: new Date().toISOString(),
+      sourceIncidentSession: sessionId
+    };
+
+    setChatSessions(prev => [newReportSession, ...prev]);
+  };
+
+  // SOP Agent 장애보고서 작성 건너뛰기 핸들러
+  const handleSkipReport = (sessionId: string) => {
+    // 상태를 completed로 변경
+    setChatSessions(prev => prev.map(s => 
+      s.id === sessionId ? { ...s, status: "completed" as const } : s
+    ));
+
+    // 메시지 추가
+    updateSessionMessages(sessionId, prev => [...prev, 
+      { role: "user", content: "건너뛰기" },
+      { role: "agent", content: "✅ 인시던트 처리가 완료되었습니다. 장애보고서 작성은 건너뛰었습니다." }
+    ]);
+  };
+
+  // 보고서 Agent 장애보고서 작성 시작 핸들러
+  const handleStartReportWriting = (sessionId: string) => {
+    const session = chatSessions.find(s => s.id === sessionId);
+    if (!session) return;
+
+    // 상태를 in-progress로 변경
+    setChatSessions(prev => prev.map(s => 
+      s.id === sessionId ? { ...s, status: "in-progress" as const } : s
+    ));
+
+    // 메시지 추가
+    updateSessionMessages(sessionId, prev => [...prev, { 
+      role: "user", 
+      content: "작성시작" 
+    }]);
+
+    // 보고서 생성 프로세싱 시뮬레이션
+    const reportSteps: ProcessingStep[] = [
+      { id: "1", step: "인시던트 정보 수집 중...", status: "pending" },
+      { id: "2", step: "처리 이력 분석 중...", status: "pending" },
+      { id: "3", step: "원인 분석 작성 중...", status: "pending" },
+      { id: "4", step: "조치 내용 정리 중...", status: "pending" },
+      { id: "5", step: "보고서 생성 중...", status: "pending" },
+    ];
+
+    setTimeout(() => {
+      updateSessionMessages(sessionId, prev => [...prev, { 
+        role: "agent", 
+        content: "장애보고서 작성 중...", 
+        processingSteps: reportSteps 
+      }]);
+
+      // 각 단계 순차적으로 완료
+      reportSteps.forEach((_, index) => {
+        setTimeout(() => {
+          updateSessionMessages(sessionId, prev => {
+            const updated = [...prev];
+            const lastMsg = updated[updated.length - 1];
+            if (lastMsg.processingSteps) {
+              lastMsg.processingSteps = lastMsg.processingSteps.map((step, i) => ({ 
+                ...step, 
+                status: i < index ? "completed" : i === index ? "running" : "pending" 
+              }));
+            }
+            return [...updated];
+          });
+        }, (index + 1) * 600);
+      });
+
+      // 모든 단계 완료 후 보고서 내용 표시
+      setTimeout(() => {
+        updateSessionMessages(sessionId, prev => {
+          const updated = [...prev];
+          const lastMsg = updated[updated.length - 1];
+          if (lastMsg.processingSteps) { 
+            lastMsg.processingSteps = lastMsg.processingSteps.map(step => ({ ...step, status: "completed" as const })); 
+          }
+          return [...updated];
+        });
+
+        setTimeout(() => {
+          const reportContent = `📄 **장애보고서**
+
+---
+
+## 1. 장애 개요
+- **장애 제목:** ${session.request.title}
+- **장애 번호:** ${session.request.requestNo}
+- **발생 일시:** ${session.request.date}
+- **복구 일시:** ${new Date().toLocaleString('ko-KR')}
+- **영향 범위:** 전체 사용자
+
+## 2. 장애 원인
+- 시스템 리소스 과부하로 인한 서비스 응답 지연
+- 동시 접속자 급증에 따른 DB 커넥션 풀 고갈
+
+## 3. 조치 내용
+1. 서버 리소스 모니터링 및 임계치 조정
+2. DB 커넥션 풀 확장 (50 → 100)
+3. 캐시 서버 추가 배포
+4. 로드밸런서 설정 최적화
+
+## 4. 재발 방지 대책
+- 자동 스케일링 정책 수립
+- 리소스 사용량 알림 임계치 강화
+- 정기적인 부하 테스트 수행
+
+## 5. 담당자
+- 처리자: 운영팀
+- 검토자: 팀장
+
+---
+
+보고서 검토 후 **추가의견 반영 재작성** 또는 **완료**를 선택해 주세요.`;
+
+          updateSessionMessages(sessionId, prev => [...prev, { role: "agent", content: reportContent }]);
+          
+          // 상태를 pending-report-review로 변경
+          setChatSessions(prev => prev.map(s => 
+            s.id === sessionId ? { ...s, status: "pending-report-review" as const } : s
+          ));
+        }, 500);
+      }, reportSteps.length * 600 + 500);
+    }, 300);
+  };
+
+  // 보고서 Agent 추가의견 반영 재작성 핸들러
+  const handleRewriteReport = (sessionId: string) => {
+    // 상태를 in-progress로 변경
+    setChatSessions(prev => prev.map(s => 
+      s.id === sessionId ? { ...s, status: "in-progress" as const } : s
+    ));
+
+    // 메시지 추가
+    updateSessionMessages(sessionId, prev => [...prev, 
+      { role: "user", content: "추가의견 반영 재작성" },
+      { role: "agent", content: "추가 의견을 입력해 주세요. 해당 내용을 반영하여 보고서를 재작성하겠습니다." }
+    ]);
+  };
+
+  // 보고서 Agent 완료 핸들러
+  const handleCompleteReport = (sessionId: string) => {
+    // 메시지 추가
+    updateSessionMessages(sessionId, prev => [...prev, 
+      { role: "user", content: "완료" },
+      { role: "agent", content: "✅ 장애보고서가 완료되었습니다.\n\n📚 해당 장애 정보를 **장애지식 RAG**에 저장하시겠습니까?\n저장하시면 향후 유사 장애 발생 시 참조할 수 있습니다." }
+    ]);
+
+    // 상태를 pending-knowledge-save로 변경
+    setChatSessions(prev => prev.map(s => 
+      s.id === sessionId ? { ...s, status: "pending-knowledge-save" as const } : s
+    ));
+  };
+
+  // 보고서 Agent 장애지식RAG 저장 핸들러
+  const handleSaveToKnowledge = (sessionId: string) => {
+    // 상태를 completed로 변경
+    setChatSessions(prev => prev.map(s => 
+      s.id === sessionId ? { ...s, status: "completed" as const } : s
+    ));
+
+    // 메시지 추가
+    updateSessionMessages(sessionId, prev => [...prev, 
+      { role: "user", content: "저장하기" },
+      { role: "agent", content: "✅ 장애지식 RAG에 성공적으로 저장되었습니다.\n\n📌 **저장된 정보:**\n- 장애 유형: 서비스 장애\n- 원인: 리소스 과부하\n- 해결 방법: 리소스 확장 및 최적화\n\n향후 유사 장애 발생 시 AI가 이 정보를 참조하여 더 빠른 해결을 지원합니다." }
+    ]);
+  };
+
+  // 보고서 Agent 장애지식RAG 저장 건너뛰기 핸들러
+  const handleSkipKnowledgeSave = (sessionId: string) => {
+    // 상태를 completed로 변경
+    setChatSessions(prev => prev.map(s => 
+      s.id === sessionId ? { ...s, status: "completed" as const } : s
+    ));
+
+    // 메시지 추가
+    updateSessionMessages(sessionId, prev => [...prev, 
+      { role: "user", content: "건너뛰기" },
+      { role: "agent", content: "✅ 장애보고서 작성이 완료되었습니다." }
+    ]);
+  };
+
   const renderDashboard = () => {
     switch (agentType) {
       case "sop": return (
@@ -1336,6 +1583,17 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
         onDirectProcess={() => activeSessionId && handleDirectProcess(activeSessionId)}
         isPendingDirectComplete={(activeSession?.status as string) === "pending-direct-complete"}
         onDirectProcessComplete={() => activeSessionId && handleDirectProcessComplete(activeSessionId)}
+        isPendingReportConfirm={activeSession?.status === "pending-report-confirm"}
+        onCreateReport={() => activeSessionId && handleCreateReport(activeSessionId)}
+        onSkipReport={() => activeSessionId && handleSkipReport(activeSessionId)}
+        isPendingReportStart={activeSession?.status === "pending-report-start"}
+        onStartReportWriting={() => activeSessionId && handleStartReportWriting(activeSessionId)}
+        isPendingReportReview={activeSession?.status === "pending-report-review"}
+        onRewriteReport={() => activeSessionId && handleRewriteReport(activeSessionId)}
+        onCompleteReport={() => activeSessionId && handleCompleteReport(activeSessionId)}
+        isPendingKnowledgeSave={activeSession?.status === "pending-knowledge-save"}
+        onSaveToKnowledge={() => activeSessionId && handleSaveToKnowledge(activeSessionId)}
+        onSkipKnowledgeSave={() => activeSessionId && handleSkipKnowledgeSave(activeSessionId)}
       />
     </div>
   );

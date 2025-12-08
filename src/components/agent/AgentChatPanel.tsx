@@ -59,6 +59,21 @@ interface AgentChatPanelProps {
   // 직접 처리 완료 대기 상태
   isPendingDirectComplete?: boolean;
   onDirectProcessComplete?: () => void;
+  // SOP Agent 처리 완료 후 장애보고서 작성 여부 확인 상태
+  isPendingReportConfirm?: boolean;
+  onCreateReport?: () => void;
+  onSkipReport?: () => void;
+  // 보고서 Agent 장애보고서 작성 시작 대기 상태
+  isPendingReportStart?: boolean;
+  onStartReportWriting?: () => void;
+  // 보고서 Agent 추가의견/재작성/완료 선택 상태
+  isPendingReportReview?: boolean;
+  onRewriteReport?: () => void;
+  onCompleteReport?: () => void;
+  // 보고서 완료 후 장애지식RAG 저장 여부 확인 상태
+  isPendingKnowledgeSave?: boolean;
+  onSaveToKnowledge?: () => void;
+  onSkipKnowledgeSave?: () => void;
 }
 
 // 요청 타입별 아이콘 및 색상
@@ -92,7 +107,18 @@ export function AgentChatPanel({
   onRouteToSOP,
   onDirectProcess,
   isPendingDirectComplete,
-  onDirectProcessComplete
+  onDirectProcessComplete,
+  isPendingReportConfirm,
+  onCreateReport,
+  onSkipReport,
+  isPendingReportStart,
+  onStartReportWriting,
+  isPendingReportReview,
+  onRewriteReport,
+  onCompleteReport,
+  isPendingKnowledgeSave,
+  onSaveToKnowledge,
+  onSkipKnowledgeSave
 }: AgentChatPanelProps) {
   const { t } = useTranslation();
   const [chatInput, setChatInput] = useState("");
@@ -324,6 +350,98 @@ export function AgentChatPanel({
         </div>
       )}
 
+      {/* SOP Agent 처리 완료 후 장애보고서 작성 여부 확인 */}
+      {isPendingReportConfirm && activeRequest && (
+        <div className="p-3 border-t border-border bg-amber-500/5">
+          <p className="text-xs text-muted-foreground mb-2 text-center">
+            장애보고서를 작성하시겠습니까?
+          </p>
+          <div className="flex gap-2 justify-center">
+            <button
+              onClick={onCreateReport}
+              className="px-4 py-1.5 rounded-md bg-amber-500/20 text-amber-600 dark:text-amber-400 text-sm font-medium hover:bg-amber-500/30 transition-colors flex items-center gap-1.5 border border-amber-500/30"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              작성하기
+            </button>
+            <button
+              onClick={onSkipReport}
+              className="px-4 py-1.5 rounded-md bg-muted text-muted-foreground text-sm font-medium hover:bg-muted/80 transition-colors flex items-center gap-1.5 border border-border"
+            >
+              <X className="w-3.5 h-3.5" />
+              건너뛰기
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 보고서 Agent 장애보고서 작성 시작 대기 */}
+      {isPendingReportStart && activeRequest && (
+        <div className="p-3 border-t border-border bg-primary/5">
+          <p className="text-xs text-muted-foreground mb-2 text-center">
+            장애보고서 작성을 시작하시겠습니까?
+          </p>
+          <div className="flex gap-2 justify-center">
+            <button
+              onClick={onStartReportWriting}
+              className="px-4 py-1.5 rounded-md bg-primary/20 text-primary text-sm font-medium hover:bg-primary/30 transition-colors flex items-center gap-1.5 border border-primary/30"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              작성시작
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 보고서 추가의견/재작성/완료 선택 */}
+      {isPendingReportReview && activeRequest && (
+        <div className="p-3 border-t border-border bg-primary/5">
+          <p className="text-xs text-muted-foreground mb-2 text-center">
+            보고서를 검토해 주세요. 추가 의견 반영 후 재작성 또는 완료를 선택하세요.
+          </p>
+          <div className="flex gap-2 justify-center">
+            <button
+              onClick={onRewriteReport}
+              className="px-4 py-1.5 rounded-md bg-amber-500/20 text-amber-600 dark:text-amber-400 text-sm font-medium hover:bg-amber-500/30 transition-colors flex items-center gap-1.5 border border-amber-500/30"
+            >
+              <Wrench className="w-3.5 h-3.5" />
+              추가의견 반영 재작성
+            </button>
+            <button
+              onClick={onCompleteReport}
+              className="px-4 py-1.5 rounded-md bg-status-online/20 text-status-online text-sm font-medium hover:bg-status-online/30 transition-colors flex items-center gap-1.5 border border-status-online/30"
+            >
+              <CheckCircle className="w-3.5 h-3.5" />
+              완료
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 장애지식RAG 저장 여부 확인 */}
+      {isPendingKnowledgeSave && activeRequest && (
+        <div className="p-3 border-t border-border bg-emerald-500/5">
+          <p className="text-xs text-muted-foreground mb-2 text-center">
+            장애지식 RAG에 저장하시겠습니까?
+          </p>
+          <div className="flex gap-2 justify-center">
+            <button
+              onClick={onSaveToKnowledge}
+              className="px-4 py-1.5 rounded-md bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-sm font-medium hover:bg-emerald-500/30 transition-colors flex items-center gap-1.5 border border-emerald-500/30"
+            >
+              <Database className="w-3.5 h-3.5" />
+              저장하기
+            </button>
+            <button
+              onClick={onSkipKnowledgeSave}
+              className="px-4 py-1.5 rounded-md bg-muted text-muted-foreground text-sm font-medium hover:bg-muted/80 transition-colors flex items-center gap-1.5 border border-border"
+            >
+              <X className="w-3.5 h-3.5" />
+              건너뛰기
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="p-4 border-t border-border">
         <div className="flex gap-2">
