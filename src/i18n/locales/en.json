@@ -158,7 +158,7 @@
     "userLevel": "Lv.2 User"
   },
   "sidebar": {
-    "skiAgent": "SKI Agent",
+    "skiAgent": "Worker",
     "myAgent": "My Agent",
     "assistant": "Assistant",
     "agentList": "Agent List",
