@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { X, FileText, Save, Eye, Edit3 } from "lucide-react";
+import { FileText, Save, Eye, Edit3, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -67,6 +67,17 @@ export function InstructionSettingsModal({
     }
   };
 
+  const handleDeleteInstruction = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const updated = localInstructions.filter((inst) => inst.id !== id);
+    setLocalInstructions(updated);
+    onSave(updated);
+    if (selectedId === id) {
+      setSelectedId(null);
+      setEditedContent("");
+    }
+  };
+
   const renderMarkdown = (content: string) => {
     // Simple markdown rendering
     return content
@@ -129,19 +140,30 @@ export function InstructionSettingsModal({
             </h3>
             <div className="flex flex-col gap-2">
               {localInstructions.map((instruction) => (
-                <button
+                <div
                   key={instruction.id}
-                  onClick={() => handleSelectInstruction(instruction.id)}
                   className={cn(
-                    "flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-colors",
+                    "flex items-center gap-2 px-3 py-2 rounded-lg transition-colors group",
                     instruction.id === selectedId
                       ? "bg-primary/20 text-primary border border-primary/50"
                       : "bg-secondary/50 text-muted-foreground hover:bg-secondary border border-transparent"
                   )}
                 >
-                  <FileText className="w-4 h-4 flex-shrink-0" />
-                  <span className="text-sm truncate">{instruction.name}</span>
-                </button>
+                  <button
+                    onClick={() => handleSelectInstruction(instruction.id)}
+                    className="flex items-center gap-2 flex-1 text-left"
+                  >
+                    <FileText className="w-4 h-4 flex-shrink-0" />
+                    <span className="text-sm truncate">{instruction.name}</span>
+                  </button>
+                  <button
+                    onClick={(e) => handleDeleteInstruction(instruction.id, e)}
+                    className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-destructive/20 hover:text-destructive transition-all"
+                    title={t("common.delete", "삭제")}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               ))}
             </div>
           </div>
