@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Workflow, Plus, Play, Save, Trash2, ChevronRight, ChevronDown, Clock, History, X, Settings, MessageSquare } from "lucide-react";
+import { Workflow, Plus, Play, Save, Trash2, ChevronRight, ChevronDown, Clock, History, X, Settings, MessageSquare, Eye, Edit3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NewAgentModal } from "@/components/workflow/NewAgentModal";
 import { WorkflowChatPanel } from "@/components/workflow/WorkflowChatPanel";
@@ -70,6 +70,7 @@ export function WorkflowPage({
   const [newAgentSelectedTools, setNewAgentSelectedTools] = useState<string[]>([]);
   const [newAgentKnowledge, setNewAgentKnowledge] = useState<string[]>([]);
   const [newAgentInstructions, setNewAgentInstructions] = useState("");
+  const [instructionsViewMode, setInstructionsViewMode] = useState<"edit" | "preview">("edit");
   
   // System filter toggles
   const [systemFilters, setSystemFilters] = useState<Record<OperatingSystem, boolean>>({
@@ -538,6 +539,70 @@ export function WorkflowPage({
                 />
               </div>
 
+              {/* Instructions with Markdown */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium">지침</label>
+                  <div className="flex rounded-lg border border-border overflow-hidden">
+                    <button
+                      onClick={() => setInstructionsViewMode("edit")}
+                      className={cn(
+                        "px-3 py-1 text-xs flex items-center gap-1 transition-colors",
+                        instructionsViewMode === "edit"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-background hover:bg-muted"
+                      )}
+                    >
+                      <Edit3 className="w-3 h-3" />
+                      편집
+                    </button>
+                    <button
+                      onClick={() => setInstructionsViewMode("preview")}
+                      className={cn(
+                        "px-3 py-1 text-xs flex items-center gap-1 transition-colors",
+                        instructionsViewMode === "preview"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-background hover:bg-muted"
+                      )}
+                    >
+                      <Eye className="w-3 h-3" />
+                      미리보기
+                    </button>
+                  </div>
+                </div>
+                {instructionsViewMode === "edit" ? (
+                  <textarea
+                    value={newAgentInstructions}
+                    onChange={(e) => setNewAgentInstructions(e.target.value)}
+                    placeholder="Agent가 따라야 할 지침을 Markdown 형식으로 입력하세요&#10;&#10;예시:&#10;# 역할&#10;- 시스템 점검 수행&#10;- 결과 리포트 생성"
+                    rows={6}
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none font-mono text-sm"
+                  />
+                ) : (
+                  <div className="w-full min-h-[150px] max-h-[200px] overflow-y-auto px-3 py-2 rounded-lg border border-border bg-muted/30 prose prose-sm dark:prose-invert max-w-none">
+                    {newAgentInstructions ? (
+                      <div className="whitespace-pre-wrap text-sm">
+                        {newAgentInstructions.split('\n').map((line, i) => {
+                          if (line.startsWith('# ')) return <h1 key={i} className="text-lg font-bold mt-2 mb-1">{line.slice(2)}</h1>;
+                          if (line.startsWith('## ')) return <h2 key={i} className="text-base font-semibold mt-2 mb-1">{line.slice(3)}</h2>;
+                          if (line.startsWith('### ')) return <h3 key={i} className="text-sm font-semibold mt-1 mb-1">{line.slice(4)}</h3>;
+                          if (line.startsWith('- ')) return <li key={i} className="ml-4">{line.slice(2)}</li>;
+                          if (line.startsWith('* ')) return <li key={i} className="ml-4">{line.slice(2)}</li>;
+                          if (line.match(/^\d+\. /)) return <li key={i} className="ml-4 list-decimal">{line.replace(/^\d+\. /, '')}</li>;
+                          if (line.startsWith('> ')) return <blockquote key={i} className="border-l-2 border-primary pl-2 italic text-muted-foreground">{line.slice(2)}</blockquote>;
+                          if (line.startsWith('```')) return null;
+                          if (line.trim() === '') return <br key={i} />;
+                          return <p key={i} className="my-1">{line}</p>;
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground italic">지침을 입력하면 여기에 미리보기가 표시됩니다.</p>
+                    )}
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground mt-1">Markdown 형식을 지원합니다.</p>
+              </div>
+
               {/* Tool Selection */}
               <div>
                 <label className="block text-sm font-medium mb-2">Tool 선택</label>
@@ -585,18 +650,6 @@ export function WorkflowPage({
                 <p className="text-xs text-muted-foreground mt-1">
                   선택된 지식: {newAgentKnowledge.length}개
                 </p>
-              </div>
-
-              {/* Instructions */}
-              <div>
-                <label className="block text-sm font-medium mb-2">지침</label>
-                <textarea
-                  value={newAgentInstructions}
-                  onChange={(e) => setNewAgentInstructions(e.target.value)}
-                  placeholder="Agent가 따라야 할 지침을 입력하세요"
-                  rows={4}
-                  className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
-                />
               </div>
             </div>
             <div className="flex justify-end gap-2 p-4 border-t border-border shrink-0">
@@ -664,6 +717,70 @@ export function WorkflowPage({
                 />
               </div>
 
+              {/* Instructions with Markdown */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium">지침</label>
+                  <div className="flex rounded-lg border border-border overflow-hidden">
+                    <button
+                      onClick={() => setInstructionsViewMode("edit")}
+                      className={cn(
+                        "px-3 py-1 text-xs flex items-center gap-1 transition-colors",
+                        instructionsViewMode === "edit"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-background hover:bg-muted"
+                      )}
+                    >
+                      <Edit3 className="w-3 h-3" />
+                      편집
+                    </button>
+                    <button
+                      onClick={() => setInstructionsViewMode("preview")}
+                      className={cn(
+                        "px-3 py-1 text-xs flex items-center gap-1 transition-colors",
+                        instructionsViewMode === "preview"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-background hover:bg-muted"
+                      )}
+                    >
+                      <Eye className="w-3 h-3" />
+                      미리보기
+                    </button>
+                  </div>
+                </div>
+                {instructionsViewMode === "edit" ? (
+                  <textarea
+                    value={newAgentInstructions}
+                    onChange={(e) => setNewAgentInstructions(e.target.value)}
+                    placeholder="Agent가 따라야 할 지침을 Markdown 형식으로 입력하세요&#10;&#10;예시:&#10;# 역할&#10;- 시스템 점검 수행&#10;- 결과 리포트 생성"
+                    rows={6}
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none font-mono text-sm"
+                  />
+                ) : (
+                  <div className="w-full min-h-[150px] max-h-[200px] overflow-y-auto px-3 py-2 rounded-lg border border-border bg-muted/30 prose prose-sm dark:prose-invert max-w-none">
+                    {newAgentInstructions ? (
+                      <div className="whitespace-pre-wrap text-sm">
+                        {newAgentInstructions.split('\n').map((line, i) => {
+                          if (line.startsWith('# ')) return <h1 key={i} className="text-lg font-bold mt-2 mb-1">{line.slice(2)}</h1>;
+                          if (line.startsWith('## ')) return <h2 key={i} className="text-base font-semibold mt-2 mb-1">{line.slice(3)}</h2>;
+                          if (line.startsWith('### ')) return <h3 key={i} className="text-sm font-semibold mt-1 mb-1">{line.slice(4)}</h3>;
+                          if (line.startsWith('- ')) return <li key={i} className="ml-4">{line.slice(2)}</li>;
+                          if (line.startsWith('* ')) return <li key={i} className="ml-4">{line.slice(2)}</li>;
+                          if (line.match(/^\d+\. /)) return <li key={i} className="ml-4 list-decimal">{line.replace(/^\d+\. /, '')}</li>;
+                          if (line.startsWith('> ')) return <blockquote key={i} className="border-l-2 border-primary pl-2 italic text-muted-foreground">{line.slice(2)}</blockquote>;
+                          if (line.startsWith('```')) return null;
+                          if (line.trim() === '') return <br key={i} />;
+                          return <p key={i} className="my-1">{line}</p>;
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground italic">지침을 입력하면 여기에 미리보기가 표시됩니다.</p>
+                    )}
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground mt-1">Markdown 형식을 지원합니다.</p>
+              </div>
+
               {/* Tool Selection */}
               <div>
                 <label className="block text-sm font-medium mb-2">Tool 선택</label>
@@ -711,18 +828,6 @@ export function WorkflowPage({
                 <p className="text-xs text-muted-foreground mt-1">
                   선택된 지식: {newAgentKnowledge.length}개
                 </p>
-              </div>
-
-              {/* Instructions */}
-              <div>
-                <label className="block text-sm font-medium mb-2">지침</label>
-                <textarea
-                  value={newAgentInstructions}
-                  onChange={(e) => setNewAgentInstructions(e.target.value)}
-                  placeholder="Agent가 따라야 할 지침을 입력하세요"
-                  rows={4}
-                  className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
-                />
               </div>
             </div>
             <div className="flex justify-end gap-2 p-4 border-t border-border shrink-0">
