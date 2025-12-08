@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 import { Send, Paperclip, Mic, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ToolSelector } from "./ToolSelector";
+import { SystemSelector } from "./SystemSelector";
+import { InstructionSelector } from "./InstructionSelector";
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -50,9 +52,11 @@ export function ChatInput({ onSend, disabled, showToolSelector = false, showQuic
   return (
     <div className="p-4 border-t border-border bg-background/50 backdrop-blur-sm">
       <div className="max-w-4xl mx-auto">
-        {/* Tool Selector - for Assistant */}
+        {/* Selectors - for Assistant */}
         {showToolSelector && (
-          <div className="mb-3">
+          <div className="mb-3 flex items-center gap-2 flex-wrap">
+            <SystemSelector />
+            <InstructionSelector />
             <ToolSelector />
           </div>
         )}
