@@ -337,7 +337,7 @@ export function ChatSidebar({
           <>
             {/* My Agent Section */}
             <div className="px-2 py-1.5 text-xs font-semibold text-primary uppercase tracking-wider">
-              {t("sidebar.myAgent")}
+              My Agent 마켓
             </div>
             
             {/* My Agent List */}
