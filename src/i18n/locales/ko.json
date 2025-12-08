@@ -149,7 +149,7 @@
   },
   "sidebar": {
     "skiAgent": "SKI Agent",
-    "myAgent": "My Agent Type",
+    "myAgent": "My Agent",
     "assistant": "Assistant",
     "agentList": "Agent List",
     "workflow": "Workflow",
