@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { X, Plus, ChevronRight, GripVertical, Trash2, Folder } from "lucide-react";
+import { X, Plus, ChevronRight, GripVertical, Trash2, Folder, FileInput } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { OperatingSystem } from "@/pages/Index";
+import { InstructionImportModal } from "./InstructionImportModal";
+import { Instruction, defaultInstructions } from "@/data/instructions";
 
 interface Tool {
   id: string;
@@ -31,6 +33,8 @@ export function NewAgentModal({ isOpen, onClose, onSave, tools }: NewAgentModalP
   const [instructions, setInstructions] = useState("");
   const [hoveredTool, setHoveredTool] = useState<Tool | null>(null);
   const [selectedSystems, setSelectedSystems] = useState<OperatingSystem[]>([]);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [availableInstructions] = useState<Instruction[]>(defaultInstructions);
 
   const SYSTEM_BOXES: OperatingSystem[] = ["e-총무", "BiOn", "SATIS"];
 
@@ -207,7 +211,16 @@ export function NewAgentModal({ isOpen, onClose, onSave, tools }: NewAgentModalP
 
           {/* Instructions */}
           <div>
-            <label className="block text-sm font-medium mb-2">{t("workflow.instructions")}</label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-sm font-medium">{t("workflow.instructions")}</label>
+              <button
+                onClick={() => setIsImportModalOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs bg-secondary hover:bg-secondary/80 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <FileInput className="w-3.5 h-3.5" />
+                {t("workflow.importInstruction", "지침 불러오기")}
+              </button>
+            </div>
             <textarea
               value={instructions}
               onChange={(e) => setInstructions(e.target.value)}
@@ -239,6 +252,14 @@ export function NewAgentModal({ isOpen, onClose, onSave, tools }: NewAgentModalP
             {t("common.save")}
           </button>
         </div>
+
+        {/* Import Modal */}
+        <InstructionImportModal
+          isOpen={isImportModalOpen}
+          onClose={() => setIsImportModalOpen(false)}
+          instructions={availableInstructions}
+          onSelect={(instruction) => setInstructions(instruction.content)}
+        />
       </div>
     </div>
   );

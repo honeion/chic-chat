@@ -11,11 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
-interface Instruction {
-  id: string;
-  name: string;
-  content: string;
-}
+import { Instruction } from "@/data/instructions";
 
 interface InstructionSettingsModalProps {
   isOpen: boolean;
