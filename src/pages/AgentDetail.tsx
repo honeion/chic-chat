@@ -1223,27 +1223,8 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
     const session = chatSessions.find(s => s.id === sessionId);
     if (!session) return;
 
-    // SOP 세션 상태를 completed로 변경
-    setChatSessions(prev => prev.map(s => 
-      s.id === sessionId ? { ...s, status: "completed" as const } : s
-    ));
-
-    // 메시지 추가 - 보고서 Agent로 이동
-    updateSessionMessages(sessionId, prev => [...prev, 
-      { role: "user", content: "작성하기" },
-      { 
-        role: "agent", 
-        content: `📝 장애보고서 작성을 위해 **보고서 Agent**로 이동합니다.\n\n보고서 Agent에서 장애보고서 작성을 시작해 주세요.`,
-        link: {
-          label: "보고서 Agent로 이동",
-          agentId: "a6"
-        }
-      }
-    ]);
-
-    // 보고서 Agent에 새로운 세션 생성
-    const newReportSessionId = `session-rpt-${Date.now()}`;
-    const requestNo = `RPT-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 9000) + 1000).padStart(4, '0')}`;
+    // 새로운 보고서 요청번호 생성
+    const reportRequestNo = `RPT-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 9000) + 1000).padStart(4, '0')}`;
     
     const reportIntroMessage = `📋 **장애보고서 작성 준비**
 
@@ -1256,25 +1237,28 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
 인시던트 처리 내용을 기반으로 장애보고서를 작성합니다.
 아래 '작성시작' 버튼을 클릭하면 AI가 자동으로 보고서를 생성합니다.`;
 
-    const newReportSession: ChatSession = {
-      id: newReportSessionId,
-      request: { 
-        id: `rpt-incident-${Date.now()}`, 
-        requestNo, 
-        type: "S" as RequestType, 
-        title: `장애보고서 - ${session.request.title}`, 
-        date: new Date().toISOString().split('T')[0]
-      },
-      messages: [{ role: "agent", content: reportIntroMessage }],
-      status: "pending-report-start",
-      createdAt: new Date().toISOString(),
-      sourceIncidentSession: sessionId
-    };
-
-    setChatSessions(prev => [newReportSession, ...prev]);
+    // 기존 세션 업데이트: 메시지 추가 + 요청번호를 RPT-로 변경 + 상태를 pending-report-start로 변경
+    setChatSessions(prev => prev.map(s => 
+      s.id === sessionId 
+        ? { 
+            ...s, 
+            request: {
+              ...s.request,
+              requestNo: reportRequestNo,
+              title: `장애보고서 - ${s.request.title}`
+            },
+            messages: [
+              ...s.messages,
+              { role: "user" as const, content: "작성하기" },
+              { role: "agent" as const, content: reportIntroMessage }
+            ],
+            status: "pending-report-start" as const,
+            sourceIncidentSession: sessionId
+          } 
+        : s
+    ));
     
-    // 새 세션을 활성화하고 보고서 Agent로 자동 이동
-    setActiveSessionId(newReportSessionId);
+    // 기존 세션을 유지하고 보고서 Agent로 자동 이동
     if (onNavigateToAgent) {
       onNavigateToAgent("a6");
     }
