@@ -12,7 +12,8 @@ import {
   ChevronDown,
   ChevronRight,
   Store,
-  Folder
+  Folder,
+  Crown,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -543,7 +544,16 @@ export function ChatSidebar({
       </div>
 
       {/* Footer */}
-      <div className="p-3 border-t border-border">
+      <div className="p-3 border-t border-border space-y-2">
+        {/* Admin Link - Mock: always show for demo, in production check isAdmin */}
+        <button
+          onClick={() => navigate("/admin")}
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors"
+        >
+          <Crown className="w-4 h-4 text-primary" />
+          <span className="text-sm font-medium text-primary">관리자 페이지</span>
+        </button>
+
         <div 
           onClick={() => navigate("/mypage")}
           className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary transition-colors cursor-pointer"
