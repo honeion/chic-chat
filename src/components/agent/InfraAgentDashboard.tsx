@@ -34,25 +34,22 @@ const SYSTEMS: { id: SystemType; name: string }[] = [
   { id: "SATIS", name: "SATIS시스템" },
 ];
 
-export function InfraAgentDashboard({ 
-  onNewChat, 
+export function InfraAgentDashboard({
+  onNewChat,
   onSelectSession,
   chatSessions = [],
   activeSessionId,
-  onOpenSettings
+  onOpenSettings,
 }: InfraAgentDashboardProps) {
   const { t } = useTranslation();
   const [selectedSystem, setSelectedSystem] = useState<SystemType | "전체">("전체");
 
   // INFRA- 로 시작하는 세션만 필터링
-  const infraSessions = chatSessions.filter(s => 
-    s.request.requestNo.startsWith("INFRA-")
-  );
+  const infraSessions = chatSessions.filter((s) => s.request.requestNo.startsWith("INFRA-"));
 
   // 시스템별 필터링
-  const filteredSessions = selectedSystem === "전체" 
-    ? infraSessions 
-    : infraSessions.filter(s => s.request.system === selectedSystem);
+  const filteredSessions =
+    selectedSystem === "전체" ? infraSessions : infraSessions.filter((s) => s.request.system === selectedSystem);
 
   const getStatusStyle = (status: string) => {
     switch (status) {
@@ -79,7 +76,7 @@ export function InfraAgentDashboard({
   return (
     <div className="space-y-6">
       {/* 제목 */}
-      <h1 className="text-2xl font-bold text-foreground">Infra Agent</h1>
+      <h1 className="text-2xl font-bold text-foreground"></h1>
 
       {/* 시스템 필터링 및 설정 */}
       <div className="rounded-xl overflow-hidden border border-primary/30">
@@ -101,7 +98,7 @@ export function InfraAgentDashboard({
               >
                 전체
               </Button>
-              {SYSTEMS.map(system => (
+              {SYSTEMS.map((system) => (
                 <Button
                   key={system.id}
                   size="sm"
@@ -117,14 +114,14 @@ export function InfraAgentDashboard({
 
           {/* 시스템 카드 목록 */}
           <div className="grid grid-cols-3 gap-4">
-            {SYSTEMS.map(system => (
-              <div 
+            {SYSTEMS.map((system) => (
+              <div
                 key={system.id}
                 className={cn(
                   "p-4 rounded-lg border transition-all",
                   selectedSystem === system.id || selectedSystem === "전체"
                     ? "border-primary/50 bg-primary/5"
-                    : "border-border/50 bg-card/50 opacity-50"
+                    : "border-border/50 bg-card/50 opacity-50",
                 )}
               >
                 <div className="flex items-center justify-between mb-2">
@@ -132,17 +129,12 @@ export function InfraAgentDashboard({
                     <Server className="w-4 h-4 text-primary" />
                     <span className="text-sm font-medium">{system.name}</span>
                   </div>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-7 w-7 p-0"
-                    onClick={() => onOpenSettings?.(system.id)}
-                  >
+                  <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => onOpenSettings?.(system.id)}>
                     <Settings className="w-4 h-4" />
                   </Button>
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  {infraSessions.filter(s => s.request.system === system.id).length}건의 작업
+                  {infraSessions.filter((s) => s.request.system === system.id).length}건의 작업
                 </div>
               </div>
             ))}
@@ -157,36 +149,32 @@ export function InfraAgentDashboard({
             <MessageSquare className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium text-foreground">처리 Chat 이력</span>
             {selectedSystem !== "전체" && (
-              <span className="px-2 py-0.5 rounded text-xs bg-primary/20 text-primary">
-                {selectedSystem}
-              </span>
+              <span className="px-2 py-0.5 rounded text-xs bg-primary/20 text-primary">{selectedSystem}</span>
             )}
           </div>
-          <Button 
-            size="sm" 
-            variant="outline" 
+          <Button
+            size="sm"
+            variant="outline"
             className="h-7 text-xs gap-1 border-primary/30 hover:bg-primary/10"
             onClick={onNewChat}
           >
-            <MessageSquare className="w-3 h-3" />
-            새 작업
+            <MessageSquare className="w-3 h-3" />새 작업
           </Button>
         </div>
         <div className="bg-background/80 divide-y divide-border/30">
           {filteredSessions.length === 0 ? (
             <div className="p-6 text-center text-muted-foreground text-sm">
-              {selectedSystem === "전체" 
+              {selectedSystem === "전체"
                 ? "처리 이력이 없습니다. 새 작업을 시작해보세요."
-                : `${selectedSystem} 시스템의 처리 이력이 없습니다.`
-              }
+                : `${selectedSystem} 시스템의 처리 이력이 없습니다.`}
             </div>
           ) : (
-            filteredSessions.map(session => (
-              <div 
-                key={session.id} 
+            filteredSessions.map((session) => (
+              <div
+                key={session.id}
                 className={cn(
                   "p-3 flex items-center gap-3 hover:bg-primary/5 cursor-pointer transition-colors",
-                  activeSessionId === session.id && "bg-primary/10"
+                  activeSessionId === session.id && "bg-primary/10",
                 )}
                 onClick={() => onSelectSession?.(session.id)}
               >
