@@ -1,10 +1,20 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { GitBranch, Calendar, CheckCircle, Clock, AlertTriangle, Users, Shield, ChevronDown, ChevronUp, Ticket, Database, Wrench, User, FileText, Play } from "lucide-react";
+import { GitBranch, Calendar, CheckCircle, Clock, AlertTriangle, Users, Shield, ChevronDown, ChevronUp, Ticket, Database, Wrench, User, FileText, Play, Monitor } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // 요청 타입 정의 (ITS와 동일)
 type RequestType = "I" | "C" | "D" | "A" | "S";
+
+// 담당시스템 정의
+type SystemType = "all" | "e-총무" | "BiOn" | "SATIS";
+
+const systemOptions: { value: SystemType; label: string }[] = [
+  { value: "all", label: "전체" },
+  { value: "e-총무", label: "e-총무시스템" },
+  { value: "BiOn", label: "BiOn" },
+  { value: "SATIS", label: "SATIS" },
+];
 
 interface RoutedRequest {
   id: string;
@@ -13,6 +23,7 @@ interface RoutedRequest {
   title: string;
   date: string;
   sourceAgent: string;
+  system?: string;
 }
 
 interface ChangeRequest {
@@ -26,6 +37,7 @@ interface ChangeRequest {
   requestNo?: string;
   requestType?: RequestType;
   sourceAgent?: string;
+  system?: string;
 }
 
 interface ChatSession {
@@ -51,10 +63,10 @@ interface ChangeManagementAgentDashboardProps {
 }
 
 const mockChangeRequests: ChangeRequest[] = [
-  { id: "cr1", title: "DB Schema Change", type: "planned", status: "approved", requester: "Dev Kim", scheduledDate: "12/10 02:00", risk: "high" },
-  { id: "cr2", title: "Security Patch", type: "emergency", status: "in-progress", requester: "Sec Park", scheduledDate: "In Progress", risk: "medium" },
-  { id: "cr3", title: "API Version Upgrade", type: "planned", status: "pending", requester: "Backend Lee", scheduledDate: "12/15 03:00", risk: "medium" },
-  { id: "cr4", title: "Server Scaling", type: "standard", status: "completed", requester: "Infra Choi", scheduledDate: "Done", risk: "low" },
+  { id: "cr1", title: "DB Schema Change", type: "planned", status: "approved", requester: "Dev Kim", scheduledDate: "12/10 02:00", risk: "high", system: "e-총무" },
+  { id: "cr2", title: "Security Patch", type: "emergency", status: "in-progress", requester: "Sec Park", scheduledDate: "In Progress", risk: "medium", system: "BiOn" },
+  { id: "cr3", title: "API Version Upgrade", type: "planned", status: "pending", requester: "Backend Lee", scheduledDate: "12/15 03:00", risk: "medium", system: "SATIS" },
+  { id: "cr4", title: "Server Scaling", type: "standard", status: "completed", requester: "Infra Choi", scheduledDate: "Done", risk: "low", system: "e-총무" },
 ];
 
 // 요청 타입별 아이콘 및 색상
@@ -75,6 +87,7 @@ export function ChangeManagementAgentDashboard({
 }: ChangeManagementAgentDashboardProps) {
   const { t } = useTranslation();
   const [isCompletedCollapsed, setIsCompletedCollapsed] = useState(true);
+  const [selectedSystem, setSelectedSystem] = useState<SystemType>("all");
   
   // 변경관리 Agent에 해당하는 채팅 세션만 필터링 (type: C)
   const changeChatSessions = chatSessions.filter(s => s.request.type === "C");
@@ -91,9 +104,28 @@ export function ChangeManagementAgentDashboard({
     requestNo: req.requestNo,
     requestType: req.type,
     sourceAgent: req.sourceAgent,
+    system: req.system,
   }));
 
   const allChangeRequests = [...routedChangeRequests, ...mockChangeRequests];
+
+  // 시스템 필터링 함수
+  const filterBySystem = (items: ChangeRequest[]): ChangeRequest[] => {
+    if (selectedSystem === "all") return items;
+    return items.filter(item => item.system === selectedSystem);
+  };
+
+  // 채팅 세션 필터링
+  const filterSessionsBySystem = (sessions: typeof changeChatSessions): typeof changeChatSessions => {
+    if (selectedSystem === "all") return sessions;
+    return sessions.filter(s => {
+      const matchingRequest = allChangeRequests.find(r => r.id === s.request.id);
+      return matchingRequest?.system === selectedSystem;
+    });
+  };
+
+  const filteredChangeRequests = filterBySystem(allChangeRequests);
+  const filteredChatSessions = filterSessionsBySystem(changeChatSessions);
 
   const getTypeStyle = (type: ChangeRequest["type"]) => {
     switch (type) {
@@ -127,9 +159,9 @@ export function ChangeManagementAgentDashboard({
     }
   };
 
-  const pendingRequests = allChangeRequests.filter(cr => cr.status === "pending" || cr.status === "approved");
-  const inProgressRequests = allChangeRequests.filter(cr => cr.status === "in-progress");
-  const completedRequests = allChangeRequests.filter(cr => cr.status === "completed" || cr.status === "rejected");
+  const pendingRequests = filteredChangeRequests.filter(cr => cr.status === "pending" || cr.status === "approved");
+  const inProgressRequests = filteredChangeRequests.filter(cr => cr.status === "in-progress");
+  const completedRequests = filteredChangeRequests.filter(cr => cr.status === "completed" || cr.status === "rejected");
 
   // 세션 ID 찾기 헬퍼 함수
   const findSessionByRequestId = (requestId: string) => {
@@ -208,11 +240,40 @@ export function ChangeManagementAgentDashboard({
 
   return (
     <div className="space-y-6 h-full overflow-y-auto">
+      {/* 담당시스템 선택 */}
+      <div className="rounded-xl border border-border bg-card p-4">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <Monitor className="w-4 h-4 text-primary" />
+            <span>담당시스템</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {systemOptions.map(option => (
+              <button
+                key={option.value}
+                onClick={() => setSelectedSystem(option.value)}
+                className={cn(
+                  "px-3 py-1.5 text-sm rounded-md transition-colors",
+                  selectedSystem === option.value
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* 접수현황 - ITS 스타일 */}
       <div className="rounded-xl border border-border bg-card p-5">
         <h3 className="text-base font-semibold flex items-center gap-2 text-foreground mb-4">
           <Ticket className="w-5 h-5 text-primary" />
           {t("change.changeStatus")}
+          {selectedSystem !== "all" && (
+            <span className="text-xs font-normal text-primary/80 ml-1">({selectedSystem})</span>
+          )}
         </h3>
         <div className="grid grid-cols-2 gap-4">
           {/* 접수 */}
@@ -291,12 +352,17 @@ export function ChangeManagementAgentDashboard({
       <div className="rounded-xl overflow-hidden border border-primary/30">
         <div className="px-4 py-3 bg-primary/20 flex items-center gap-2">
           <Clock className="w-4 h-4 text-primary" />
-          <span className="text-sm font-medium text-foreground">{t("common.chatHistory")}</span>
-          <span className="text-xs text-muted-foreground ml-auto">{changeChatSessions.length}건</span>
+          <span className="text-sm font-medium text-foreground">
+            {t("common.chatHistory")}
+            {selectedSystem !== "all" && (
+              <span className="text-xs font-normal text-primary/80 ml-1">({selectedSystem})</span>
+            )}
+          </span>
+          <span className="text-xs text-muted-foreground ml-auto">{filteredChatSessions.length}건</span>
         </div>
         <div className="bg-background/80 divide-y divide-border/30 max-h-[300px] overflow-y-auto">
-          {changeChatSessions.length > 0 ? (
-            changeChatSessions.map(session => {
+          {filteredChatSessions.length > 0 ? (
+            filteredChatSessions.map(session => {
               const config = requestTypeConfig[session.request.type];
               const isActive = session.id === activeSessionId;
               return (

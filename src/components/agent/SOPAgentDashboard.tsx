@@ -1,11 +1,21 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CheckCircle, Clock, AlertTriangle, ChevronDown, ChevronUp, Play, Ticket, Database, Wrench, User, FileText, MessageSquare } from "lucide-react";
+import { CheckCircle, Clock, AlertTriangle, ChevronDown, ChevronUp, Play, Ticket, Database, Wrench, User, FileText, MessageSquare, Monitor } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ChatSession } from "@/pages/AgentDetail";
 
 // 요청 타입 정의 (ITS와 동일)
 type RequestType = "I" | "C" | "D" | "A" | "S";
+
+// 담당시스템 정의
+type SystemType = "all" | "e-총무" | "BiOn" | "SATIS";
+
+const systemOptions: { value: SystemType; label: string }[] = [
+  { value: "all", label: "전체" },
+  { value: "e-총무", label: "e-총무시스템" },
+  { value: "BiOn", label: "BiOn" },
+  { value: "SATIS", label: "SATIS" },
+];
 
 interface RoutedRequest {
   id: string;
@@ -14,6 +24,7 @@ interface RoutedRequest {
   title: string;
   date: string;
   sourceAgent: string;
+  system?: string;
 }
 
 interface Incident {
@@ -27,6 +38,7 @@ interface Incident {
   requestNo?: string;
   type?: RequestType;
   sourceAgent?: string;
+  system?: string;
 }
 
 interface SOPAgentDashboardProps {
@@ -40,10 +52,10 @@ interface SOPAgentDashboardProps {
 }
 
 const mockIncidents: Incident[] = [
-  { id: "i1", title: "서버 CPU 과부하 발생", description: "메인 서버의 CPU 사용률이 95%를 초과하여 긴급 조치가 필요합니다. 현재 서비스 응답 지연이 발생하고 있습니다.", status: "pending", priority: "high", timestamp: "10:15", requestNo: "SOP-2024-0001", type: "I" as RequestType },
-  { id: "i2", title: "DB 연결 오류 감지", description: "프로덕션 데이터베이스 연결 풀이 고갈되어 일부 트랜잭션이 실패하고 있습니다.", status: "pending", priority: "medium", timestamp: "09:45", requestNo: "SOP-2024-0002", type: "I" as RequestType },
-  { id: "i3", title: "메모리 누수 의심", description: "애플리케이션 서버의 메모리 사용량이 지속적으로 증가하고 있어 재시작이 필요할 수 있습니다.", status: "processing", priority: "medium", timestamp: "09:00", requestNo: "SOP-2024-0003", type: "I" as RequestType },
-  { id: "i4", title: "네트워크 지연 복구", description: "네트워크 레이턴시가 정상 범위로 복구되었습니다.", status: "approved", priority: "medium", timestamp: "08:30" },
+  { id: "i1", title: "서버 CPU 과부하 발생", description: "메인 서버의 CPU 사용률이 95%를 초과하여 긴급 조치가 필요합니다. 현재 서비스 응답 지연이 발생하고 있습니다.", status: "pending", priority: "high", timestamp: "10:15", requestNo: "SOP-2024-0001", type: "I" as RequestType, system: "e-총무" },
+  { id: "i2", title: "DB 연결 오류 감지", description: "프로덕션 데이터베이스 연결 풀이 고갈되어 일부 트랜잭션이 실패하고 있습니다.", status: "pending", priority: "medium", timestamp: "09:45", requestNo: "SOP-2024-0002", type: "I" as RequestType, system: "BiOn" },
+  { id: "i3", title: "메모리 누수 의심", description: "애플리케이션 서버의 메모리 사용량이 지속적으로 증가하고 있어 재시작이 필요할 수 있습니다.", status: "processing", priority: "medium", timestamp: "09:00", requestNo: "SOP-2024-0003", type: "I" as RequestType, system: "SATIS" },
+  { id: "i4", title: "네트워크 지연 복구", description: "네트워크 레이턴시가 정상 범위로 복구되었습니다.", status: "approved", priority: "medium", timestamp: "08:30", system: "e-총무" },
 ];
 
 // 요청 타입별 아이콘 및 색상
@@ -65,6 +77,7 @@ export function SOPAgentDashboard({
   activeSessionId
 }: SOPAgentDashboardProps) {
   const { t } = useTranslation();
+  const [selectedSystem, setSelectedSystem] = useState<SystemType>("all");
   
   // 라우팅된 요청을 인시던트로 변환 - SOP Agent용 chatSessions 상태 기반으로 status 결정
   const routedIncidents: Incident[] = routedRequests.map(req => {
@@ -97,6 +110,7 @@ export function SOPAgentDashboard({
       requestNo: req.requestNo,
       type: req.type,
       sourceAgent: req.sourceAgent,
+      system: req.system,
     };
   });
   
@@ -105,6 +119,24 @@ export function SOPAgentDashboard({
   
   // 모든 인시던트 (라우팅된 것 + 기존 것)
   const allIncidents = [...routedIncidents, ...incidents];
+
+  // 시스템 필터링 함수
+  const filterBySystem = (items: Incident[]): Incident[] => {
+    if (selectedSystem === "all") return items;
+    return items.filter(item => item.system === selectedSystem);
+  };
+
+  // 채팅 세션 필터링
+  const filterSessionsBySystem = (sessions: ChatSession[]): ChatSession[] => {
+    if (selectedSystem === "all") return sessions.filter(s => s.request.type === "I");
+    return sessions.filter(s => {
+      if (s.request.type !== "I") return false;
+      const matchingIncident = allIncidents.find(i => i.id === s.request.id);
+      return matchingIncident?.system === selectedSystem;
+    });
+  };
+
+  const filteredIncidents = filterBySystem(allIncidents);
 
   const handleApprove = (incidentId: string) => {
     const incident = allIncidents.find(i => i.id === incidentId);
@@ -130,13 +162,15 @@ export function SOPAgentDashboard({
     }
   };
 
-  const pendingIncidents = allIncidents.filter(i => i.status === "pending");
-  const processingIncidents = allIncidents.filter(i => i.status === "processing");
-  const completedIncidents = allIncidents.filter(i => i.status === "approved" || i.status === "rejected");
+  const pendingIncidents = filteredIncidents.filter(i => i.status === "pending");
+  const processingIncidents = filteredIncidents.filter(i => i.status === "processing");
+  const completedIncidents = filteredIncidents.filter(i => i.status === "approved" || i.status === "rejected");
 
   const pendingCount = pendingIncidents.length;
   const processingCount = processingIncidents.length;
   const completedCount = completedIncidents.length;
+
+  const filteredChatSessions = filterSessionsBySystem(chatSessions);
 
   const handlePlayClick = (incident: Incident) => {
     console.log("SOPAgentDashboard handlePlayClick called:", incident);
@@ -226,11 +260,40 @@ export function SOPAgentDashboard({
 
   return (
     <div className="space-y-6 h-full overflow-y-auto">
+      {/* 담당시스템 선택 */}
+      <div className="rounded-xl border border-border bg-card p-4">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <Monitor className="w-4 h-4 text-primary" />
+            <span>담당시스템</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {systemOptions.map(option => (
+              <button
+                key={option.value}
+                onClick={() => setSelectedSystem(option.value)}
+                className={cn(
+                  "px-3 py-1.5 text-sm rounded-md transition-colors",
+                  selectedSystem === option.value
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* 접수현황 - ITS 스타일 */}
       <div className="rounded-xl border border-border bg-card p-5">
         <h3 className="text-base font-semibold flex items-center gap-2 text-foreground mb-4">
           <Ticket className="w-5 h-5 text-primary" />
           {t("dashboard.pendingIncidents")}
+          {selectedSystem !== "all" && (
+            <span className="text-xs font-normal text-primary/80 ml-1">({selectedSystem})</span>
+          )}
         </h3>
         <div className="grid grid-cols-2 gap-4">
           {/* 접수 */}
@@ -309,11 +372,16 @@ export function SOPAgentDashboard({
       <div className="rounded-xl border border-border bg-card overflow-hidden">
         <div className="px-4 py-3 bg-muted/50 border-b border-border flex items-center justify-center gap-2">
           <MessageSquare className="w-5 h-5 text-primary" />
-          <h4 className="text-sm font-semibold text-foreground">{t("dashboard.processChatHistory")}</h4>
+          <h4 className="text-sm font-semibold text-foreground">
+            {t("dashboard.processChatHistory")}
+            {selectedSystem !== "all" && (
+              <span className="text-xs font-normal text-primary/80 ml-1">({selectedSystem})</span>
+            )}
+          </h4>
         </div>
         <div className="divide-y divide-border">
-          {chatSessions.filter(s => s.request.type === "I").length > 0 ? (
-            chatSessions.filter(s => s.request.type === "I").map(session => {
+          {filteredChatSessions.length > 0 ? (
+            filteredChatSessions.map(session => {
               const config = session.request.type ? requestTypeConfig[session.request.type] : null;
               const isActive = session.id === activeSessionId;
               return (
