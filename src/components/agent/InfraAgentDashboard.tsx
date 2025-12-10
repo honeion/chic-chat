@@ -78,6 +78,9 @@ export function InfraAgentDashboard({
 
   return (
     <div className="space-y-6">
+      {/* 제목 */}
+      <h1 className="text-2xl font-bold text-foreground">Infra Agent</h1>
+
       {/* 시스템 필터링 및 설정 */}
       <div className="rounded-xl overflow-hidden border border-primary/30">
         <div className="px-4 py-3 bg-primary/20 flex items-center gap-2">
