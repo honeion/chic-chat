@@ -203,16 +203,19 @@ export function ChangeManagementAgentDashboard({
           )}
           <div className="flex-1 min-w-0">
             <p className="text-sm text-foreground truncate">{request.title}</p>
-            {request.requestNo ? (
-              <p className="text-xs text-primary/80 font-mono">{request.requestNo}</p>
-            ) : (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1">
+            <div className="flex items-center gap-2">
+              {request.requestNo ? (
+                <span className="text-xs text-primary/80 font-mono">{request.requestNo}</span>
+              ) : (
+                <span className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Users className="w-3 h-3" />
                   {request.requester}
                 </span>
-              </div>
-            )}
+              )}
+              {request.system && (
+                <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{request.system}</span>
+              )}
+            </div>
           </div>
           <span className={cn("px-1.5 py-0.5 rounded text-xs font-medium flex-shrink-0", getTypeStyle(request.type))}>
             {getTypeLabel(request.type)}
@@ -379,7 +382,15 @@ export function ChangeManagementAgentDashboard({
                   </span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-foreground truncate">{session.request.title}</p>
-                    <p className="text-xs text-muted-foreground">{session.request.requestNo}</p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-primary/80 font-mono">{session.request.requestNo}</span>
+                      {(() => {
+                        const systemName = (session.request as any).system || allChangeRequests.find(r => r.id === session.request.id)?.system;
+                        return systemName && (
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{systemName}</span>
+                        );
+                      })()}
+                    </div>
                   </div>
                   <div className="flex flex-col items-end gap-1">
                     <span className={cn(
