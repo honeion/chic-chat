@@ -220,11 +220,16 @@ export function DBAgentDashboard({
           )}
           <div className="flex-1 min-w-0">
             <p className="text-sm text-foreground truncate">{task.title}</p>
-            {task.requestNo ? (
-              <p className="text-xs text-primary/80 font-mono">{task.requestNo}</p>
-            ) : (
-              <p className="text-xs text-primary/80 font-mono">{task.dbName}</p>
-            )}
+            <div className="flex items-center gap-2">
+              {task.requestNo ? (
+                <span className="text-xs text-primary/80 font-mono">{task.requestNo}</span>
+              ) : (
+                <span className="text-xs text-primary/80 font-mono">{task.dbName}</span>
+              )}
+              {task.system && (
+                <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{task.system}</span>
+              )}
+            </div>
           </div>
           <span className="text-xs text-muted-foreground flex-shrink-0">{task.timestamp}</span>
           {showPlay && onStartChat && (
@@ -389,7 +394,15 @@ export function DBAgentDashboard({
                   </span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-foreground truncate">{session.request.title}</p>
-                    <p className="text-xs text-muted-foreground">{session.request.requestNo}</p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-primary/80 font-mono">{session.request.requestNo}</span>
+                      {(() => {
+                        const systemName = (session.request as any).system || allTasks.find(t => t.id === session.request.id)?.system;
+                        return systemName && (
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{systemName}</span>
+                        );
+                      })()}
+                    </div>
                   </div>
                   <div className="flex flex-col items-end gap-1">
                     <span className={cn(

@@ -230,9 +230,14 @@ export function SOPAgentDashboard({
           )}
           <div className="flex-1 min-w-0">
             <p className="text-sm text-foreground truncate">{incident.title}</p>
-            {incident.requestNo && (
-              <p className="text-xs text-primary/80 font-mono">{incident.requestNo}</p>
-            )}
+            <div className="flex items-center gap-2">
+              {incident.requestNo && (
+                <span className="text-xs text-primary/80 font-mono">{incident.requestNo}</span>
+              )}
+              {incident.system && (
+                <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{incident.system}</span>
+              )}
+            </div>
           </div>
           <span className={cn("px-1.5 py-0.5 rounded text-xs font-medium flex-shrink-0", getPriorityStyle(incident.priority))}>
             {getPriorityLabel(incident.priority)}
@@ -400,6 +405,12 @@ export function SOPAgentDashboard({
                     <p className="text-sm font-medium text-foreground truncate">{session.request.title}</p>
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-primary/80 font-mono">{session.request.requestNo}</span>
+                      {(() => {
+                        const systemName = (session.request as any).system || allIncidents.find(i => i.id === session.request.id)?.system;
+                        return systemName && (
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{systemName}</span>
+                        );
+                      })()}
                       <span className="text-xs text-muted-foreground">{session.request.date}</span>
                     </div>
                   </div>
