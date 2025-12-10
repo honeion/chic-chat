@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Bot, Settings, Info, PanelRightClose, PanelRightOpen } from "lucide-react";
+import { Bot, Settings, Info } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { SOPAgentDashboard } from "@/components/agent/SOPAgentDashboard";
 import { ITSAgentDashboard } from "@/components/agent/ITSAgentDashboard";
 import { MonitoringAgentDashboard, type DetectionItem, type SystemInfo } from "@/components/agent/MonitoringAgentDashboard";
@@ -9,7 +10,6 @@ import { BizSupportAgentDashboard } from "@/components/agent/BizSupportAgentDash
 import { ChangeManagementAgentDashboard } from "@/components/agent/ChangeManagementAgentDashboard";
 import { ReportAgentDashboard, type GeneratedReport } from "@/components/agent/ReportAgentDashboard";
 import { AgentChatPanel } from "@/components/agent/AgentChatPanel";
-import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 
 interface ProcessingStep { id: string; step: string; status: "pending" | "running" | "completed"; detail?: string; }
 interface MessageLink { label: string; agentId: string; }
@@ -1711,9 +1711,9 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
   };
 
   return (
-    <ResizablePanelGroup direction="horizontal" className="flex-1 h-full overflow-hidden">
+    <div className="flex-1 h-full overflow-hidden flex relative">
       {/* Main Content Panel */}
-      <ResizablePanel defaultSize={isChatExpanded ? 30 : 70} minSize={20} className="flex flex-col">
+      <div className={cn("flex flex-col transition-all duration-300", isChatExpanded ? "w-0 overflow-hidden" : "flex-[7]")}>
         <div className="flex-1 p-6 overflow-y-auto">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
@@ -1727,13 +1727,13 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
           </div>
           {renderDashboard()}
         </div>
-      </ResizablePanel>
+      </div>
 
-      {/* Resize Handle */}
-      <ResizableHandle withHandle />
-
-      {/* Chat Panel */}
-      <ResizablePanel defaultSize={isChatExpanded ? 70 : 30} minSize={20} className="flex flex-col">
+      {/* Chat Panel - Overlay when expanded */}
+      <div className={cn(
+        "flex flex-col border-l border-border bg-sidebar transition-all duration-300",
+        isChatExpanded ? "absolute inset-0 z-10" : "flex-[3]"
+      )}>
         <AgentChatPanel 
           agentName={agentName} 
           messages={currentMessages} 
@@ -1777,7 +1777,7 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
           isExpanded={isChatExpanded}
           onToggleExpand={() => setIsChatExpanded(!isChatExpanded)}
         />
-      </ResizablePanel>
-    </ResizablePanelGroup>
+      </div>
+    </div>
   );
 }

@@ -92,7 +92,7 @@ export function WorkflowChatPanel({ agentName, activeAgent, isExpanded, onToggle
   ];
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-sidebar border-l border-border">
+    <div className="flex-1 flex flex-col h-full bg-sidebar">
       {/* Header */}
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between">

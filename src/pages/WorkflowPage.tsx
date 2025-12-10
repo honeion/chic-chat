@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Workflow, Plus, Play, Save, Trash2, ChevronRight, ChevronDown, Clock, History, X, Settings, MessageSquare, Eye, Edit3, PanelRightClose, PanelRightOpen } from "lucide-react";
+import { Workflow, Plus, Play, Save, Trash2, ChevronRight, ChevronDown, Clock, History, X, Settings, MessageSquare, Eye, Edit3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NewAgentModal } from "@/components/workflow/NewAgentModal";
 import { WorkflowChatPanel } from "@/components/workflow/WorkflowChatPanel";
 import { WorkflowItem, OperatingSystem, RegisteredAgent, OPERATING_SYSTEMS } from "@/pages/Index";
-import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 interface ExecutionHistory {
   id: string;
   timestamp: string;
@@ -226,9 +225,9 @@ export function WorkflowPage({
 
   return (
     <>
-    <ResizablePanelGroup direction="horizontal" className="flex-1 h-full overflow-hidden">
+    <div className="flex-1 h-full overflow-hidden flex relative">
       {/* Main Content Panel */}
-      <ResizablePanel defaultSize={isChatExpanded ? 30 : 70} minSize={20} className="flex flex-col">
+      <div className={cn("flex flex-col transition-all duration-300", isChatExpanded ? "w-0 overflow-hidden" : "flex-[7]")}>
         <div className="flex-1 p-6 overflow-y-auto">
         {showAgentTypeDetail ? (
           <>
@@ -515,21 +514,21 @@ export function WorkflowPage({
           </>
         )}
         </div>
-      </ResizablePanel>
+      </div>
 
-      {/* Resize Handle */}
-      <ResizableHandle withHandle />
-
-      {/* Chat Panel */}
-      <ResizablePanel defaultSize={isChatExpanded ? 70 : 30} minSize={20} className="flex flex-col">
+      {/* Chat Panel - Overlay when expanded */}
+      <div className={cn(
+        "flex flex-col border-l border-border bg-sidebar transition-all duration-300",
+        isChatExpanded ? "absolute inset-0 z-10" : "flex-[3]"
+      )}>
         <WorkflowChatPanel 
           agentName={selectedAgent?.name} 
           activeAgent={activeAgentForChat ? { id: activeAgentForChat.id, name: activeAgentForChat.name, system: activeAgentForChat.system } : null}
           isExpanded={isChatExpanded}
           onToggleExpand={() => setIsChatExpanded(!isChatExpanded)}
         />
-      </ResizablePanel>
-    </ResizablePanelGroup>
+      </div>
+    </div>
 
     <NewAgentModal
       isOpen={isNewAgentModalOpen}
