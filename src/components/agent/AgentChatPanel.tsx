@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { MessageSquare, Send, CheckCircle, Clock, Loader2, X, AlertTriangle, Wrench, Database, User, FileText, ArrowRight, ExternalLink } from "lucide-react";
+import { MessageSquare, Send, CheckCircle, Clock, Loader2, X, AlertTriangle, Wrench, Database, User, FileText, ArrowRight, ExternalLink, PanelRightClose, PanelRightOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ProcessingStep {
@@ -82,6 +82,9 @@ interface AgentChatPanelProps {
   isPendingITSComplete?: boolean;
   onCompleteITS?: () => void;
   onSkipITSComplete?: () => void;
+  // Chat panel expansion
+  isExpanded?: boolean;
+  onToggleExpand?: () => void;
 }
 
 // 요청 타입별 아이콘 및 색상
@@ -132,7 +135,9 @@ export function AgentChatPanel({
   onSkipITSNavigate,
   isPendingITSComplete,
   onCompleteITS,
-  onSkipITSComplete
+  onSkipITSComplete,
+  isExpanded,
+  onToggleExpand
 }: AgentChatPanelProps) {
   const { t } = useTranslation();
   const [chatInput, setChatInput] = useState("");
