@@ -1033,7 +1033,8 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
         requestNo, 
         type: "I", 
         title: `${system.name} 모니터링`, 
-        date: new Date().toISOString().split('T')[0]
+        date: new Date().toISOString().split('T')[0],
+        system: system.name
       },
       messages: [{ role: "agent", content: introMessage }],
       status: "in-progress",
@@ -1151,7 +1152,8 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
       title: session.request.title,
       source: session.request.title.split(' ')[0],
       date: new Date().toISOString().split('T')[0],
-      status: "detected"
+      status: "detected",
+      system: session.request?.system
     };
     
     setMonitoringDetections(prev => [newDetection, ...prev]);
