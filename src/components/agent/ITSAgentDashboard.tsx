@@ -374,9 +374,10 @@ export function ITSAgentDashboard({
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-primary/80 font-mono">{session.request.requestNo}</span>
                       {(() => {
-                        const matchingRequest = requests.find(r => r.id === session.request.id);
-                        return matchingRequest?.system && (
-                          <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{matchingRequest.system}</span>
+                        // 세션 request에서 직접 가져오거나, requests 배열에서 찾기
+                        const systemName = (session.request as any).system || requests.find(r => r.id === session.request.id)?.system;
+                        return systemName && (
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{systemName}</span>
                         );
                       })()}
                       <span className="text-xs text-muted-foreground">{session.request.date}</span>
