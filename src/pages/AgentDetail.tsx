@@ -906,7 +906,8 @@ ${incident.description || "해당 인시던트에 대한 처리가 필요합니�
         requestNo: detection.detectionNo, 
         type: "I", 
         title: detection.title, 
-        date: detection.date 
+        date: detection.date,
+        system: detection.system
       },
       messages: [{ role: "agent", content: requestSummaryMessage }],
       status: "pending-detection-action" as any, // SOP 이동 또는 직접 처리 대기 상태
