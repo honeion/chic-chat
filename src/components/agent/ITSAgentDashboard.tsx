@@ -149,7 +149,12 @@ export function ITSAgentDashboard({
         </span>
         <div className="flex-1 min-w-0">
           <p className="text-sm text-foreground truncate">{request.title}</p>
-          <p className="text-xs text-primary/80 font-mono">{request.requestNo}</p>
+          <div className="flex items-center gap-2">
+            <p className="text-xs text-primary/80 font-mono">{request.requestNo}</p>
+            {request.system && (
+              <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{request.system}</span>
+            )}
+          </div>
         </div>
         <span className="text-xs text-muted-foreground flex-shrink-0">{request.date}</span>
         {showPlay && (
@@ -368,6 +373,12 @@ export function ITSAgentDashboard({
                     <p className="text-sm font-medium text-foreground truncate">{session.request.title}</p>
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-primary/80 font-mono">{session.request.requestNo}</span>
+                      {(() => {
+                        const matchingRequest = requests.find(r => r.id === session.request.id);
+                        return matchingRequest?.system && (
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{matchingRequest.system}</span>
+                        );
+                      })()}
                       <span className="text-xs text-muted-foreground">{session.request.date}</span>
                     </div>
                   </div>
