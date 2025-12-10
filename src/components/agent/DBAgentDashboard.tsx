@@ -1,10 +1,20 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Database, HardDrive, Clock, CheckCircle, AlertTriangle, Search, Play, ChevronDown, ChevronUp, Ticket, Wrench, User, FileText } from "lucide-react";
+import { Database, HardDrive, Clock, CheckCircle, AlertTriangle, Search, Play, ChevronDown, ChevronUp, Ticket, Wrench, User, FileText, Monitor } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // 요청 타입 정의 (ITS와 동일)
 type RequestType = "I" | "C" | "D" | "A" | "S";
+
+// 담당시스템 정의
+type SystemType = "all" | "e-총무" | "BiOn" | "SATIS";
+
+const systemOptions: { value: SystemType; label: string }[] = [
+  { value: "all", label: "전체" },
+  { value: "e-총무", label: "e-총무시스템" },
+  { value: "BiOn", label: "BiOn" },
+  { value: "SATIS", label: "SATIS" },
+];
 
 interface RoutedRequest {
   id: string;
@@ -13,6 +23,7 @@ interface RoutedRequest {
   title: string;
   date: string;
   sourceAgent: string;
+  system?: string;
 }
 
 interface DatabaseInfo {
@@ -41,6 +52,7 @@ interface DBTask {
   requestNo?: string;
   type?: RequestType;
   sourceAgent?: string;
+  system?: string;
 }
 
 interface ChatSession {
@@ -78,10 +90,10 @@ const mockQueries: Query[] = [
 ];
 
 const mockTasks: DBTask[] = [
-  { id: "t1", title: "슬로우 쿼리 분석 요청", dbName: "PROD_DB", status: "pending", timestamp: "10:45" },
-  { id: "t2", title: "백업 상태 확인", dbName: "BACKUP_DB", status: "pending", timestamp: "10:30" },
-  { id: "t3", title: "인덱스 최적화", dbName: "PROD_DB", status: "processing", timestamp: "09:15" },
-  { id: "t4", title: "커넥션 풀 정리", dbName: "DEV_DB", status: "completed", timestamp: "08:30" },
+  { id: "t1", title: "슬로우 쿼리 분석 요청", dbName: "PROD_DB", status: "pending", timestamp: "10:45", system: "e-총무" },
+  { id: "t2", title: "백업 상태 확인", dbName: "BACKUP_DB", status: "pending", timestamp: "10:30", system: "BiOn" },
+  { id: "t3", title: "인덱스 최적화", dbName: "PROD_DB", status: "processing", timestamp: "09:15", system: "SATIS" },
+  { id: "t4", title: "커넥션 풀 정리", dbName: "DEV_DB", status: "completed", timestamp: "08:30", system: "e-총무" },
 ];
 
 // 요청 타입별 아이콘 및 색상
@@ -102,6 +114,7 @@ export function DBAgentDashboard({
 }: DBAgentDashboardProps) {
   const { t } = useTranslation();
   const [isCompletedCollapsed, setIsCompletedCollapsed] = useState(true);
+  const [selectedSystem, setSelectedSystem] = useState<SystemType>("all");
   
   // DB Agent에 해당하는 채팅 세션만 필터링 (type: D)
   const dbChatSessions = chatSessions.filter(s => s.request.type === "D");
@@ -116,9 +129,28 @@ export function DBAgentDashboard({
     requestNo: req.requestNo,
     type: req.type,
     sourceAgent: req.sourceAgent,
+    system: req.system,
   }));
 
   const allTasks = [...routedTasks, ...mockTasks];
+
+  // 시스템 필터링 함수
+  const filterBySystem = (items: DBTask[]): DBTask[] => {
+    if (selectedSystem === "all") return items;
+    return items.filter(item => item.system === selectedSystem);
+  };
+
+  // 채팅 세션 필터링
+  const filterSessionsBySystem = (sessions: typeof dbChatSessions): typeof dbChatSessions => {
+    if (selectedSystem === "all") return sessions;
+    return sessions.filter(s => {
+      const matchingTask = allTasks.find(t => t.id === s.request.id);
+      return matchingTask?.system === selectedSystem;
+    });
+  };
+
+  const filteredTasks = filterBySystem(allTasks);
+  const filteredChatSessions = filterSessionsBySystem(dbChatSessions);
 
   const getStatusStyle = (status: DatabaseInfo["status"]) => {
     switch (status) {
@@ -144,9 +176,9 @@ export function DBAgentDashboard({
     }
   };
 
-  const pendingTasks = allTasks.filter(t => t.status === "pending");
-  const processingTasks = allTasks.filter(t => t.status === "processing");
-  const completedTasks = allTasks.filter(t => t.status === "completed");
+  const pendingTasks = filteredTasks.filter(t => t.status === "pending");
+  const processingTasks = filteredTasks.filter(t => t.status === "processing");
+  const completedTasks = filteredTasks.filter(t => t.status === "completed");
 
   // 세션 ID 찾기 헬퍼 함수
   const findSessionByTaskId = (taskId: string) => {
@@ -217,11 +249,40 @@ export function DBAgentDashboard({
 
   return (
     <div className="space-y-6 h-full overflow-y-auto">
+      {/* 담당시스템 선택 */}
+      <div className="rounded-xl border border-border bg-card p-4">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <Monitor className="w-4 h-4 text-primary" />
+            <span>담당시스템</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {systemOptions.map(option => (
+              <button
+                key={option.value}
+                onClick={() => setSelectedSystem(option.value)}
+                className={cn(
+                  "px-3 py-1.5 text-sm rounded-md transition-colors",
+                  selectedSystem === option.value
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* 접수현황 - ITS 스타일 */}
       <div className="rounded-xl border border-border bg-card p-5">
         <h3 className="text-base font-semibold flex items-center gap-2 text-foreground mb-4">
           <Ticket className="w-5 h-5 text-primary" />
           {t("db.dbStatus")}
+          {selectedSystem !== "all" && (
+            <span className="text-xs font-normal text-primary/80 ml-1">({selectedSystem})</span>
+          )}
         </h3>
         <div className="grid grid-cols-2 gap-4">
           {/* 접수 */}
@@ -301,12 +362,17 @@ export function DBAgentDashboard({
       <div className="rounded-xl overflow-hidden border border-primary/30">
         <div className="px-4 py-3 bg-primary/20 flex items-center gap-2">
           <Clock className="w-4 h-4 text-primary" />
-          <span className="text-sm font-medium text-foreground">{t("common.chatHistory")}</span>
-          <span className="text-xs text-muted-foreground ml-auto">{dbChatSessions.length}건</span>
+          <span className="text-sm font-medium text-foreground">
+            {t("common.chatHistory")}
+            {selectedSystem !== "all" && (
+              <span className="text-xs font-normal text-primary/80 ml-1">({selectedSystem})</span>
+            )}
+          </span>
+          <span className="text-xs text-muted-foreground ml-auto">{filteredChatSessions.length}건</span>
         </div>
         <div className="bg-background/80 divide-y divide-border/30 max-h-[300px] overflow-y-auto">
-          {dbChatSessions.length > 0 ? (
-            dbChatSessions.map(session => {
+          {filteredChatSessions.length > 0 ? (
+            filteredChatSessions.map(session => {
               const config = requestTypeConfig[session.request.type];
               const isActive = session.id === activeSessionId;
               return (
