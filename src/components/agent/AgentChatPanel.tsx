@@ -157,12 +157,27 @@ export function AgentChatPanel({
   };
 
   return (
-    <div className="w-[30%] min-w-[320px] border-l border-border bg-sidebar flex flex-col">
+    <div className="flex-1 flex flex-col h-full">
       <div className="p-4 border-b border-border">
-        <h3 className="font-semibold flex items-center gap-2">
-          <MessageSquare className="w-5 h-5" />
-          {agentName} {t("agentChat.conversation")}
-        </h3>
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold flex items-center gap-2">
+            <MessageSquare className="w-5 h-5" />
+            {agentName} {t("agentChat.conversation")}
+          </h3>
+          {onToggleExpand && (
+            <button
+              onClick={onToggleExpand}
+              className="p-2 rounded-lg hover:bg-secondary transition-colors"
+              title={isExpanded ? "접기" : "확장"}
+            >
+              {isExpanded ? (
+                <PanelRightClose className="w-5 h-5 text-muted-foreground" />
+              ) : (
+                <PanelRightOpen className="w-5 h-5 text-muted-foreground" />
+              )}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* 현재 처리 중인 요청 제목 영역 */}
