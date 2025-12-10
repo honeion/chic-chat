@@ -171,9 +171,9 @@ export function MonitoringAgentDashboard({
 
   // 운영자 담당 시스템 목록
   const operatorSystems: SystemInfo[] = [
-    { id: "etongmu", name: "e-총무시스템" },
-    { id: "purchase", name: "구매시스템" },
-    { id: "sales", name: "영업/물류시스템" },
+    { id: "etongmu", name: "e-총무" },
+    { id: "purchase", name: "BiOn" },
+    { id: "sales", name: "SATIS" },
   ];
 
   // 모니터링 실행 버튼 클릭 핸들러
