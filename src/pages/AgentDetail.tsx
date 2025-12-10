@@ -118,7 +118,7 @@ const initialChatSessions: ChatSession[] = [
   // 모니터링 Agent 세션들 - 처리중 감지 항목과 연결
   {
     id: "session-d4",
-    request: { id: "d4", requestNo: "MON-2024-0044", type: "I", title: "네트워크 대역폭 포화 상태", date: "2024-12-05" },
+    request: { id: "d4", requestNo: "MON-2024-0044", type: "I", title: "네트워크 대역폭 포화 상태", date: "2024-12-05", system: "e-총무" },
     messages: [
       { role: "agent", content: "🔍 **e-총무시스템 모니터링 시작**\n\n모니터링 대상 시스템: **e-총무시스템**\n실행 시각: 2024-12-05 10:30:00\n\n다음 항목들에 대한 모니터링을 실시합니다:\n• HTTP API Check\n• DB 모니터링\n• IF 모니터링\n• BATCH 모니터링\n• LOG 모니터링\n• 성능 모니터링\n\n모니터링을 시작합니다..." },
       { role: "agent", content: "모니터링 항목 점검 중...", processingSteps: [
@@ -140,7 +140,7 @@ const initialChatSessions: ChatSession[] = [
   },
   {
     id: "session-d5",
-    request: { id: "d5", requestNo: "MON-2024-0043", type: "I", title: "SSL 인증서 만료 임박", date: "2024-12-04" },
+    request: { id: "d5", requestNo: "MON-2024-0043", type: "I", title: "SSL 인증서 만료 임박", date: "2024-12-04", system: "BiOn" },
     messages: [
       { role: "agent", content: "🔍 **구매시스템 모니터링 시작**\n\n모니터링 대상 시스템: **구매시스템**\n실행 시각: 2024-12-04 14:20:00\n\n다음 항목들에 대한 모니터링을 실시합니다:\n• HTTP API Check\n• DB 모니터링\n• IF 모니터링\n• BATCH 모니터링\n• LOG 모니터링\n• 성능 모니터링\n\n모니터링을 시작합니다..." },
       { role: "agent", content: "모니터링 항목 점검 중...", processingSteps: [
@@ -163,7 +163,7 @@ const initialChatSessions: ChatSession[] = [
   // 완료된 모니터링 세션
   {
     id: "session-d6",
-    request: { id: "d6", requestNo: "MON-2024-0042", type: "I", title: "DB-01 백업 완료", date: "2024-12-03" },
+    request: { id: "d6", requestNo: "MON-2024-0042", type: "I", title: "DB-01 백업 완료", date: "2024-12-03", system: "SATIS" },
     messages: [
       { role: "agent", content: "🔍 **영업/물류시스템 모니터링 시작**\n\n모니터링 대상 시스템: **영업/물류시스템**\n실행 시각: 2024-12-03 09:00:00" },
       { role: "agent", content: "모니터링 항목 점검 중...", processingSteps: [
@@ -183,7 +183,7 @@ const initialChatSessions: ChatSession[] = [
   },
   {
     id: "session-d7",
-    request: { id: "d7", requestNo: "MON-2024-0041", type: "I", title: "WEB-01 응답 지연 해결", date: "2024-12-02" },
+    request: { id: "d7", requestNo: "MON-2024-0041", type: "I", title: "WEB-01 응답 지연 해결", date: "2024-12-02", system: "e-총무" },
     messages: [
       { role: "agent", content: "📋 **비정상 감지 상세**\n\n**심각도:** 경고\n**감지 번호:** MON-2024-0041\n**제목:** WEB-01 응답 지연\n**출처:** WEB-01\n**감지 일시:** 2024-12-02" },
       { role: "user", content: "직접 처리" },
