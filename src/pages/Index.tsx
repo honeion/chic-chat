@@ -194,6 +194,7 @@ const Index = () => {
     a5: t("agent.monitoring"),
     a6: t("agent.report"),
     a7: t("agent.bizSupport"),
+    a8: "Infra Agent",
   };
 
   const handleAddFromMarket = (marketAgent: WorkflowItem) => {
