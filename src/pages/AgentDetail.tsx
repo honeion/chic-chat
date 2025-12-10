@@ -37,6 +37,7 @@ interface ActiveRequest {
   type: RequestType;
   title: string;
   date: string;
+  system?: string;
 }
 
 // 채팅 세션 타입
@@ -64,7 +65,7 @@ const initialChatSessions: ChatSession[] = [
   // ITS Agent 세션들
   {
     id: "session-r2",
-    request: { id: "r2", requestNo: "ITS-2024-0151", type: "C", title: "대시보드 UI 개선 요청", date: "2024-12-05" },
+    request: { id: "r2", requestNo: "ITS-2024-0151", type: "C", title: "대시보드 UI 개선 요청", date: "2024-12-05", system: "e-총무" },
     messages: [
       { role: "agent", content: "[개선 요청] 대시보드 UI 개선 요청\n일자: 2024-12-05\n\n해당 요청을 분석하고 처리를 시작하겠습니다." },
       { role: "agent", content: "\"대시보드 UI 개선 요청\" 작업을 시작합니다.", processingSteps: [
@@ -81,7 +82,7 @@ const initialChatSessions: ChatSession[] = [
   },
   {
     id: "session-r3",
-    request: { id: "r3", requestNo: "ITS-2024-0150", type: "D", title: "월간 매출 데이터 추출 요청", date: "2024-12-04" },
+    request: { id: "r3", requestNo: "ITS-2024-0150", type: "D", title: "월간 매출 데이터 추출 요청", date: "2024-12-04", system: "BiOn" },
     messages: [
       { role: "agent", content: "[데이터 요청] 월간 매출 데이터 추출 요청\n일자: 2024-12-04\n\n해당 요청을 분석하고 처리를 시작하겠습니다." },
       { role: "agent", content: "\"월간 매출 데이터 추출 요청\" 작업을 시작합니다.", processingSteps: [
@@ -98,7 +99,7 @@ const initialChatSessions: ChatSession[] = [
   },
   {
     id: "session-r5",
-    request: { id: "r5", requestNo: "ITS-2024-0148", type: "S", title: "프린터 용지 교체 요청", date: "2024-12-03" },
+    request: { id: "r5", requestNo: "ITS-2024-0148", type: "S", title: "프린터 용지 교체 요청", date: "2024-12-03", system: "SATIS" },
     messages: [
       { role: "agent", content: "[단순 요청] 프린터 용지 교체 요청\n일자: 2024-12-03\n\n해당 요청을 분석하고 처리를 시작하겠습니다." },
       { role: "agent", content: "\"프린터 용지 교체 요청\" 작업을 시작합니다.", processingSteps: [
