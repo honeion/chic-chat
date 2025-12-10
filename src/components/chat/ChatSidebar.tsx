@@ -107,6 +107,14 @@ const mockAgents: Agent[] = [
       { id: "a7-c2", title: "보고서 작성 도움", lastMessage: "보고서 초안을 확인해주세요.", timestamp: "1시간 전", unread: 0 },
     ]
   },
+  { 
+    id: "a8", 
+    name: "인프라 Agent", 
+    status: "online",
+    chatHistory: [
+      { id: "a8-c1", title: "서버 점검 요청", lastMessage: "점검이 완료되었습니다.", timestamp: "30분 전", unread: 0 },
+    ]
+  },
 ];
 
 const mockChatRooms: ChatRoom[] = [

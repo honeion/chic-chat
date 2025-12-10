@@ -10,13 +10,14 @@ import { DBAgentDashboard } from "@/components/agent/DBAgentDashboard";
 import { BizSupportAgentDashboard } from "@/components/agent/BizSupportAgentDashboard";
 import { ChangeManagementAgentDashboard } from "@/components/agent/ChangeManagementAgentDashboard";
 import { ReportAgentDashboard, type GeneratedReport } from "@/components/agent/ReportAgentDashboard";
+import { InfraAgentDashboard } from "@/components/agent/InfraAgentDashboard";
 import { AgentChatPanel } from "@/components/agent/AgentChatPanel";
 
 interface ProcessingStep { id: string; step: string; status: "pending" | "running" | "completed"; detail?: string; }
 interface MessageLink { label: string; agentId: string; }
 interface Message { role: "user" | "agent"; content: string; processingSteps?: ProcessingStep[]; link?: MessageLink; }
 interface AgentDetailProps { agentId: string; agentName: string; onNavigateToAgent?: (agentId: string) => void; }
-type AgentType = "sop" | "its" | "monitoring" | "db" | "biz-support" | "change-management" | "report";
+type AgentType = "sop" | "its" | "monitoring" | "db" | "biz-support" | "change-management" | "report" | "infra";
 
 // RequestItem 타입 (ITSAgentDashboard와 동일)
 type RequestType = "I" | "C" | "D" | "A" | "S";
@@ -265,6 +266,7 @@ const getAgentType = (agentName: string): AgentType => {
   if (name.includes("biz") || name.includes("support") || name.includes("비즈")) return "biz-support";
   if (name.includes("변경") || name.includes("change") || name.includes("quản lý thay đổi")) return "change-management";
   if (name.includes("보고서") || name.includes("report") || name.includes("báo cáo")) return "report";
+  if (name.includes("인프라") || name.includes("infra")) return "infra";
   return "sop";
 };
 
@@ -1283,6 +1285,33 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
     setActiveSessionId(newSessionId);
   };
 
+  // 인프라 Agent 새 채팅 핸들러
+  const handleInfraNewChat = () => {
+    const newSessionId = `session-infra-${Date.now()}`;
+    const requestNo = `INFRA-2024-${String(Math.floor(Math.random() * 9000) + 1000)}`;
+    
+    const newSession: ChatSession = {
+      id: newSessionId,
+      request: { 
+        id: `infra-${Date.now()}`, 
+        requestNo, 
+        type: "S" as const, 
+        title: "인프라 작업 요청", 
+        date: new Date().toISOString().split('T')[0],
+        system: "e-총무"
+      },
+      messages: [{ 
+        role: "agent", 
+        content: "안녕하세요! 인프라 Agent입니다. 인프라 관련 작업을 도와드리겠습니다.\n\n• 서버 점검 및 모니터링\n• 네트워크 설정 및 관리\n• 스토리지 관리\n• 클라우드 인프라 설정\n• 보안 정책 적용\n\n어떤 작업이 필요하신가요?" 
+      }],
+      status: "in-progress",
+      createdAt: new Date().toISOString(),
+    };
+    
+    setChatSessions(prev => [newSession, ...prev]);
+    setActiveSessionId(newSessionId);
+  };
+
   const handleStartProcess = (sessionId: string) => {
     const session = chatSessions.find(s => s.id === sessionId);
     if (!session) return;
@@ -1764,6 +1793,19 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
             onSelectSession={handleSelectSession}
             activeSessionId={activeSessionId}
             generatedReports={generatedReports}
+          />
+        );
+      }
+      case "infra": {
+        const infraSessions = chatSessions.filter(s => 
+          s.request.requestNo.startsWith("INFRA-")
+        );
+        return (
+          <InfraAgentDashboard 
+            onNewChat={handleInfraNewChat}
+            onSelectSession={handleSelectSession}
+            chatSessions={infraSessions}
+            activeSessionId={activeSessionId}
           />
         );
       }
