@@ -19,6 +19,7 @@ export interface DetectionItem {
   source: string;
   date: string;
   status: "detected" | "in-progress" | "resolved";
+  system?: string;
 }
 
 // 시스템 정보 타입
@@ -47,15 +48,15 @@ const severityConfig: Record<DetectionSeverity, { icon: React.ReactNode; label: 
 // Mock 감지 데이터
 const mockDetections: DetectionItem[] = [
   // 감지 (detected)
-  { id: "d1", detectionNo: "MON-2024-0045", severity: "critical", title: "API-01 CPU 사용률 임계치 초과", source: "API-01", date: "2024-12-05", status: "detected" },
-  { id: "d2", detectionNo: "MON-2024-0046", severity: "warning", title: "WEB-02 메모리 사용률 높음", source: "WEB-02", date: "2024-12-05", status: "detected" },
-  { id: "d3", detectionNo: "MON-2024-0047", severity: "critical", title: "DB-01 디스크 I/O 지연", source: "DB-01", date: "2024-12-06", status: "detected" },
+  { id: "d1", detectionNo: "MON-2024-0045", severity: "critical", title: "API-01 CPU 사용률 임계치 초과", source: "API-01", date: "2024-12-05", status: "detected", system: "e-총무" },
+  { id: "d2", detectionNo: "MON-2024-0046", severity: "warning", title: "WEB-02 메모리 사용률 높음", source: "WEB-02", date: "2024-12-05", status: "detected", system: "BiOn" },
+  { id: "d3", detectionNo: "MON-2024-0047", severity: "critical", title: "DB-01 디스크 I/O 지연", source: "DB-01", date: "2024-12-06", status: "detected", system: "SATIS" },
   // 처리중 (in-progress)
-  { id: "d4", detectionNo: "MON-2024-0044", severity: "warning", title: "네트워크 대역폭 포화 상태", source: "NETWORK", date: "2024-12-05", status: "in-progress" },
-  { id: "d5", detectionNo: "MON-2024-0043", severity: "critical", title: "SSL 인증서 만료 임박", source: "WEB-01", date: "2024-12-04", status: "in-progress" },
+  { id: "d4", detectionNo: "MON-2024-0044", severity: "warning", title: "네트워크 대역폭 포화 상태", source: "NETWORK", date: "2024-12-05", status: "in-progress", system: "e-총무" },
+  { id: "d5", detectionNo: "MON-2024-0043", severity: "critical", title: "SSL 인증서 만료 임박", source: "WEB-01", date: "2024-12-04", status: "in-progress", system: "BiOn" },
   // 완료 (resolved)
-  { id: "d6", detectionNo: "MON-2024-0042", severity: "info", title: "DB-01 백업 완료", source: "DB-01", date: "2024-12-03", status: "resolved" },
-  { id: "d7", detectionNo: "MON-2024-0041", severity: "warning", title: "WEB-01 응답 지연 해결", source: "WEB-01", date: "2024-12-02", status: "resolved" },
+  { id: "d6", detectionNo: "MON-2024-0042", severity: "info", title: "DB-01 백업 완료", source: "DB-01", date: "2024-12-03", status: "resolved", system: "SATIS" },
+  { id: "d7", detectionNo: "MON-2024-0041", severity: "warning", title: "WEB-01 응답 지연 해결", source: "WEB-01", date: "2024-12-02", status: "resolved", system: "e-총무" },
 ];
 
 export function MonitoringAgentDashboard({ 
@@ -125,6 +126,9 @@ export function MonitoringAgentDashboard({
           <p className="text-sm text-foreground truncate">{detection.title}</p>
           <div className="flex items-center gap-2">
             <p className="text-xs text-primary/80 font-mono">{detection.detectionNo}</p>
+            {detection.system && (
+              <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{detection.system}</span>
+            )}
             <span className="text-xs text-muted-foreground">• {detection.source}</span>
           </div>
         </div>
@@ -319,6 +323,9 @@ export function MonitoringAgentDashboard({
                     <p className="text-sm font-medium text-foreground truncate">{session.request?.title || "모니터링 알림"}</p>
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-primary/80 font-mono">{session.request?.requestNo || session.id}</span>
+                      {session.request?.system && (
+                        <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{session.request.system}</span>
+                      )}
                       <span className="text-xs text-muted-foreground">{session.request?.date}</span>
                     </div>
                   </div>
