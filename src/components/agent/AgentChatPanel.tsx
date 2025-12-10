@@ -30,6 +30,7 @@ interface ActiveRequest {
   type: RequestType;
   title: string;
   date: string;
+  system?: string;
 }
 
 interface AgentChatPanelProps {
@@ -192,6 +193,9 @@ export function AgentChatPanel({
                 <p className="text-sm font-medium text-foreground truncate">{activeRequest.title}</p>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-primary/80 font-mono">{activeRequest.requestNo}</span>
+                  {activeRequest.system && (
+                    <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{activeRequest.system}</span>
+                  )}
                   <span className="text-xs text-muted-foreground">{activeRequest.date}</span>
                 </div>
               </div>

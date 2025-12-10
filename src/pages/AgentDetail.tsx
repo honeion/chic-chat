@@ -553,7 +553,7 @@ ${getRequestDetailContent(request)}
     
     const newSession: ChatSession = {
       id: newSessionId,
-      request: { id: request.id, requestNo: request.requestNo, type: request.type, title: request.title, date: request.date },
+      request: { id: request.id, requestNo: request.requestNo, type: request.type, title: request.title, date: request.date, system: request.system },
       messages: [{ role: "agent", content: requestDetailMessage }],
       status: "pending-approval", // 승인 대기 상태
       createdAt: new Date().toISOString(),
