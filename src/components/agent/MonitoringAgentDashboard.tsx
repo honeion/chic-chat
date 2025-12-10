@@ -129,7 +129,6 @@ export function MonitoringAgentDashboard({
             {detection.system && (
               <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{detection.system}</span>
             )}
-            <span className="text-xs text-muted-foreground">• {detection.source}</span>
           </div>
         </div>
         <span className="text-xs text-muted-foreground flex-shrink-0">{detection.date}</span>
