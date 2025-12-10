@@ -27,6 +27,7 @@ export interface ITSRequest {
   title: string;
   date: string;
   status: "open" | "in-progress" | "resolved";
+  system?: string;
 }
 
 // 활성 요청 타입 (채팅 패널용)

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { 
   Ticket, UserPlus, Shield, Database, Clock, CheckCircle, AlertCircle, Send, Key,
-  Play, AlertTriangle, Wrench, FileText, User, MessageSquare, ChevronDown, ChevronUp, Cloud
+  Play, AlertTriangle, Wrench, FileText, User, MessageSquare, ChevronDown, ChevronUp, Cloud, Monitor
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -15,6 +15,16 @@ import type { ChatSession, ITSRequest } from "@/pages/AgentDetail";
 
 // 요청 타입 정의
 type RequestType = "I" | "C" | "D" | "A" | "S";
+
+// 담당시스템 정의
+type SystemType = "all" | "e-총무" | "BiOn" | "SATIS";
+
+const systemOptions: { value: SystemType; label: string }[] = [
+  { value: "all", label: "전체" },
+  { value: "e-총무", label: "e-총무시스템" },
+  { value: "BiOn", label: "BiOn" },
+  { value: "SATIS", label: "SATIS" },
+];
 
 interface ITSAgentDashboardProps {
   onRequest: (requestType: string) => void;
@@ -34,17 +44,17 @@ const requestTypeConfig: Record<RequestType, { icon: React.ReactNode; label: str
   "S": { icon: <FileText className="w-4 h-4" />, label: "단순", color: "text-muted-foreground" },
 };
 
-// Default Mock 요청 데이터 - 각 타입별 1개씩
+// Default Mock 요청 데이터 - 각 타입별 1개씩 (시스템 정보 추가)
 const defaultMockRequests: ITSRequest[] = [
   // 미접수 (open)
-  { id: "r1", requestNo: "ITS-2024-0152", type: "I", title: "서버 응답 지연 현상 발생", date: "2024-12-05", status: "open" },
-  { id: "r4", requestNo: "ITS-2024-0149", type: "A", title: "신규 입사자 계정 발급 요청", date: "2024-12-04", status: "open" },
-  { id: "r6", requestNo: "ITS-2024-0153", type: "D", title: "고객별 주문 현황 데이터 추출", date: "2024-12-06", status: "open" },
+  { id: "r1", requestNo: "ITS-2024-0152", type: "I", title: "서버 응답 지연 현상 발생", date: "2024-12-05", status: "open", system: "e-총무" },
+  { id: "r4", requestNo: "ITS-2024-0149", type: "A", title: "신규 입사자 계정 발급 요청", date: "2024-12-04", status: "open", system: "BiOn" },
+  { id: "r6", requestNo: "ITS-2024-0153", type: "D", title: "고객별 주문 현황 데이터 추출", date: "2024-12-06", status: "open", system: "SATIS" },
   // 접수/처리중 (in-progress)
-  { id: "r2", requestNo: "ITS-2024-0151", type: "C", title: "대시보드 UI 개선 요청", date: "2024-12-05", status: "in-progress" },
-  { id: "r3", requestNo: "ITS-2024-0150", type: "D", title: "월간 매출 데이터 추출 요청", date: "2024-12-04", status: "in-progress" },
+  { id: "r2", requestNo: "ITS-2024-0151", type: "C", title: "대시보드 UI 개선 요청", date: "2024-12-05", status: "in-progress", system: "e-총무" },
+  { id: "r3", requestNo: "ITS-2024-0150", type: "D", title: "월간 매출 데이터 추출 요청", date: "2024-12-04", status: "in-progress", system: "BiOn" },
   // 완료 (resolved)
-  { id: "r5", requestNo: "ITS-2024-0148", type: "S", title: "프린터 용지 교체 요청", date: "2024-12-03", status: "resolved" },
+  { id: "r5", requestNo: "ITS-2024-0148", type: "S", title: "프린터 용지 교체 요청", date: "2024-12-03", status: "resolved", system: "SATIS" },
 ];
 
 export function ITSAgentDashboard({ 
@@ -59,6 +69,23 @@ export function ITSAgentDashboard({
   const requests = propRequests || defaultMockRequests;
   const [selectedTicket, setSelectedTicket] = useState<ITSRequest | null>(null);
   const [isCompletedCollapsed, setIsCompletedCollapsed] = useState(true);
+  const [selectedSystem, setSelectedSystem] = useState<SystemType>("all");
+
+  // 시스템 필터링 함수
+  const filterBySystem = (items: ITSRequest[]): ITSRequest[] => {
+    if (selectedSystem === "all") return items;
+    return items.filter(item => item.system === selectedSystem);
+  };
+
+  // 채팅 세션 필터링 (request에 system 정보가 있는 경우)
+  const filterSessionsBySystem = (sessions: ChatSession[]): ChatSession[] => {
+    if (selectedSystem === "all") return sessions;
+    return sessions.filter(session => {
+      // 세션의 request에서 시스템 정보 확인
+      const matchingRequest = requests.find(r => r.id === session.request.id);
+      return matchingRequest?.system === selectedSystem;
+    });
+  };
 
   const requestCards = [
     { id: "workload", title: t("dashboard.workloadRegister"), icon: <FileText className="w-5 h-5" />, bgColor: "bg-amber-100 dark:bg-amber-900/30", headerColor: "bg-amber-200 dark:bg-amber-800/50" },
@@ -77,13 +104,18 @@ export function ITSAgentDashboard({
     }
   };
 
-  const openRequests = requests.filter(r => r.status === "open");
-  const inProgressRequests = requests.filter(r => r.status === "in-progress");
-  const resolvedRequests = requests.filter(r => r.status === "resolved");
+  // 필터링된 요청들
+  const filteredRequests = filterBySystem(requests);
+  const openRequests = filteredRequests.filter(r => r.status === "open");
+  const inProgressRequests = filteredRequests.filter(r => r.status === "in-progress");
+  const resolvedRequests = filteredRequests.filter(r => r.status === "resolved");
 
   const openCount = openRequests.length;
   const inProgressCount = inProgressRequests.length;
   const resolvedCount = resolvedRequests.length;
+
+  // 필터링된 채팅 세션
+  const filteredChatSessions = filterSessionsBySystem(chatSessions);
 
   const handlePlayClick = (request: ITSRequest) => {
     if (onStartChat) {
@@ -158,6 +190,32 @@ export function ITSAgentDashboard({
 
   return (
     <div className="space-y-6 h-full overflow-y-auto">
+      {/* 담당시스템 선택 */}
+      <div className="rounded-xl border border-border bg-card p-4">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <Monitor className="w-4 h-4 text-primary" />
+            <span>담당시스템</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {systemOptions.map(option => (
+              <button
+                key={option.value}
+                onClick={() => setSelectedSystem(option.value)}
+                className={cn(
+                  "px-3 py-1.5 text-sm rounded-md transition-colors",
+                  selectedSystem === option.value
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* ITS접수현황 + ITS 요청 - 하나의 카드 안에 */}
       <div className="rounded-xl border border-border bg-card p-5">
         {/* ITS접수현황 */}
@@ -166,6 +224,9 @@ export function ITSAgentDashboard({
             <h3 className="text-base font-semibold flex items-center gap-2 text-foreground">
               <Ticket className="w-5 h-5 text-primary" />
               {t("dashboard.itsReceptionStatus")}
+              {selectedSystem !== "all" && (
+                <span className="text-xs font-normal text-primary/80 ml-1">({selectedSystem})</span>
+              )}
             </h3>
             {/* 요청 타입 범례 */}
             <div className="flex items-center gap-3 text-xs">
@@ -279,11 +340,16 @@ export function ITSAgentDashboard({
       <div className="rounded-xl border border-border bg-card overflow-hidden">
         <div className="px-4 py-3 bg-muted/50 border-b border-border flex items-center justify-center gap-2">
           <MessageSquare className="w-5 h-5 text-primary" />
-          <h4 className="text-sm font-semibold text-foreground">{t("dashboard.processChatHistory")}</h4>
+          <h4 className="text-sm font-semibold text-foreground">
+            {t("dashboard.processChatHistory")}
+            {selectedSystem !== "all" && (
+              <span className="text-xs font-normal text-primary/80 ml-1">({selectedSystem})</span>
+            )}
+          </h4>
         </div>
         <div className="divide-y divide-border">
-          {chatSessions.length > 0 ? (
-            chatSessions.map(session => {
+          {filteredChatSessions.length > 0 ? (
+            filteredChatSessions.map(session => {
               const config = requestTypeConfig[session.request.type];
               const isActive = session.id === activeSessionId;
               return (
