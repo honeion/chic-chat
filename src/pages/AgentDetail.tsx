@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Bot, Settings, Info } from "lucide-react";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { cn } from "@/lib/utils";
 import { SOPAgentDashboard } from "@/components/agent/SOPAgentDashboard";
 import { ITSAgentDashboard } from "@/components/agent/ITSAgentDashboard";
@@ -1712,29 +1713,30 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
 
   return (
     <div className="flex-1 h-full overflow-hidden flex relative">
-      {/* Main Content Panel */}
-      <div className={cn("flex flex-col transition-all duration-300", isChatExpanded ? "w-0 overflow-hidden" : "flex-[7]")}>
-        <div className="flex-1 p-6 overflow-y-auto">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center"><Bot className="w-6 h-6 text-primary" /></div>
-              <div><h1 className="text-2xl font-bold">{agentName}</h1><p className="text-sm text-muted-foreground">Agent ID: {agentId}</p></div>
+      {/* Resizable layout when not expanded */}
+      {!isChatExpanded ? (
+        <ResizablePanelGroup direction="horizontal" className="h-full">
+          <ResizablePanel defaultSize={70} minSize={40}>
+            <div className="flex flex-col h-full">
+              <div className="flex-1 p-6 overflow-y-auto">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center"><Bot className="w-6 h-6 text-primary" /></div>
+                    <div><h1 className="text-2xl font-bold">{agentName}</h1><p className="text-sm text-muted-foreground">Agent ID: {agentId}</p></div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button className="px-4 py-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors flex items-center gap-2 text-sm"><Info className="w-4 h-4" />{t("common.info")}</button>
+                    <button className="px-4 py-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors flex items-center gap-2 text-sm"><Settings className="w-4 h-4" />{t("common.settings")}</button>
+                  </div>
+                </div>
+                {renderDashboard()}
+              </div>
             </div>
-            <div className="flex gap-2">
-              <button className="px-4 py-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors flex items-center gap-2 text-sm"><Info className="w-4 h-4" />{t("common.info")}</button>
-              <button className="px-4 py-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors flex items-center gap-2 text-sm"><Settings className="w-4 h-4" />{t("common.settings")}</button>
-            </div>
-          </div>
-          {renderDashboard()}
-        </div>
-      </div>
-
-      {/* Chat Panel - Overlay when expanded */}
-      <div className={cn(
-        "flex flex-col border-l border-border bg-sidebar transition-all duration-300",
-        isChatExpanded ? "absolute inset-0 z-10" : "flex-[3]"
-      )}>
-        <AgentChatPanel 
+          </ResizablePanel>
+          <ResizableHandle withHandle />
+          <ResizablePanel defaultSize={30} minSize={20}>
+            <div className="flex flex-col h-full border-l border-border bg-sidebar">
+              <AgentChatPanel
           agentName={agentName} 
           messages={currentMessages} 
           onSendMessage={handleSendMessage} 
@@ -1774,10 +1776,60 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
           isPendingITSComplete={activeSession?.status === "pending-its-complete"}
           onCompleteITS={() => activeSessionId && handleCompleteITS(activeSessionId)}
           onSkipITSComplete={() => activeSessionId && handleSkipITSComplete(activeSessionId)}
-          isExpanded={isChatExpanded}
-          onToggleExpand={() => setIsChatExpanded(!isChatExpanded)}
-        />
-      </div>
+                isExpanded={isChatExpanded}
+                onToggleExpand={() => setIsChatExpanded(!isChatExpanded)}
+              />
+            </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      ) : (
+        /* Chat Panel - Overlay when expanded */
+        <div className="absolute inset-0 z-10 flex flex-col bg-sidebar">
+          <AgentChatPanel 
+            agentName={agentName} 
+            messages={currentMessages} 
+            onSendMessage={handleSendMessage} 
+            onQuickAction={handleQuickAction} 
+            quickActions={quickActions}
+            activeRequest={activeRequest}
+            onCloseRequest={handleCloseRequest}
+            isPendingApproval={activeSession?.status === "pending-approval"}
+            onApproveRequest={() => activeSessionId && handleApproveRequest(activeSessionId)}
+            onRejectRequest={() => activeSessionId && handleRejectRequest(activeSessionId)}
+            onNavigateToAgent={onNavigateToAgent}
+            isPendingProcessStart={activeSession?.status === "pending-process-start"}
+            onStartProcess={() => activeSessionId && handleStartProcess(activeSessionId)}
+            onCancelProcess={() => activeSessionId && handleCancelProcess(activeSessionId)}
+            isPendingMonitoringResult={(activeSession?.status as string) === "pending-monitoring-result"}
+            onRegisterDetection={() => activeSessionId && handleRegisterDetection(activeSessionId)}
+            onCompleteNormal={() => activeSessionId && handleCompleteNormal(activeSessionId)}
+            isPendingDetectionAction={(activeSession?.status as string) === "pending-detection-action"}
+            onRouteToSOP={() => activeSessionId && handleRouteToSOP(activeSessionId)}
+            onDirectProcess={() => activeSessionId && handleDirectProcess(activeSessionId)}
+            isPendingDirectComplete={(activeSession?.status as string) === "pending-direct-complete"}
+            onDirectProcessComplete={() => activeSessionId && handleDirectProcessComplete(activeSessionId)}
+            isPendingReportConfirm={activeSession?.status === "pending-report-confirm"}
+            onCreateReport={() => activeSessionId && handleCreateReport(activeSessionId)}
+            onSkipReport={() => activeSessionId && handleSkipReport(activeSessionId)}
+            isPendingReportStart={activeSession?.status === "pending-report-start"}
+            onStartReportWriting={() => activeSessionId && handleStartReportWriting(activeSessionId)}
+            isPendingReportReview={activeSession?.status === "pending-report-review"}
+            onRewriteReport={() => activeSessionId && handleRewriteReport(activeSessionId)}
+            onCompleteReport={() => activeSessionId && handleCompleteReport(activeSessionId)}
+            isPendingKnowledgeSave={activeSession?.status === "pending-knowledge-save"}
+            onSaveToKnowledge={() => activeSessionId && handleSaveToKnowledge(activeSessionId)}
+            onSkipKnowledgeSave={() => activeSessionId && handleSkipKnowledgeSave(activeSessionId)}
+            isPendingITSNavigate={activeSession?.status === "pending-its-navigate"}
+            onNavigateToITS={() => activeSessionId && handleNavigateToITS(activeSessionId)}
+            onSkipITSNavigate={() => activeSessionId && handleSkipITSNavigate(activeSessionId)}
+            isPendingITSComplete={activeSession?.status === "pending-its-complete"}
+            onCompleteITS={() => activeSessionId && handleCompleteITS(activeSessionId)}
+            onSkipITSComplete={() => activeSessionId && handleSkipITSComplete(activeSessionId)}
+            isExpanded={isChatExpanded}
+            onToggleExpand={() => setIsChatExpanded(!isChatExpanded)}
+          />
+        </div>
+      )}
     </div>
   );
 }
