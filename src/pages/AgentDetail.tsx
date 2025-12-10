@@ -410,54 +410,60 @@ export function AgentDetail({ agentId, agentName, onNavigateToAgent }: AgentDeta
         updateSessionMessages(sessionId, prev => [...prev, { role: "agent", content: t("agentDetail.taskComplete", { task: taskName }) }]); 
         
         // Report Agent의 보고서 생성 완료 시 생성된 보고서 목록에 추가
-        const session = chatSessions.find(s => s.id === sessionId);
-        const isReportGeneration = session && session.request.requestNo.startsWith("RPT-");
-        if (isReportGeneration) {
-          // 보고서 유형 결정 (세션 타이틀에서 추출)
-          const getReportTypeInfo = (title: string): { typeId: string; typeName: string } => {
-            if (title.includes("장애보고서")) return { typeId: "incident", typeName: "장애보고서" };
-            if (title.includes("변경계획서")) return { typeId: "change-plan", typeName: "변경계획서" };
-            if (title.includes("테스트시나리오")) return { typeId: "test-scenario", typeName: "테스트시나리오" };
-            if (title.includes("변경결과보고서")) return { typeId: "change-result", typeName: "변경결과보고서" };
-            if (title.includes("취합문서")) return { typeId: "consolidated", typeName: "취합문서" };
-            return { typeId: "incident", typeName: "보고서" };
-          };
+        // 최신 세션 상태를 가져오기 위해 setChatSessions 콜백 내에서 처리
+        setChatSessions(prevSessions => {
+          const session = prevSessions.find(s => s.id === sessionId);
+          const isReportGeneration = session && session.request.requestNo.startsWith("RPT-");
           
-          const reportTypeInfo = getReportTypeInfo(session.request.title);
-          const newReport: GeneratedReport = {
-            id: `gr-${Date.now()}`,
-            typeId: reportTypeInfo.typeId,
-            typeName: reportTypeInfo.typeName,
-            title: session.request.title.replace(" 생성", ""),
-            generatedAt: new Date().toLocaleString('ko-KR'),
-            size: `${Math.floor(Math.random() * 3) + 1}.${Math.floor(Math.random() * 9)}MB`,
-            status: "ready",
-            savedToRAG: false
-          };
-          setGeneratedReports(prev => [newReport, ...prev]);
+          if (isReportGeneration && session) {
+            // 보고서 유형 결정 (세션 타이틀에서 추출)
+            const getReportTypeInfo = (title: string): { typeId: string; typeName: string } => {
+              if (title.includes("장애보고서")) return { typeId: "incident", typeName: "장애보고서" };
+              if (title.includes("변경계획서")) return { typeId: "change-plan", typeName: "변경계획서" };
+              if (title.includes("테스트시나리오")) return { typeId: "test-scenario", typeName: "테스트시나리오" };
+              if (title.includes("변경결과보고서")) return { typeId: "change-result", typeName: "변경결과보고서" };
+              if (title.includes("취합문서")) return { typeId: "consolidated", typeName: "취합문서" };
+              return { typeId: "incident", typeName: "보고서" };
+            };
+            
+            const reportTypeInfo = getReportTypeInfo(session.request.title);
+            const newReport: GeneratedReport = {
+              id: `gr-${Date.now()}`,
+              typeId: reportTypeInfo.typeId,
+              typeName: reportTypeInfo.typeName,
+              title: session.request.title.replace(" 생성", ""),
+              generatedAt: new Date().toLocaleString('ko-KR'),
+              size: `${Math.floor(Math.random() * 3) + 1}.${Math.floor(Math.random() * 9)}MB`,
+              status: "ready",
+              savedToRAG: false
+            };
+            
+            // setGeneratedReports는 별도로 호출 (state batch 고려)
+            setTimeout(() => setGeneratedReports(prev => [newReport, ...prev]), 0);
+            
+            // 세션 상태를 completed로 변경
+            return prevSessions.map(s => 
+              s.id === sessionId ? { ...s, status: "completed" as const } : s
+            );
+          }
           
-          // 세션 상태를 completed로 변경
-          setChatSessions(prev => prev.map(s => 
-            s.id === sessionId ? { ...s, status: "completed" as const } : s
-          ));
-          return;
-        }
-        
-        // SOP Agent의 인시던트 처리 완료 시 장애보고서 작성 여부 확인
-        // SOP Agent는 인시던트 유형(I)이면 보고서 작성 여부를 묻는다 (SOP- 또는 ITS-로 시작하는 요청번호 포함)
-        const isSOPIncident = session && session.request.type === "I" && 
-          (session.request.requestNo.startsWith("SOP-") || session.request.requestNo.startsWith("ITS-"));
-        if (isSOPIncident) {
-          setTimeout(() => {
-            updateSessionMessages(sessionId, prev => [...prev, { 
-              role: "agent", 
-              content: "✅ 인시던트 처리가 완료되었습니다.\n\n📝 해당 인시던트에 대한 **장애보고서**를 작성하시겠습니까?" 
-            }]);
-            setChatSessions(prev => prev.map(s => 
-              s.id === sessionId ? { ...s, status: "pending-report-confirm" as const } : s
-            ));
-          }, 800);
-        }
+          // SOP Agent의 인시던트 처리 완료 시 장애보고서 작성 여부 확인
+          const isSOPIncident = session && session.request.type === "I" && 
+            (session.request.requestNo.startsWith("SOP-") || session.request.requestNo.startsWith("ITS-"));
+          if (isSOPIncident) {
+            setTimeout(() => {
+              updateSessionMessages(sessionId, prev => [...prev, { 
+                role: "agent", 
+                content: "✅ 인시던트 처리가 완료되었습니다.\n\n📝 해당 인시던트에 대한 **장애보고서**를 작성하시겠습니까?" 
+              }]);
+              setChatSessions(prev => prev.map(s => 
+                s.id === sessionId ? { ...s, status: "pending-report-confirm" as const } : s
+              ));
+            }, 800);
+          }
+          
+          return prevSessions;
+        });
       }, 500);
     }, steps.length * 800 + 500);
   };
