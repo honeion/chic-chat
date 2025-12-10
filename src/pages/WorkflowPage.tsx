@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Workflow, Plus, Play, Save, Trash2, ChevronRight, ChevronDown, Clock, History, X, Settings, MessageSquare, Eye, Edit3 } from "lucide-react";
+import { Workflow, Plus, Play, Save, Trash2, ChevronRight, ChevronDown, Clock, History, X, Settings, MessageSquare, Eye, Edit3, PanelRightClose, PanelRightOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NewAgentModal } from "@/components/workflow/NewAgentModal";
 import { WorkflowChatPanel } from "@/components/workflow/WorkflowChatPanel";
 import { WorkflowItem, OperatingSystem, RegisteredAgent, OPERATING_SYSTEMS } from "@/pages/Index";
-
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 interface ExecutionHistory {
   id: string;
   timestamp: string;
@@ -71,6 +71,7 @@ export function WorkflowPage({
   const [newAgentKnowledge, setNewAgentKnowledge] = useState<string[]>([]);
   const [newAgentInstructions, setNewAgentInstructions] = useState("");
   const [instructionsViewMode, setInstructionsViewMode] = useState<"edit" | "preview">("edit");
+  const [isChatExpanded, setIsChatExpanded] = useState(false);
   
   // System filter toggles
   const [systemFilters, setSystemFilters] = useState<Record<OperatingSystem, boolean>>({
@@ -224,9 +225,11 @@ export function WorkflowPage({
   const showAgentTypeDetail = selectedAgent !== null;
 
   return (
-    <div className="flex-1 flex h-full overflow-hidden">
-      {/* Main Content - 70% */}
-      <div className="flex-[7] p-6 overflow-y-auto">
+    <>
+    <ResizablePanelGroup direction="horizontal" className="flex-1 h-full overflow-hidden">
+      {/* Main Content Panel */}
+      <ResizablePanel defaultSize={isChatExpanded ? 30 : 70} minSize={20} className="flex flex-col">
+        <div className="flex-1 p-6 overflow-y-auto">
         {showAgentTypeDetail ? (
           <>
             {/* Agent Type Detail View */}
@@ -511,21 +514,29 @@ export function WorkflowPage({
             </div>
           </>
         )}
-      </div>
+        </div>
+      </ResizablePanel>
 
-      {/* Chat Panel - 30% */}
-      <WorkflowChatPanel 
-        agentName={selectedAgent?.name} 
-        activeAgent={activeAgentForChat ? { id: activeAgentForChat.id, name: activeAgentForChat.name, system: activeAgentForChat.system } : null}
-      />
+      {/* Resize Handle */}
+      <ResizableHandle withHandle />
 
-      {/* New Agent Type Modal */}
-      <NewAgentModal
-        isOpen={isNewAgentModalOpen}
-        onClose={() => setIsNewAgentModalOpen(false)}
-        onSave={onAddNewAgent}
-        tools={mockTools}
-      />
+      {/* Chat Panel */}
+      <ResizablePanel defaultSize={isChatExpanded ? 70 : 30} minSize={20} className="flex flex-col">
+        <WorkflowChatPanel 
+          agentName={selectedAgent?.name} 
+          activeAgent={activeAgentForChat ? { id: activeAgentForChat.id, name: activeAgentForChat.name, system: activeAgentForChat.system } : null}
+          isExpanded={isChatExpanded}
+          onToggleExpand={() => setIsChatExpanded(!isChatExpanded)}
+        />
+      </ResizablePanel>
+    </ResizablePanelGroup>
+
+    <NewAgentModal
+      isOpen={isNewAgentModalOpen}
+      onClose={() => setIsNewAgentModalOpen(false)}
+      onSave={onAddNewAgent}
+      tools={mockTools}
+    />
 
       {/* Add Registered Agent Modal */}
       {isAddAgentModalOpen && (
@@ -895,6 +906,6 @@ export function WorkflowPage({
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

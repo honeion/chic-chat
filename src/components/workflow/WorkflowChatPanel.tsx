@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Send, Bot, User, Sparkles, Play } from "lucide-react";
+import { Send, Bot, User, Sparkles, Play, PanelRightClose, PanelRightOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Message {
@@ -19,9 +19,11 @@ interface ActiveAgent {
 interface WorkflowChatPanelProps {
   agentName?: string;
   activeAgent?: ActiveAgent | null;
+  isExpanded?: boolean;
+  onToggleExpand?: () => void;
 }
 
-export function WorkflowChatPanel({ agentName, activeAgent }: WorkflowChatPanelProps) {
+export function WorkflowChatPanel({ agentName, activeAgent, isExpanded, onToggleExpand }: WorkflowChatPanelProps) {
   const { t } = useTranslation();
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -90,19 +92,34 @@ export function WorkflowChatPanel({ agentName, activeAgent }: WorkflowChatPanelP
   ];
 
   return (
-    <div className="flex-[3] flex flex-col h-full bg-sidebar border-l border-border">
+    <div className="flex-1 flex flex-col h-full bg-sidebar border-l border-border">
       {/* Header */}
       <div className="p-4 border-b border-border">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
-            {activeAgent ? <Play className="w-5 h-5 text-primary" /> : <Bot className="w-5 h-5 text-primary" />}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+              {activeAgent ? <Play className="w-5 h-5 text-primary" /> : <Bot className="w-5 h-5 text-primary" />}
+            </div>
+            <div>
+              <h3 className="font-semibold">{activeAgent?.name || agentName || t("workflow.agentChat")}</h3>
+              <p className="text-xs text-muted-foreground">
+                {activeAgent ? `${activeAgent.system} · 실행 중` : t("common.online")}
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="font-semibold">{activeAgent?.name || agentName || t("workflow.agentChat")}</h3>
-            <p className="text-xs text-muted-foreground">
-              {activeAgent ? `${activeAgent.system} · 실행 중` : t("common.online")}
-            </p>
-          </div>
+          {onToggleExpand && (
+            <button
+              onClick={onToggleExpand}
+              className="p-2 rounded-lg hover:bg-secondary transition-colors"
+              title={isExpanded ? "접기" : "확장"}
+            >
+              {isExpanded ? (
+                <PanelRightClose className="w-5 h-5 text-muted-foreground" />
+              ) : (
+                <PanelRightOpen className="w-5 h-5 text-muted-foreground" />
+              )}
+            </button>
+          )}
         </div>
       </div>
 

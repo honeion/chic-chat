@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Bot, Settings, Info } from "lucide-react";
+import { Bot, Settings, Info, PanelRightClose, PanelRightOpen } from "lucide-react";
 import { SOPAgentDashboard } from "@/components/agent/SOPAgentDashboard";
 import { ITSAgentDashboard } from "@/components/agent/ITSAgentDashboard";
 import { MonitoringAgentDashboard, type DetectionItem, type SystemInfo } from "@/components/agent/MonitoringAgentDashboard";
@@ -9,6 +9,7 @@ import { BizSupportAgentDashboard } from "@/components/agent/BizSupportAgentDash
 import { ChangeManagementAgentDashboard } from "@/components/agent/ChangeManagementAgentDashboard";
 import { ReportAgentDashboard, type GeneratedReport } from "@/components/agent/ReportAgentDashboard";
 import { AgentChatPanel } from "@/components/agent/AgentChatPanel";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 
 interface ProcessingStep { id: string; step: string; status: "pending" | "running" | "completed"; detail?: string; }
 interface MessageLink { label: string; agentId: string; }
@@ -281,6 +282,9 @@ interface AgentDetailExtendedProps extends AgentDetailProps {
 export function AgentDetail({ agentId, agentName, onNavigateToAgent }: AgentDetailProps) {
   const { t } = useTranslation();
   const agentType = getAgentType(agentName);
+  
+  // Chat panel expanded state
+  const [isChatExpanded, setIsChatExpanded] = useState(false);
   
   // 각 Agent별 라우팅된 요청 목록
   const [routedRequestsToSOP, setRoutedRequestsToSOP] = useState<RoutedRequest[]>([]);
@@ -1707,61 +1711,73 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
   };
 
   return (
-    <div className="flex-1 flex h-full overflow-hidden">
-      <div className="w-[70%] p-6 overflow-y-auto">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center"><Bot className="w-6 h-6 text-primary" /></div>
-            <div><h1 className="text-2xl font-bold">{agentName}</h1><p className="text-sm text-muted-foreground">Agent ID: {agentId}</p></div>
+    <ResizablePanelGroup direction="horizontal" className="flex-1 h-full overflow-hidden">
+      {/* Main Content Panel */}
+      <ResizablePanel defaultSize={isChatExpanded ? 30 : 70} minSize={20} className="flex flex-col">
+        <div className="flex-1 p-6 overflow-y-auto">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center"><Bot className="w-6 h-6 text-primary" /></div>
+              <div><h1 className="text-2xl font-bold">{agentName}</h1><p className="text-sm text-muted-foreground">Agent ID: {agentId}</p></div>
+            </div>
+            <div className="flex gap-2">
+              <button className="px-4 py-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors flex items-center gap-2 text-sm"><Info className="w-4 h-4" />{t("common.info")}</button>
+              <button className="px-4 py-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors flex items-center gap-2 text-sm"><Settings className="w-4 h-4" />{t("common.settings")}</button>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <button className="px-4 py-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors flex items-center gap-2 text-sm"><Info className="w-4 h-4" />{t("common.info")}</button>
-            <button className="px-4 py-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors flex items-center gap-2 text-sm"><Settings className="w-4 h-4" />{t("common.settings")}</button>
-          </div>
+          {renderDashboard()}
         </div>
-        {renderDashboard()}
-      </div>
-      <AgentChatPanel 
-        agentName={agentName} 
-        messages={currentMessages} 
-        onSendMessage={handleSendMessage} 
-        onQuickAction={handleQuickAction} 
-        quickActions={quickActions}
-        activeRequest={activeRequest}
-        onCloseRequest={handleCloseRequest}
-        isPendingApproval={activeSession?.status === "pending-approval"}
-        onApproveRequest={() => activeSessionId && handleApproveRequest(activeSessionId)}
-        onRejectRequest={() => activeSessionId && handleRejectRequest(activeSessionId)}
-        onNavigateToAgent={onNavigateToAgent}
-        isPendingProcessStart={activeSession?.status === "pending-process-start"}
-        onStartProcess={() => activeSessionId && handleStartProcess(activeSessionId)}
-        onCancelProcess={() => activeSessionId && handleCancelProcess(activeSessionId)}
-        isPendingMonitoringResult={(activeSession?.status as string) === "pending-monitoring-result"}
-        onRegisterDetection={() => activeSessionId && handleRegisterDetection(activeSessionId)}
-        onCompleteNormal={() => activeSessionId && handleCompleteNormal(activeSessionId)}
-        isPendingDetectionAction={(activeSession?.status as string) === "pending-detection-action"}
-        onRouteToSOP={() => activeSessionId && handleRouteToSOP(activeSessionId)}
-        onDirectProcess={() => activeSessionId && handleDirectProcess(activeSessionId)}
-        isPendingDirectComplete={(activeSession?.status as string) === "pending-direct-complete"}
-        onDirectProcessComplete={() => activeSessionId && handleDirectProcessComplete(activeSessionId)}
-        isPendingReportConfirm={activeSession?.status === "pending-report-confirm"}
-        onCreateReport={() => activeSessionId && handleCreateReport(activeSessionId)}
-        onSkipReport={() => activeSessionId && handleSkipReport(activeSessionId)}
-        isPendingReportStart={activeSession?.status === "pending-report-start"}
-        onStartReportWriting={() => activeSessionId && handleStartReportWriting(activeSessionId)}
-        isPendingReportReview={activeSession?.status === "pending-report-review"}
-        onRewriteReport={() => activeSessionId && handleRewriteReport(activeSessionId)}
-        onCompleteReport={() => activeSessionId && handleCompleteReport(activeSessionId)}
-        isPendingKnowledgeSave={activeSession?.status === "pending-knowledge-save"}
-        onSaveToKnowledge={() => activeSessionId && handleSaveToKnowledge(activeSessionId)}
-        onSkipKnowledgeSave={() => activeSessionId && handleSkipKnowledgeSave(activeSessionId)}
-        isPendingITSNavigate={activeSession?.status === "pending-its-navigate"}
-        onNavigateToITS={() => activeSessionId && handleNavigateToITS(activeSessionId)}
-        onSkipITSNavigate={() => activeSessionId && handleSkipITSNavigate(activeSessionId)}
-        isPendingITSComplete={activeSession?.status === "pending-its-complete"}
-        onCompleteITS={() => activeSessionId && handleCompleteITS(activeSessionId)}
-        onSkipITSComplete={() => activeSessionId && handleSkipITSComplete(activeSessionId)}
-      />
-    </div>
+      </ResizablePanel>
+
+      {/* Resize Handle */}
+      <ResizableHandle withHandle />
+
+      {/* Chat Panel */}
+      <ResizablePanel defaultSize={isChatExpanded ? 70 : 30} minSize={20} className="flex flex-col">
+        <AgentChatPanel 
+          agentName={agentName} 
+          messages={currentMessages} 
+          onSendMessage={handleSendMessage} 
+          onQuickAction={handleQuickAction} 
+          quickActions={quickActions}
+          activeRequest={activeRequest}
+          onCloseRequest={handleCloseRequest}
+          isPendingApproval={activeSession?.status === "pending-approval"}
+          onApproveRequest={() => activeSessionId && handleApproveRequest(activeSessionId)}
+          onRejectRequest={() => activeSessionId && handleRejectRequest(activeSessionId)}
+          onNavigateToAgent={onNavigateToAgent}
+          isPendingProcessStart={activeSession?.status === "pending-process-start"}
+          onStartProcess={() => activeSessionId && handleStartProcess(activeSessionId)}
+          onCancelProcess={() => activeSessionId && handleCancelProcess(activeSessionId)}
+          isPendingMonitoringResult={(activeSession?.status as string) === "pending-monitoring-result"}
+          onRegisterDetection={() => activeSessionId && handleRegisterDetection(activeSessionId)}
+          onCompleteNormal={() => activeSessionId && handleCompleteNormal(activeSessionId)}
+          isPendingDetectionAction={(activeSession?.status as string) === "pending-detection-action"}
+          onRouteToSOP={() => activeSessionId && handleRouteToSOP(activeSessionId)}
+          onDirectProcess={() => activeSessionId && handleDirectProcess(activeSessionId)}
+          isPendingDirectComplete={(activeSession?.status as string) === "pending-direct-complete"}
+          onDirectProcessComplete={() => activeSessionId && handleDirectProcessComplete(activeSessionId)}
+          isPendingReportConfirm={activeSession?.status === "pending-report-confirm"}
+          onCreateReport={() => activeSessionId && handleCreateReport(activeSessionId)}
+          onSkipReport={() => activeSessionId && handleSkipReport(activeSessionId)}
+          isPendingReportStart={activeSession?.status === "pending-report-start"}
+          onStartReportWriting={() => activeSessionId && handleStartReportWriting(activeSessionId)}
+          isPendingReportReview={activeSession?.status === "pending-report-review"}
+          onRewriteReport={() => activeSessionId && handleRewriteReport(activeSessionId)}
+          onCompleteReport={() => activeSessionId && handleCompleteReport(activeSessionId)}
+          isPendingKnowledgeSave={activeSession?.status === "pending-knowledge-save"}
+          onSaveToKnowledge={() => activeSessionId && handleSaveToKnowledge(activeSessionId)}
+          onSkipKnowledgeSave={() => activeSessionId && handleSkipKnowledgeSave(activeSessionId)}
+          isPendingITSNavigate={activeSession?.status === "pending-its-navigate"}
+          onNavigateToITS={() => activeSessionId && handleNavigateToITS(activeSessionId)}
+          onSkipITSNavigate={() => activeSessionId && handleSkipITSNavigate(activeSessionId)}
+          isPendingITSComplete={activeSession?.status === "pending-its-complete"}
+          onCompleteITS={() => activeSessionId && handleCompleteITS(activeSessionId)}
+          onSkipITSComplete={() => activeSessionId && handleSkipITSComplete(activeSessionId)}
+          isExpanded={isChatExpanded}
+          onToggleExpand={() => setIsChatExpanded(!isChatExpanded)}
+        />
+      </ResizablePanel>
+    </ResizablePanelGroup>
   );
 }
