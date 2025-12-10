@@ -81,7 +81,11 @@ export function ITSAgentDashboard({
   const filterSessionsBySystem = (sessions: ChatSession[]): ChatSession[] => {
     if (selectedSystem === "all") return sessions;
     return sessions.filter(session => {
-      // 세션의 request에서 시스템 정보 확인
+      // 세션의 request에서 직접 시스템 정보 확인하거나, requests 배열에서 찾기
+      const sessionSystem = (session.request as any).system;
+      if (sessionSystem) {
+        return sessionSystem === selectedSystem;
+      }
       const matchingRequest = requests.find(r => r.id === session.request.id);
       return matchingRequest?.system === selectedSystem;
     });

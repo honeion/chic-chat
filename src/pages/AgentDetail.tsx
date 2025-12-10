@@ -311,14 +311,14 @@ export function AgentDetail({ agentId, agentName, onNavigateToAgent }: AgentDeta
   // ITS 요청 상태 관리
   const [itsRequests, setItsRequests] = useState<ITSRequest[]>([
     // 미접수 (open)
-    { id: "r1", requestNo: "ITS-2024-0152", type: "I", title: "서버 응답 지연 현상 발생", date: "2024-12-05", status: "open" },
-    { id: "r4", requestNo: "ITS-2024-0149", type: "A", title: "신규 입사자 계정 발급 요청", date: "2024-12-04", status: "open" },
-    { id: "r6", requestNo: "ITS-2024-0153", type: "D", title: "고객별 주문 현황 데이터 추출", date: "2024-12-06", status: "open" },
+    { id: "r1", requestNo: "ITS-2024-0152", type: "I", title: "서버 응답 지연 현상 발생", date: "2024-12-05", status: "open", system: "e-총무" },
+    { id: "r4", requestNo: "ITS-2024-0149", type: "A", title: "신규 입사자 계정 발급 요청", date: "2024-12-04", status: "open", system: "BiOn" },
+    { id: "r6", requestNo: "ITS-2024-0153", type: "D", title: "고객별 주문 현황 데이터 추출", date: "2024-12-06", status: "open", system: "SATIS" },
     // 접수/처리중 (in-progress)
-    { id: "r2", requestNo: "ITS-2024-0151", type: "C", title: "대시보드 UI 개선 요청", date: "2024-12-05", status: "in-progress" },
-    { id: "r3", requestNo: "ITS-2024-0150", type: "D", title: "월간 매출 데이터 추출 요청", date: "2024-12-04", status: "in-progress" },
+    { id: "r2", requestNo: "ITS-2024-0151", type: "C", title: "대시보드 UI 개선 요청", date: "2024-12-05", status: "in-progress", system: "e-총무" },
+    { id: "r3", requestNo: "ITS-2024-0150", type: "D", title: "월간 매출 데이터 추출 요청", date: "2024-12-04", status: "in-progress", system: "BiOn" },
     // 완료 (resolved)
-    { id: "r5", requestNo: "ITS-2024-0148", type: "S", title: "프린터 용지 교체 요청", date: "2024-12-03", status: "resolved" },
+    { id: "r5", requestNo: "ITS-2024-0148", type: "S", title: "프린터 용지 교체 요청", date: "2024-12-03", status: "resolved", system: "SATIS" },
   ]);
 
   // Agent로 요청 라우팅
