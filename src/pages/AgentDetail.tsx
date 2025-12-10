@@ -788,11 +788,10 @@ ${request.description || "해당 변경 작업에 대한 처리가 필요합니�
   const handleSOPStartChat = (incident: { id: string; title: string; description?: string; requestNo?: string; type?: RequestType; timestamp: string; priority?: string }) => {
     console.log("handleSOPStartChat called with incident:", incident);
     
-    // 기존 SOP 세션 확인 - SOP Agent에서 생성된 세션만 찾기
+    // 먼저 기존 SOP 세션 확인
     const existingSOPSession = chatSessions.find(s => s.request.id === incident.id && s.agentType === "sop");
     if (existingSOPSession) {
       console.log("Existing SOP session found:", existingSOPSession.id);
-      // 기존 세션의 상태가 pending-process-start가 아니면 리셋
       if (existingSOPSession.status !== "pending-process-start") {
         setChatSessions(prev => prev.map(s => 
           s.id === existingSOPSession.id 
@@ -804,13 +803,40 @@ ${request.description || "해당 변경 작업에 대한 처리가 필요합니�
       return;
     }
     
+    // ITS에서 라우팅된 세션 확인 (request.id 또는 requestNo로 매칭)
+    const existingITSSession = chatSessions.find(s => 
+      (s.request.id === incident.id || s.request.requestNo === incident.requestNo) && 
+      s.agentType === "its"
+    );
+    
+    if (existingITSSession) {
+      console.log("Found existing ITS session, connecting to SOP:", existingITSSession.id);
+      
+      const typeLabel = incident.type ? requestTypeLabels[incident.type] : "인시던트";
+      
+      // ITS 세션에 SOP 처리 시작 메시지 추가하고, agentType을 sop로 변경
+      const sopHandoverMessage = `\n---\n\n🔄 **SOP Agent로 이관됨**\n\n📋 **인시던트 처리 요약**\n\n**유형:** ${typeLabel}\n**요청 번호:** ${incident.requestNo}\n**제목:** ${incident.title}\n**우선순위:** ${incident.priority === "high" ? "긴급" : incident.priority === "medium" ? "보통" : "낮음"}\n\n---\n\n위 인시던트에 대한 처리를 시작하시겠습니까?`;
+      
+      setChatSessions(prev => prev.map(s => 
+        s.id === existingITSSession.id 
+          ? { 
+              ...s, 
+              agentType: "sop", // SOP Agent로 이관
+              status: "pending-process-start" as const,
+              messages: [...s.messages, { role: "agent" as const, content: sopHandoverMessage }]
+            }
+          : s
+      ));
+      setActiveSessionId(existingITSSession.id);
+      return;
+    }
+    
     console.log("Creating new session for incident:", incident.id);
     
-    // 새로운 세션 생성
+    // 새로운 세션 생성 (ITS에서 라우팅되지 않은 경우)
     const newSessionId = `session-${Date.now()}`;
     const typeLabel = incident.type ? requestTypeLabels[incident.type] : "인시던트";
     
-    // 요청 내용 요약 메시지
     const requestSummaryMessage = `📋 **인시던트 요청 요약**
 
 **유형:** ${typeLabel}
@@ -838,9 +864,9 @@ ${incident.description || "해당 인시던트에 대한 처리가 필요합니�
         date: incident.timestamp 
       },
       messages: [{ role: "agent", content: requestSummaryMessage }],
-      status: "pending-process-start", // 처리 시작 대기 상태
+      status: "pending-process-start",
       createdAt: new Date().toISOString(),
-      agentType: "sop", // SOP Agent에서 생성된 세션
+      agentType: "sop",
     };
     
     setChatSessions(prev => [newSession, ...prev]);
