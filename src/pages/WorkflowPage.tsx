@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Workflow, Plus, Play, Save, Trash2, ChevronRight, ChevronDown, Clock, History, X, Settings, MessageSquare, Eye, Edit3 } from "lucide-react";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { cn } from "@/lib/utils";
 import { NewAgentModal } from "@/components/workflow/NewAgentModal";
 import { WorkflowChatPanel } from "@/components/workflow/WorkflowChatPanel";
@@ -226,9 +227,12 @@ export function WorkflowPage({
   return (
     <>
     <div className="flex-1 h-full overflow-hidden flex relative">
-      {/* Main Content Panel */}
-      <div className={cn("flex flex-col transition-all duration-300", isChatExpanded ? "w-0 overflow-hidden" : "flex-[7]")}>
-        <div className="flex-1 p-6 overflow-y-auto">
+      {/* Resizable layout when not expanded */}
+      {!isChatExpanded ? (
+        <ResizablePanelGroup direction="horizontal" className="h-full">
+          <ResizablePanel defaultSize={70} minSize={40}>
+            <div className="flex flex-col h-full">
+              <div className="flex-1 p-6 overflow-y-auto">
         {showAgentTypeDetail ? (
           <>
             {/* Agent Type Detail View */}
@@ -513,21 +517,32 @@ export function WorkflowPage({
             </div>
           </>
         )}
+              </div>
+            </div>
+          </ResizablePanel>
+          <ResizableHandle withHandle />
+          <ResizablePanel defaultSize={30} minSize={20}>
+            <div className="flex flex-col h-full border-l border-border bg-sidebar">
+              <WorkflowChatPanel 
+                agentName={selectedAgent?.name} 
+                activeAgent={activeAgentForChat ? { id: activeAgentForChat.id, name: activeAgentForChat.name, system: activeAgentForChat.system } : null}
+                isExpanded={isChatExpanded}
+                onToggleExpand={() => setIsChatExpanded(!isChatExpanded)}
+              />
+            </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      ) : (
+        /* Chat Panel - Overlay when expanded */
+        <div className="absolute inset-0 z-10 flex flex-col bg-sidebar">
+          <WorkflowChatPanel 
+            agentName={selectedAgent?.name} 
+            activeAgent={activeAgentForChat ? { id: activeAgentForChat.id, name: activeAgentForChat.name, system: activeAgentForChat.system } : null}
+            isExpanded={isChatExpanded}
+            onToggleExpand={() => setIsChatExpanded(!isChatExpanded)}
+          />
         </div>
-      </div>
-
-      {/* Chat Panel - Overlay when expanded */}
-      <div className={cn(
-        "flex flex-col border-l border-border bg-sidebar transition-all duration-300",
-        isChatExpanded ? "absolute inset-0 z-10" : "flex-[3]"
-      )}>
-        <WorkflowChatPanel 
-          agentName={selectedAgent?.name} 
-          activeAgent={activeAgentForChat ? { id: activeAgentForChat.id, name: activeAgentForChat.name, system: activeAgentForChat.system } : null}
-          isExpanded={isChatExpanded}
-          onToggleExpand={() => setIsChatExpanded(!isChatExpanded)}
-        />
-      </div>
+      )}
     </div>
 
     <NewAgentModal
