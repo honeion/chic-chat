@@ -1312,6 +1312,39 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
     setActiveSessionId(newSessionId);
   };
 
+  // 인프라 Agent 시스템별 채팅 시작 핸들러
+  const handleInfraStartSystemChat = (system: "e-총무" | "BiOn" | "SATIS") => {
+    const systemNames: Record<string, string> = {
+      "e-총무": "e-총무시스템",
+      "BiOn": "구매시스템",
+      "SATIS": "영업/물류시스템"
+    };
+    
+    const newSessionId = `session-infra-${Date.now()}`;
+    const requestNo = `INFRA-2024-${String(Math.floor(Math.random() * 9000) + 1000)}`;
+    
+    const newSession: ChatSession = {
+      id: newSessionId,
+      request: { 
+        id: `infra-${Date.now()}`, 
+        requestNo, 
+        type: "S" as const, 
+        title: `${systemNames[system]} 인프라 작업`, 
+        date: new Date().toISOString().split('T')[0],
+        system
+      },
+      messages: [{ 
+        role: "agent", 
+        content: `안녕하세요! 인프라 Agent입니다.\n\n**${systemNames[system]}** 관련 인프라 작업을 시작합니다.\n\n• 서버 점검 및 모니터링\n• 네트워크 설정 및 관리\n• 스토리지 관리\n• 클라우드 인프라 설정\n• 보안 정책 적용\n\n어떤 작업이 필요하신가요?` 
+      }],
+      status: "in-progress",
+      createdAt: new Date().toISOString(),
+    };
+    
+    setChatSessions(prev => [newSession, ...prev]);
+    setActiveSessionId(newSessionId);
+  };
+
   const handleStartProcess = (sessionId: string) => {
     const session = chatSessions.find(s => s.id === sessionId);
     if (!session) return;
@@ -1806,6 +1839,7 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
             onSelectSession={handleSelectSession}
             chatSessions={infraSessions}
             activeSessionId={activeSessionId}
+            onStartSystemChat={handleInfraStartSystemChat}
           />
         );
       }
