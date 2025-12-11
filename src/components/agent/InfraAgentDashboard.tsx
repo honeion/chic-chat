@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { MessageSquare, Settings, Server, Filter } from "lucide-react";
+import { MessageSquare, Settings, Server, Filter, PlayCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +26,7 @@ interface InfraAgentDashboardProps {
   chatSessions?: ChatSession[];
   activeSessionId?: string | null;
   onOpenSettings?: (system: SystemType) => void;
+  onStartSystemChat?: (system: SystemType) => void;
 }
 
 const SYSTEMS: { id: SystemType; name: string }[] = [
@@ -40,6 +41,7 @@ export function InfraAgentDashboard({
   chatSessions = [],
   activeSessionId,
   onOpenSettings,
+  onStartSystemChat,
 }: InfraAgentDashboardProps) {
   const { t } = useTranslation();
   const [selectedSystem, setSelectedSystem] = useState<SystemType | "전체">("전체");
@@ -129,9 +131,20 @@ export function InfraAgentDashboard({
                     <Server className="w-4 h-4 text-primary" />
                     <span className="text-sm font-medium">{system.name}</span>
                   </div>
-                  <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => onOpenSettings?.(system.id)}>
-                    <Settings className="w-4 h-4" />
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="h-7 w-7 p-0 hover:bg-primary/20 hover:text-primary" 
+                      onClick={() => onStartSystemChat?.(system.id)}
+                      title="채팅 시작"
+                    >
+                      <PlayCircle className="w-4 h-4" />
+                    </Button>
+                    <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => onOpenSettings?.(system.id)}>
+                      <Settings className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
                 <div className="text-xs text-muted-foreground">
                   {infraSessions.filter((s) => s.request.system === system.id).length}건의 작업
