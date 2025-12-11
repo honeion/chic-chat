@@ -11,6 +11,7 @@ import { BizSupportAgentDashboard } from "@/components/agent/BizSupportAgentDash
 import { ChangeManagementAgentDashboard } from "@/components/agent/ChangeManagementAgentDashboard";
 import { ReportAgentDashboard, type GeneratedReport } from "@/components/agent/ReportAgentDashboard";
 import { InfraAgentDashboard } from "@/components/agent/InfraAgentDashboard";
+import { InfraSettingsModal } from "@/components/agent/InfraSettingsModal";
 import { AgentChatPanel } from "@/components/agent/AgentChatPanel";
 
 interface ProcessingStep { id: string; step: string; status: "pending" | "running" | "completed"; detail?: string; }
@@ -361,6 +362,10 @@ export function AgentDetail({ agentId, agentName, onNavigateToAgent }: AgentDeta
   // 채팅 세션 관리 - 초기 데이터 포함
   const [chatSessions, setChatSessions] = useState<ChatSession[]>(initialChatSessions);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  
+  // 인프라 설정 모달 상태
+  const [infraSettingsModalOpen, setInfraSettingsModalOpen] = useState(false);
+  const [infraSettingsSystem, setInfraSettingsSystem] = useState<{ id: string; name: string } | null>(null);
   
   // 현재 활성 세션의 메시지
   const activeSession = chatSessions.find(s => s.id === activeSessionId);
@@ -1345,6 +1350,17 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
     setActiveSessionId(newSessionId);
   };
 
+  // 인프라 Agent 설정 모달 열기 핸들러
+  const handleOpenInfraSettings = (system: "e-총무" | "BiOn" | "SATIS") => {
+    const systemNames: Record<string, string> = {
+      "e-총무": "e-총무시스템",
+      "BiOn": "구매시스템",
+      "SATIS": "영업/물류시스템"
+    };
+    setInfraSettingsSystem({ id: system, name: systemNames[system] });
+    setInfraSettingsModalOpen(true);
+  };
+
   const handleStartProcess = (sessionId: string) => {
     const session = chatSessions.find(s => s.id === sessionId);
     if (!session) return;
@@ -1840,6 +1856,7 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
             chatSessions={infraSessions}
             activeSessionId={activeSessionId}
             onStartSystemChat={handleInfraStartSystemChat}
+            onOpenSettings={handleOpenInfraSettings}
           />
         );
       }
@@ -1975,6 +1992,16 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
             onToggleExpand={() => setIsChatExpanded(!isChatExpanded)}
           />
         </div>
+      )}
+
+      {/* Infra Settings Modal */}
+      {infraSettingsSystem && (
+        <InfraSettingsModal
+          isOpen={infraSettingsModalOpen}
+          onClose={() => setInfraSettingsModalOpen(false)}
+          systemName={infraSettingsSystem.name}
+          systemId={infraSettingsSystem.id}
+        />
       )}
     </div>
   );
