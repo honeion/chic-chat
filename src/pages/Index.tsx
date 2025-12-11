@@ -177,7 +177,7 @@ export const initialMyAgents: WorkflowItem[] = [
 
 const Index = () => {
   const [selectedChat, setSelectedChat] = useState<string | null>("1");
-  const [currentView, setCurrentView] = useState<ViewType>("assistant");
+  const [currentView, setCurrentView] = useState<ViewType>("agent");
   const [selectedAgent, setSelectedAgent] = useState<string | null>("a1");
   const [myAgents, setMyAgents] = useState<WorkflowItem[]>(initialMyAgents);
   const [selectedWorkflowAgent, setSelectedWorkflowAgent] = useState<WorkflowItem | null>(null);
