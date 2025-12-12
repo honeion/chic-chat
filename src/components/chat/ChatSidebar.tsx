@@ -4,7 +4,7 @@ import {
   MessageSquare, 
   Users, 
   Settings, 
-  Plus, 
+  LogIn, 
   Search,
   Bot,
   Workflow,
@@ -231,8 +231,12 @@ export function ChatSidebar({
           <h1 className="text-xl font-semibold text-gradient">AI Worker</h1>
           <div className="flex items-center gap-1">
             <ThemeToggle />
-            <button className="p-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
-              <Plus className="w-5 h-5" />
+            <button 
+              onClick={() => navigate("/login")}
+              className="p-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+              title="로그인"
+            >
+              <LogIn className="w-5 h-5" />
             </button>
           </div>
         </div>
