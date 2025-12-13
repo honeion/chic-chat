@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils";
 import {
   Users,
   Server,
-  Link2,
   Shield,
   FileText,
   Bot,
@@ -20,7 +19,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { UserManagement } from "@/components/admin/UserManagement";
 import { SystemManagement } from "@/components/admin/SystemManagement";
-import { UserSystemMapping } from "@/components/admin/UserSystemMapping";
+
 import { PermissionManagement } from "@/components/admin/PermissionManagement";
 import { InstructionManagement } from "@/components/admin/InstructionManagement";
 import { AgentManagement } from "@/components/admin/AgentManagement";
@@ -31,7 +30,6 @@ import { AdminMonitoring } from "@/components/admin/AdminMonitoring";
 type AdminSection =
   | "users"
   | "systems"
-  | "mapping"
   | "permissions"
   | "instructions"
   | "agents"
@@ -42,7 +40,6 @@ type AdminSection =
 const adminSections = [
   { id: "users" as AdminSection, icon: Users, label: "사용자관리" },
   { id: "systems" as AdminSection, icon: Server, label: "시스템관리" },
-  { id: "mapping" as AdminSection, icon: Link2, label: "사용자-시스템 맵핑" },
   { id: "permissions" as AdminSection, icon: Shield, label: "권한관리" },
   { id: "instructions" as AdminSection, icon: FileText, label: "지침관리" },
   { id: "agents" as AdminSection, icon: Bot, label: "Agent 관리" },
@@ -76,8 +73,7 @@ const AdminPage = () => {
         return <UserManagement />;
       case "systems":
         return <SystemManagement />;
-      case "mapping":
-        return <UserSystemMapping />;
+      case "permissions":
       case "permissions":
         return <PermissionManagement />;
       case "instructions":
