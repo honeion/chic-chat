@@ -1195,20 +1195,39 @@ export function SystemMonitoringManagement() {
                 </Select>
               )}
             </div>
-            <div>
-              <Label className="text-xs">프로세스명</Label>
-              <Input
-                value={formData.config.processName || ""}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    config: { ...formData.config, processName: e.target.value },
-                  })
-                }
-                placeholder="java, nginx"
-                className="text-sm"
-              />
-            </div>
+            {formData.config.serverHostType === "K8S" && (
+              <div>
+                <Label className="text-xs">Deployment 명 (,로 여러개 입력 가능)</Label>
+                <Input
+                  value={formData.config.deploymentName || ""}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      config: { ...formData.config, deploymentName: e.target.value },
+                    })
+                  }
+                  placeholder="예: my-app-deployment, api-deployment"
+                  className="text-sm"
+                />
+                <p className="text-xs text-muted-foreground mt-1">해당 Deployment의 POD를 조회합니다.</p>
+              </div>
+            )}
+            {formData.config.serverHostType === "VM" && (
+              <div>
+                <Label className="text-xs">프로세스명 (,로 여러개 입력 가능)</Label>
+                <Input
+                  value={formData.config.processName || ""}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      config: { ...formData.config, processName: e.target.value },
+                    })
+                  }
+                  placeholder="예: java, nginx, tomcat"
+                  className="text-sm"
+                />
+              </div>
+            )}
           </div>
         );
 
