@@ -1,4 +1,5 @@
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
 import { cn } from "@/lib/utils";
 import {
   Search,
@@ -896,7 +897,7 @@ export function InstructionManagement() {
                 </div>
                 {showMarkdownPreview ? (
                   <div className="flex-1 p-4 bg-secondary/30 rounded-lg overflow-y-auto prose prose-sm dark:prose-invert max-w-none">
-                    <pre className="whitespace-pre-wrap text-sm">{editContent}</pre>
+                    <ReactMarkdown>{editContent}</ReactMarkdown>
                   </div>
                 ) : (
                   <Textarea
