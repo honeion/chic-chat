@@ -46,6 +46,7 @@ export function SystemManagement() {
   const [systems, setSystems] = useState<SystemData[]>(mockSystems);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<"all" | "active" | "inactive">("all");
+  const [typeFilter, setTypeFilter] = useState<"all" | SystemType>("all");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedSystem, setSelectedSystem] = useState<SystemData | null>(null);
@@ -74,7 +75,9 @@ export function SystemManagement() {
       (activeFilter === "active" && system.isActive) ||
       (activeFilter === "inactive" && !system.isActive);
     
-    return matchesSearch && matchesActive;
+    const matchesType = typeFilter === "all" || system.systemType === typeFilter;
+    
+    return matchesSearch && matchesActive && matchesType;
   });
 
   const getStatusBadge = (status: SystemData["status"]) => {
@@ -155,10 +158,21 @@ export function SystemManagement() {
             <SelectTrigger className="w-[120px]">
               <SelectValue placeholder="사용여부" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-popover">
               <SelectItem value="all">전체</SelectItem>
               <SelectItem value="active">사용</SelectItem>
               <SelectItem value="inactive">미사용</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={typeFilter} onValueChange={(value: "all" | SystemType) => setTypeFilter(value)}>
+            <SelectTrigger className="w-[120px]">
+              <SelectValue placeholder="시스템유형" />
+            </SelectTrigger>
+            <SelectContent className="bg-popover">
+              <SelectItem value="all">전체</SelectItem>
+              {systemTypes.map((type) => (
+                <SelectItem key={type} value={type}>{type}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
