@@ -72,6 +72,7 @@ const CHECK_CODES: Record<string, { code: string; label: string; description: st
   HTTP: [
     { code: "HTTP_STATUS_200", label: "HTTP 200 응답", description: "HTTP 200 응답 여부 확인" },
     { code: "HTTP_LATENCY_UNDER_MS", label: "응답 시간 체크", description: "지정된 시간 내 응답 여부" },
+    { code: "HTTP_CUSTOM_HEALTH", label: "사용자 지정 Health Check", description: "URL 호출 후 예상 결과값 비교" },
   ],
   DB: [
     { code: "DB_CONNECT", label: "DB 접속 확인", description: "DB 접속 가능 여부" },
@@ -586,6 +587,44 @@ export function SystemMonitoringManagement() {
                 placeholder="500"
                 className="text-sm"
               />
+            </div>
+          </div>
+        );
+
+      case "HTTP_CUSTOM_HEALTH":
+        return (
+          <div className="space-y-3">
+            <div>
+              <Label className="text-xs">URL</Label>
+              <Input
+                value={formData.config.url || ""}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    target: e.target.value,
+                    config: { ...formData.config, url: e.target.value },
+                  })
+                }
+                placeholder="https://api.example.com/custom-health"
+                className="text-sm"
+              />
+            </div>
+            <div>
+              <Label className="text-xs">예상 결과값</Label>
+              <Input
+                value={formData.config.expectedResult || ""}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    config: { ...formData.config, expectedResult: e.target.value },
+                  })
+                }
+                placeholder="OK 또는 정상 텍스트 입력"
+                className="text-sm"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                URL 호출 결과 텍스트와 비교할 예상 값을 입력하세요.
+              </p>
             </div>
           </div>
         );
