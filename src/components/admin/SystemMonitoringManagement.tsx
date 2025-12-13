@@ -741,7 +741,7 @@ export function SystemMonitoringManagement() {
                 <TableRow className="bg-muted/50">
                   <TableHead className="w-12">사용</TableHead>
                   <TableHead>체크 이름</TableHead>
-                  <TableHead className="w-20">시스템</TableHead>
+                  <TableHead className="w-24">시스템명</TableHead>
                   <TableHead className="w-16">환경</TableHead>
                   <TableHead className="w-28">유형</TableHead>
                   <TableHead>코드</TableHead>
