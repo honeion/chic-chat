@@ -1170,7 +1170,7 @@ export function SystemMonitoringManagement() {
             <div className="space-y-5 p-4 rounded-lg bg-muted/30 border border-border/50">
               <h3 className="text-sm font-semibold text-muted-foreground">체크 유형 / 체크 항목 *</h3>
               
-              <div className="grid grid-cols-2 gap-5">
+              <div className="grid grid-cols-[140px_1fr] gap-5">
                 <div className="space-y-2">
                   <Label className="text-sm">체크 유형</Label>
                   <Select
@@ -1178,7 +1178,7 @@ export function SystemMonitoringManagement() {
                     onValueChange={handleTypeChange}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="체크 유형 선택" />
+                      <SelectValue placeholder="유형 선택" />
                     </SelectTrigger>
                     <SelectContent>
                       {CHECK_TYPES.map((type) => (
@@ -1199,10 +1199,10 @@ export function SystemMonitoringManagement() {
                     onValueChange={(value) => setFormData({ ...formData, checkCode: value, config: {} })}
                     disabled={!formData.checkType}
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder="체크 항목 선택" />
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="체크 항목 선택" className="truncate" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="min-w-[400px]">
                       {formData.checkType &&
                         CHECK_CODES[formData.checkType]?.map((code) => (
                           <SelectItem key={code.code} value={code.code}>
