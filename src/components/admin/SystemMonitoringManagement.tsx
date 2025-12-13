@@ -38,7 +38,23 @@ import {
   FileText,
   RefreshCw,
   Activity,
+  Check,
+  ChevronsUpDown,
 } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 import { mockSystems } from "@/data/systems";
 
 // 체크 유형 정의
@@ -347,6 +363,7 @@ export function SystemMonitoringManagement() {
   const [checks, setChecks] = useState<MonitoringCheck[]>(mockMonitoringChecks);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCheck, setEditingCheck] = useState<MonitoringCheck | null>(null);
+  const [systemSearchOpen, setSystemSearchOpen] = useState(false);
 
   // 필터 상태
   const [filterSystem, setFilterSystem] = useState<string>("all");
@@ -996,21 +1013,52 @@ export function SystemMonitoringManagement() {
               <div className="grid grid-cols-2 gap-5">
                 <div className="space-y-2">
                   <Label className="text-sm">시스템 *</Label>
-                  <Select
-                    value={formData.systemId}
-                    onValueChange={(value) => setFormData({ ...formData, systemId: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="시스템 선택" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {mockSystems.map((sys) => (
-                        <SelectItem key={sys.id} value={sys.id}>
-                          {sys.shortName} - {sys.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Popover open={systemSearchOpen} onOpenChange={setSystemSearchOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={systemSearchOpen}
+                        className="w-full justify-between font-normal"
+                      >
+                        {formData.systemId
+                          ? mockSystems.find((sys) => sys.id === formData.systemId)?.shortName + " - " + mockSystems.find((sys) => sys.id === formData.systemId)?.name
+                          : "시스템 선택..."}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[350px] p-0" align="start">
+                      <Command>
+                        <CommandInput placeholder="시스템 검색..." />
+                        <CommandList>
+                          <CommandEmpty>검색 결과가 없습니다.</CommandEmpty>
+                          <CommandGroup className="max-h-64 overflow-auto">
+                            {mockSystems.map((sys) => (
+                              <CommandItem
+                                key={sys.id}
+                                value={`${sys.shortName} ${sys.name}`}
+                                onSelect={() => {
+                                  setFormData({ ...formData, systemId: sys.id });
+                                  setSystemSearchOpen(false);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    formData.systemId === sys.id ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                <div className="flex flex-col">
+                                  <span className="font-medium">{sys.shortName}</span>
+                                  <span className="text-xs text-muted-foreground">{sys.name}</span>
+                                </div>
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div className="space-y-2">
                   <Label className="text-sm">환경 *</Label>
