@@ -1199,7 +1199,7 @@ export function SystemMonitoringManagement() {
                     onValueChange={(value) => setFormData({ ...formData, checkCode: value, config: {} })}
                     disabled={!formData.checkType}
                   >
-                    <SelectTrigger className="w-full [&>span]:truncate-none [&>span]:whitespace-normal [&>span]:text-left">
+                    <SelectTrigger className="w-full [&>span]:line-clamp-none [&>span]:overflow-visible">
                       <SelectValue placeholder="체크 항목 선택" />
                     </SelectTrigger>
                     <SelectContent className="min-w-[400px]">
