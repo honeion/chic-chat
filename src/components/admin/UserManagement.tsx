@@ -12,6 +12,8 @@ import {
   Server,
   MoreHorizontal,
   ChevronDown,
+  CheckCircle,
+  XCircle,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -42,6 +44,7 @@ interface UserData {
   position: string;
   role: UserRole;
   systems: string[];
+  isActive: boolean;
   createdAt: string;
   lastLogin: string;
 }
@@ -57,6 +60,7 @@ const mockUsers: UserData[] = [
     position: "과장",
     role: "운영자",
     systems: ["e-총무", "BiOn"],
+    isActive: true,
     createdAt: "2024-01-15",
     lastLogin: "2024-12-09 09:30",
   },
@@ -69,6 +73,7 @@ const mockUsers: UserData[] = [
     position: "대리",
     role: "현업담당자",
     systems: ["SATIS", "ITS"],
+    isActive: true,
     createdAt: "2024-02-20",
     lastLogin: "2024-12-08 14:20",
   },
@@ -81,6 +86,7 @@ const mockUsers: UserData[] = [
     position: "팀장",
     role: "관리자",
     systems: ["e-총무", "BiOn", "SATIS", "ITS"],
+    isActive: true,
     createdAt: "2023-06-01",
     lastLogin: "2024-12-09 10:00",
   },
@@ -93,6 +99,7 @@ const mockUsers: UserData[] = [
     position: "대리",
     role: "운영자",
     systems: ["e-총무"],
+    isActive: false,
     createdAt: "2024-03-10",
     lastLogin: "2024-12-09 08:00",
   },
@@ -215,6 +222,7 @@ export function UserManagement() {
                   <th className="text-left px-4 py-3 font-medium">부서/직책</th>
                   <th className="text-left px-4 py-3 font-medium">담당 시스템</th>
                   <th className="text-left px-4 py-3 font-medium">권한</th>
+                  <th className="text-left px-4 py-3 font-medium">사용여부</th>
                   <th className="text-left px-4 py-3 font-medium">마지막 로그인</th>
                   <th className="text-right px-4 py-3 font-medium">액션</th>
                 </tr>
@@ -265,6 +273,18 @@ export function UserManagement() {
                       >
                         {user.role}
                       </Badge>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1">
+                        {user.isActive ? (
+                          <CheckCircle className="w-4 h-4 text-status-online" />
+                        ) : (
+                          <XCircle className="w-4 h-4 text-destructive" />
+                        )}
+                        <span className={cn("text-xs", user.isActive ? "text-status-online" : "text-destructive")}>
+                          {user.isActive ? "사용" : "미사용"}
+                        </span>
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-sm text-muted-foreground">{user.lastLogin}</td>
                     <td className="px-4 py-3 text-right">
