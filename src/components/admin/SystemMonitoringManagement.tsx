@@ -990,6 +990,66 @@ export function SystemMonitoringManagement() {
                 </SelectContent>
               </Select>
             </div>
+            {formData.config.logTool === "Grafana" && (
+              <>
+                <div>
+                  <Label className="text-xs">Grafana URL</Label>
+                  <Input
+                    value={formData.config.grafanaUrl || ""}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        config: { ...formData.config, grafanaUrl: e.target.value },
+                      })
+                    }
+                    placeholder="예: https://grafana.example.com"
+                    className="text-sm"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Dashboard ID</Label>
+                  <Input
+                    value={formData.config.dashboardId || ""}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        config: { ...formData.config, dashboardId: e.target.value },
+                      })
+                    }
+                    placeholder="예: abc123xyz"
+                    className="text-sm"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Panel ID</Label>
+                  <Input
+                    value={formData.config.panelId || ""}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        config: { ...formData.config, panelId: e.target.value },
+                      })
+                    }
+                    placeholder="예: 1"
+                    className="text-sm"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">대상 정보 (Query/Label)</Label>
+                  <Input
+                    value={formData.config.grafanaTarget || ""}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        config: { ...formData.config, grafanaTarget: e.target.value },
+                      })
+                    }
+                    placeholder='예: {app="my-service", level="error"}'
+                    className="text-sm"
+                  />
+                </div>
+              </>
+            )}
             {formData.config.logTool === "서버로그" && (
               <>
                 <div>
