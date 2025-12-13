@@ -1170,7 +1170,7 @@ export function SystemMonitoringManagement() {
             <div className="space-y-5 p-4 rounded-lg bg-muted/30 border border-border/50">
               <h3 className="text-sm font-semibold text-muted-foreground">체크 유형 / 체크 항목 *</h3>
               
-              <div className="grid grid-cols-[140px_1fr] gap-5">
+              <div className="grid grid-cols-[160px_1fr] gap-5">
                 <div className="space-y-2">
                   <Label className="text-sm">체크 유형</Label>
                   <Select
@@ -1199,8 +1199,8 @@ export function SystemMonitoringManagement() {
                     onValueChange={(value) => setFormData({ ...formData, checkCode: value, config: {} })}
                     disabled={!formData.checkType}
                   >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="체크 항목 선택" className="truncate" />
+                    <SelectTrigger className="w-full [&>span]:truncate-none [&>span]:whitespace-normal [&>span]:text-left">
+                      <SelectValue placeholder="체크 항목 선택" />
                     </SelectTrigger>
                     <SelectContent className="min-w-[400px]">
                       {formData.checkType &&
