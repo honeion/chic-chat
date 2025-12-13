@@ -981,112 +981,116 @@ export function SystemMonitoringManagement() {
 
       {/* 추가/수정 모달 */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="text-lg">
               {editingCheck ? "모니터링 체크 수정" : "모니터링 체크 추가"}
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4 py-2">
+          <div className="space-y-6 py-2">
             {/* 기본 정보 */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label className="text-xs">시스템 *</Label>
-                <Select
-                  value={formData.systemId}
-                  onValueChange={(value) => setFormData({ ...formData, systemId: value })}
-                >
-                  <SelectTrigger className="text-sm">
-                    <SelectValue placeholder="시스템 선택" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {mockSystems.map((sys) => (
-                      <SelectItem key={sys.id} value={sys.id}>
-                        {sys.shortName} - {sys.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <div className="space-y-5 p-4 rounded-lg bg-muted/30 border border-border/50">
+              <h3 className="text-sm font-semibold text-muted-foreground">기본 정보</h3>
+              
+              <div className="grid grid-cols-2 gap-5">
+                <div className="space-y-2">
+                  <Label className="text-sm">시스템 *</Label>
+                  <Select
+                    value={formData.systemId}
+                    onValueChange={(value) => setFormData({ ...formData, systemId: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="시스템 선택" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {mockSystems.map((sys) => (
+                        <SelectItem key={sys.id} value={sys.id}>
+                          {sys.shortName} - {sys.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm">환경 *</Label>
+                  <Select
+                    value={formData.environment}
+                    onValueChange={(value) => setFormData({ ...formData, environment: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ENVIRONMENTS.map((env) => (
+                        <SelectItem key={env} value={env}>
+                          {env}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div>
-                <Label className="text-xs">환경 *</Label>
-                <Select
-                  value={formData.environment}
-                  onValueChange={(value) => setFormData({ ...formData, environment: value })}
-                >
-                  <SelectTrigger className="text-sm">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ENVIRONMENTS.map((env) => (
-                      <SelectItem key={env} value={env}>
-                        {env}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
 
-            <div className="flex items-center gap-2">
-              <Switch
-                checked={formData.isActive}
-                onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
-              />
-              <Label className="text-sm">사용</Label>
-            </div>
-
-            <div>
-              <Label className="text-xs">체크 이름</Label>
-              <Input
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="예: API 헬스체크"
-                className="text-sm"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label className="text-xs">중요도 *</Label>
-                <Select
-                  value={formData.severity}
-                  onValueChange={(value) => setFormData({ ...formData, severity: value })}
-                >
-                  <SelectTrigger className="text-sm">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SEVERITY_OPTIONS.map((sev) => (
-                      <SelectItem key={sev.value} value={sev.value}>
-                        {sev.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-xs">타임아웃 (초)</Label>
-                <Input
-                  type="number"
-                  value={formData.timeout}
-                  onChange={(e) => setFormData({ ...formData, timeout: parseInt(e.target.value) || 30 })}
-                  className="text-sm"
+              <div className="flex items-center gap-3 py-1">
+                <Switch
+                  checked={formData.isActive}
+                  onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
                 />
+                <Label className="text-sm">사용</Label>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm">체크 이름</Label>
+                <Input
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="예: API 헬스체크"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-5">
+                <div className="space-y-2">
+                  <Label className="text-sm">중요도 *</Label>
+                  <Select
+                    value={formData.severity}
+                    onValueChange={(value) => setFormData({ ...formData, severity: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SEVERITY_OPTIONS.map((sev) => (
+                        <SelectItem key={sev.value} value={sev.value}>
+                          {sev.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm">타임아웃 (초)</Label>
+                  <Input
+                    type="number"
+                    value={formData.timeout}
+                    onChange={(e) => setFormData({ ...formData, timeout: parseInt(e.target.value) || 30 })}
+                  />
+                </div>
               </div>
             </div>
 
             {/* 체크 유형 및 코드 선택 */}
-            <div className="border-t pt-4">
-              <Label className="text-xs font-medium">체크 유형 / 체크 항목 *</Label>
-              <div className="grid grid-cols-2 gap-4 mt-2">
-                <div>
+            <div className="space-y-5 p-4 rounded-lg bg-muted/30 border border-border/50">
+              <h3 className="text-sm font-semibold text-muted-foreground">체크 유형 / 체크 항목 *</h3>
+              
+              <div className="grid grid-cols-2 gap-5">
+                <div className="space-y-2">
+                  <Label className="text-sm">체크 유형</Label>
                   <Select
                     value={formData.checkType}
                     onValueChange={handleTypeChange}
                   >
-                    <SelectTrigger className="text-sm">
+                    <SelectTrigger>
                       <SelectValue placeholder="체크 유형 선택" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1101,13 +1105,14 @@ export function SystemMonitoringManagement() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div>
+                <div className="space-y-2">
+                  <Label className="text-sm">체크 항목</Label>
                   <Select
                     value={formData.checkCode}
                     onValueChange={(value) => setFormData({ ...formData, checkCode: value, config: {} })}
                     disabled={!formData.checkType}
                   >
-                    <SelectTrigger className="text-sm">
+                    <SelectTrigger>
                       <SelectValue placeholder="체크 항목 선택" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1128,14 +1133,14 @@ export function SystemMonitoringManagement() {
 
             {/* 설정 값 입력 */}
             {formData.checkCode && (
-              <div className="border-t pt-4">
-                <Label className="text-xs font-medium mb-2 block">설정 값</Label>
+              <div className="space-y-4 p-4 rounded-lg bg-muted/30 border border-border/50">
+                <h3 className="text-sm font-semibold text-muted-foreground">설정 값</h3>
                 {renderConfigFields()}
               </div>
             )}
 
             {/* 저장 버튼 */}
-            <div className="flex justify-end gap-2 pt-4 border-t">
+            <div className="flex justify-end gap-3 pt-4 border-t">
               <Button variant="outline" onClick={() => setIsModalOpen(false)}>
                 취소
               </Button>
