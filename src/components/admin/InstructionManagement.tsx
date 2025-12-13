@@ -19,6 +19,7 @@ import {
   Wrench,
   Database,
   BookOpen,
+  ChevronsUpDown,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -48,6 +49,19 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 
 interface InstructionVersion {
   version: string;
@@ -333,6 +347,10 @@ export function InstructionManagement() {
   const [editContent, setEditContent] = useState("");
   const [showCreateMarkdownPreview, setShowCreateMarkdownPreview] = useState(false);
   const [createContent, setCreateContent] = useState("");
+  const [editSelectedSystem, setEditSelectedSystem] = useState<string>("");
+  const [createSelectedSystem, setCreateSelectedSystem] = useState<string>("");
+  const [editSystemOpen, setEditSystemOpen] = useState(false);
+  const [createSystemOpen, setCreateSystemOpen] = useState(false);
 
   // 공용지침 필터링
   const filteredPublicInstructions = publicInstructions.filter((inst) => {
@@ -775,16 +793,51 @@ export function InstructionManagement() {
                     {selectedInstruction.isPublic ? "유형" : "시스템"}
                   </label>
                   {!selectedInstruction.isPublic ? (
-                    <select
-                      defaultValue={selectedInstruction.systemId || ""}
-                      className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm"
-                    >
-                      {systems.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.name}
-                        </option>
-                      ))}
-                    </select>
+                    <Popover open={editSystemOpen} onOpenChange={setEditSystemOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={editSystemOpen}
+                          className="w-full justify-between"
+                        >
+                          {editSelectedSystem
+                            ? systems.find((s) => s.id === editSelectedSystem)?.name
+                            : selectedInstruction.systemName || "시스템 선택"}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[350px] p-0 z-50">
+                        <Command>
+                          <CommandInput placeholder="시스템 검색..." />
+                          <CommandList>
+                            <CommandEmpty>시스템을 찾을 수 없습니다.</CommandEmpty>
+                            <CommandGroup>
+                              {systems.map((s) => (
+                                <CommandItem
+                                  key={s.id}
+                                  value={s.name}
+                                  onSelect={() => {
+                                    setEditSelectedSystem(s.id);
+                                    setEditSystemOpen(false);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      (editSelectedSystem === s.id || (!editSelectedSystem && selectedInstruction.systemId === s.id))
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    )}
+                                  />
+                                  {s.name}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   ) : (
                     <p className="text-sm p-2 bg-secondary/30 rounded-lg">공용 지침</p>
                   )}
@@ -951,14 +1004,49 @@ export function InstructionManagement() {
               {createType === "system" && (
                 <div>
                   <label className="text-sm font-medium mb-1.5 block">시스템</label>
-                  <select className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm">
-                    <option value="">시스템 선택</option>
-                    {systems.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.name}
-                      </option>
-                    ))}
-                  </select>
+                  <Popover open={createSystemOpen} onOpenChange={setCreateSystemOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={createSystemOpen}
+                        className="w-full justify-between"
+                      >
+                        {createSelectedSystem
+                          ? systems.find((s) => s.id === createSelectedSystem)?.name
+                          : "시스템 선택"}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[350px] p-0 z-50">
+                      <Command>
+                        <CommandInput placeholder="시스템 검색..." />
+                        <CommandList>
+                          <CommandEmpty>시스템을 찾을 수 없습니다.</CommandEmpty>
+                          <CommandGroup>
+                            {systems.map((s) => (
+                              <CommandItem
+                                key={s.id}
+                                value={s.name}
+                                onSelect={() => {
+                                  setCreateSelectedSystem(s.id);
+                                  setCreateSystemOpen(false);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    createSelectedSystem === s.id ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                {s.name}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                 </div>
               )}
 
