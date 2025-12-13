@@ -1151,7 +1151,7 @@ export function SystemManagement() {
                                         />
                                       </div>
                                       <div>
-                                        <label className="text-xs text-muted-foreground">인증정보</label>
+                                        <label className="text-xs text-muted-foreground">인증정보 Key name(TBD)</label>
                                         <Input 
                                           value={server.k8sAuth}
                                           onChange={(e) => updateServerInfo(env, server.id, "k8sAuth", e.target.value)}
@@ -1184,7 +1184,7 @@ export function SystemManagement() {
                                         />
                                       </div>
                                       <div>
-                                        <label className="text-xs text-muted-foreground">인증정보</label>
+                                        <label className="text-xs text-muted-foreground">인증정보 Key name(TBD)</label>
                                         <Input 
                                           value={server.vmAuth}
                                           onChange={(e) => updateServerInfo(env, server.id, "vmAuth", e.target.value)}
