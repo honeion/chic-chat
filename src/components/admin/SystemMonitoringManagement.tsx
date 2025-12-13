@@ -1774,7 +1774,7 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                 <h3 className="text-sm font-semibold text-muted-foreground">체크 설정</h3>
                 
                 <div className="flex gap-5">
-                  <div className="space-y-2 w-36 shrink-0">
+                  <div className="space-y-2 w-40 shrink-0">
                     <Label className="text-sm">체크 유형 *</Label>
                     <Select
                       value={formData.checkType}
