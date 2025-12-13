@@ -33,6 +33,7 @@ import { Badge } from "@/components/ui/badge";
 
 interface UserData {
   id: string;
+  employeeId: string;
   name: string;
   email: string;
   department: string;
@@ -49,6 +50,7 @@ interface UserData {
 const mockUsers: UserData[] = [
   {
     id: "u1",
+    employeeId: "EMP001",
     name: "김철수",
     email: "kim@example.com",
     department: "IT운영팀",
@@ -62,6 +64,7 @@ const mockUsers: UserData[] = [
   },
   {
     id: "u2",
+    employeeId: "EMP002",
     name: "이영희",
     email: "lee@example.com",
     department: "SI사업부",
@@ -75,6 +78,7 @@ const mockUsers: UserData[] = [
   },
   {
     id: "u3",
+    employeeId: "EMP003",
     name: "박관리",
     email: "admin@example.com",
     department: "경영지원팀",
@@ -98,8 +102,8 @@ export function UserManagement() {
   const filteredUsers = users.filter(
     (user) =>
       user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.department.toLowerCase().includes(searchQuery.toLowerCase())
+      user.employeeId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleDelete = (userId: string) => {
@@ -118,7 +122,7 @@ export function UserManagement() {
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="사용자 검색 (이름, 이메일, 부서)"
+            placeholder="사용자 검색 (이름, 사번, 이메일)"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
