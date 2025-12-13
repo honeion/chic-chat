@@ -345,13 +345,17 @@ export function UserManagement() {
           <div className="space-y-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
+                <label className="text-sm font-medium mb-1.5 block">사번</label>
+                <Input placeholder="사번 입력" />
+              </div>
+              <div>
                 <label className="text-sm font-medium mb-1.5 block">이름</label>
                 <Input placeholder="이름 입력" />
               </div>
-              <div>
-                <label className="text-sm font-medium mb-1.5 block">이메일</label>
-                <Input type="email" placeholder="이메일 입력" />
-              </div>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">이메일</label>
+              <Input type="email" placeholder="이메일 입력" />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -364,12 +368,25 @@ export function UserManagement() {
               </div>
             </div>
             <div>
-              <label className="text-sm font-medium mb-1.5 block">권한</label>
-              <select className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
-                <option value="운영자">운영자</option>
-                <option value="현업담당자">현업담당자</option>
-                <option value="관리자">관리자</option>
-              </select>
+              <label className="text-sm font-medium mb-1.5 block">담당 시스템</label>
+              <Input placeholder="시스템 입력 (쉼표로 구분)" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">권한</label>
+                <select className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
+                  <option value="운영자">운영자</option>
+                  <option value="현업담당자">현업담당자</option>
+                  <option value="관리자">관리자</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">사용여부</label>
+                <select className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
+                  <option value="true">사용</option>
+                  <option value="false">미사용</option>
+                </select>
+              </div>
             </div>
           </div>
           <DialogFooter>
@@ -390,17 +407,21 @@ export function UserManagement() {
           <div className="space-y-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
+                <label className="text-sm font-medium mb-1.5 block">사번</label>
+                <Input placeholder="사번 입력" defaultValue={selectedUser?.employeeId} />
+              </div>
+              <div>
                 <label className="text-sm font-medium mb-1.5 block">이름</label>
                 <Input placeholder="이름 입력" defaultValue={selectedUser?.name} />
               </div>
-              <div>
-                <label className="text-sm font-medium mb-1.5 block">이메일</label>
-                <Input
-                  type="email"
-                  placeholder="이메일 입력"
-                  defaultValue={selectedUser?.email}
-                />
-              </div>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">이메일</label>
+              <Input
+                type="email"
+                placeholder="이메일 입력"
+                defaultValue={selectedUser?.email}
+              />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -413,15 +434,34 @@ export function UserManagement() {
               </div>
             </div>
             <div>
-              <label className="text-sm font-medium mb-1.5 block">권한</label>
-              <select 
-                className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
-                defaultValue={selectedUser?.role}
-              >
-                <option value="운영자">운영자</option>
-                <option value="현업담당자">현업담당자</option>
-                <option value="관리자">관리자</option>
-              </select>
+              <label className="text-sm font-medium mb-1.5 block">담당 시스템</label>
+              <Input 
+                placeholder="시스템 입력 (쉼표로 구분)" 
+                defaultValue={selectedUser?.systems.join(", ")} 
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">권한</label>
+                <select 
+                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                  defaultValue={selectedUser?.role}
+                >
+                  <option value="운영자">운영자</option>
+                  <option value="현업담당자">현업담당자</option>
+                  <option value="관리자">관리자</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">사용여부</label>
+                <select 
+                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                  defaultValue={selectedUser?.isActive ? "true" : "false"}
+                >
+                  <option value="true">사용</option>
+                  <option value="false">미사용</option>
+                </select>
+              </div>
             </div>
           </div>
           <DialogFooter>
