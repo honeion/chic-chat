@@ -195,7 +195,7 @@ export function UserManagement() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-5 gap-3">
         <Card 
           className={cn(
             "cursor-pointer transition-all hover:ring-2 hover:ring-primary/50",
@@ -203,14 +203,14 @@ export function UserManagement() {
           )}
           onClick={() => setRoleFilter("all")}
         >
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <User className="w-5 h-5 text-primary" />
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <User className="w-4 h-4 text-primary" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{users.length}</p>
-                <p className="text-xs text-muted-foreground">전체사용자</p>
+                <p className="text-xl font-bold">{users.length}</p>
+                <p className="text-xs text-muted-foreground">전체</p>
               </div>
             </div>
           </CardContent>
@@ -222,14 +222,14 @@ export function UserManagement() {
           )}
           onClick={() => setRoleFilter("운영자(조회)")}
         >
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center">
-                <Server className="w-5 h-5 text-accent" />
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center">
+                <Server className="w-4 h-4 text-accent" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{users.filter((u) => u.role === "운영자(조회)").length}</p>
-                <p className="text-xs text-muted-foreground">운영자(조회)</p>
+                <p className="text-xl font-bold">{users.filter((u) => u.role === "운영자(조회)").length}</p>
+                <p className="text-xs text-muted-foreground">조회</p>
               </div>
             </div>
           </CardContent>
@@ -241,14 +241,14 @@ export function UserManagement() {
           )}
           onClick={() => setRoleFilter("운영자(제어)")}
         >
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                <Server className="w-5 h-5 text-blue-500" />
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                <Server className="w-4 h-4 text-blue-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{users.filter((u) => u.role === "운영자(제어)").length}</p>
-                <p className="text-xs text-muted-foreground">운영자(제어)</p>
+                <p className="text-xl font-bold">{users.filter((u) => u.role === "운영자(제어)").length}</p>
+                <p className="text-xs text-muted-foreground">제어</p>
               </div>
             </div>
           </CardContent>
@@ -260,16 +260,16 @@ export function UserManagement() {
           )}
           onClick={() => setRoleFilter("현업담당자")}
         >
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
-                <Briefcase className="w-5 h-5 text-muted-foreground" />
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center">
+                <Briefcase className="w-4 h-4 text-muted-foreground" />
               </div>
               <div>
-                <p className="text-2xl font-bold">
+                <p className="text-xl font-bold">
                   {users.filter((u) => u.role === "현업담당자").length}
                 </p>
-                <p className="text-xs text-muted-foreground">현업담당자</p>
+                <p className="text-xs text-muted-foreground">현업</p>
               </div>
             </div>
           </CardContent>
@@ -281,13 +281,13 @@ export function UserManagement() {
           )}
           onClick={() => setRoleFilter("관리자")}
         >
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-status-online/20 flex items-center justify-center">
-                <Shield className="w-5 h-5 text-status-online" />
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-status-online/20 flex items-center justify-center">
+                <Shield className="w-4 h-4 text-status-online" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{users.filter((u) => u.role === "관리자").length}</p>
+                <p className="text-xl font-bold">{users.filter((u) => u.role === "관리자").length}</p>
                 <p className="text-xs text-muted-foreground">관리자</p>
               </div>
             </div>
