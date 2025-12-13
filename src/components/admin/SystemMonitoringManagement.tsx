@@ -85,8 +85,6 @@ const CHECK_CODES: Record<string, { code: string; label: string; description: st
   BATCH: [
     { code: "BATCH_DATA_CHECK", label: "BATCH 데이터 확인", description: "배치 데이터 정상 여부" },
     { code: "BATCH_LOG_CHECK", label: "BATCH 로그 확인", description: "배치 로그 에러 여부" },
-    { code: "BATCH_LAST_RUN_AFTER", label: "배치 실행 확인", description: "배치 최근 실행 여부" },
-    { code: "BATCH_SUCCESS_CHECK", label: "배치 성공 확인", description: "배치 정상 완료 여부" },
   ],
   SYSTEM: [
     { code: "SYS_PROCESS_RUNNING", label: "프로세스 확인", description: "프로세스 실행 여부" },
