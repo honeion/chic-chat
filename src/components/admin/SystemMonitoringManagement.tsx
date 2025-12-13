@@ -721,9 +721,9 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
     switch (checkCode) {
       case "HTTP_STATUS_200":
         return (
-          <div className="space-y-3">
-            <div>
-              <Label className="text-xs">URL</Label>
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <Label className="text-sm">URL</Label>
               <Input
                 value={formData.config.url || ""}
                 onChange={(e) =>
@@ -734,7 +734,6 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                   })
                 }
                 placeholder="https://api.example.com/health"
-                className="text-sm"
               />
             </div>
           </div>
@@ -742,9 +741,9 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
 
       case "HTTP_LATENCY_UNDER_MS":
         return (
-          <div className="space-y-3">
-            <div>
-              <Label className="text-xs">URL</Label>
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <Label className="text-sm">URL</Label>
               <Input
                 value={formData.config.url || ""}
                 onChange={(e) =>
@@ -755,11 +754,10 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                   })
                 }
                 placeholder="https://api.example.com/health"
-                className="text-sm"
               />
             </div>
-            <div>
-              <Label className="text-xs">최대 응답 시간 (ms)</Label>
+            <div className="space-y-2">
+              <Label className="text-sm">최대 응답 시간 (ms)</Label>
               <Input
                 type="number"
                 value={formData.config.maxLatency || "500"}
@@ -770,7 +768,6 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                   })
                 }
                 placeholder="500"
-                className="text-sm"
               />
             </div>
           </div>
@@ -778,9 +775,9 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
 
       case "HTTP_CUSTOM_HEALTH":
         return (
-          <div className="space-y-3">
-            <div>
-              <Label className="text-xs">URL</Label>
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <Label className="text-sm">URL</Label>
               <Input
                 value={formData.config.url || ""}
                 onChange={(e) =>
@@ -791,11 +788,10 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                   })
                 }
                 placeholder="https://api.example.com/custom-health"
-                className="text-sm"
               />
             </div>
-            <div>
-              <Label className="text-xs">예상 결과값</Label>
+            <div className="space-y-2">
+              <Label className="text-sm">예상 결과값</Label>
               <Input
                 value={formData.config.expectedResult || ""}
                 onChange={(e) =>
@@ -805,9 +801,8 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                   })
                 }
                 placeholder="OK 또는 정상 텍스트 입력"
-                className="text-sm"
               />
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs text-muted-foreground">
                 URL 호출 결과 텍스트와 비교할 예상 값을 입력하세요.
               </p>
             </div>
@@ -817,11 +812,11 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
       case "DB_CONNECT":
         const dbListConnect = SYSTEM_DATABASES[formData.systemId] || [];
         return (
-          <div className="space-y-3">
-            <div>
-              <Label className="text-xs">데이터베이스 선택</Label>
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <Label className="text-sm">데이터베이스 선택</Label>
               {dbListConnect.length === 0 ? (
-                <p className="text-xs text-muted-foreground py-2">선택한 시스템에 등록된 DB가 없습니다.</p>
+                <p className="text-sm text-muted-foreground py-2">선택한 시스템에 등록된 DB가 없습니다.</p>
               ) : (
                 <Select
                   value={formData.config.database || ""}
@@ -833,7 +828,7 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                     })
                   }
                 >
-                  <SelectTrigger className="text-sm">
+                  <SelectTrigger>
                     <SelectValue placeholder="DB 선택" />
                   </SelectTrigger>
                   <SelectContent>
@@ -853,11 +848,11 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
       case "DB_CUSTOM_QUERY_ASSERT":
         const dbListQuery = SYSTEM_DATABASES[formData.systemId] || [];
         return (
-          <div className="space-y-3">
-            <div>
-              <Label className="text-xs">데이터베이스 선택</Label>
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <Label className="text-sm">데이터베이스 선택</Label>
               {dbListQuery.length === 0 ? (
-                <p className="text-xs text-muted-foreground py-2">선택한 시스템에 등록된 DB가 없습니다.</p>
+                <p className="text-sm text-muted-foreground py-2">선택한 시스템에 등록된 DB가 없습니다.</p>
               ) : (
                 <Select
                   value={formData.config.database || ""}
@@ -869,7 +864,7 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                     })
                   }
                 >
-                  <SelectTrigger className="text-sm">
+                  <SelectTrigger>
                     <SelectValue placeholder="DB 선택" />
                   </SelectTrigger>
                   <SelectContent>
@@ -883,8 +878,8 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                 </Select>
               )}
             </div>
-            <div>
-              <Label className="text-xs">SQL 쿼리</Label>
+            <div className="space-y-2">
+              <Label className="text-sm">SQL 쿼리</Label>
               <Textarea
                 value={formData.config.sql || ""}
                 onChange={(e) =>
@@ -894,12 +889,12 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                   })
                 }
                 placeholder="SELECT count(*) AS cnt FROM orders WHERE created_at >= now() - interval '10 minutes'"
-                className="text-sm font-mono"
+                className="font-mono"
                 rows={3}
               />
             </div>
-            <div>
-              <Label className="text-xs">조건 (예: cnt &gt;= 1)</Label>
+            <div className="space-y-2">
+              <Label className="text-sm">조건 (예: cnt &gt;= 1)</Label>
               <Input
                 value={formData.config.condition || ""}
                 onChange={(e) =>
@@ -909,7 +904,6 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                   })
                 }
                 placeholder="cnt >= 1"
-                className="text-sm"
               />
             </div>
           </div>
@@ -918,11 +912,11 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
       case "IF_DATA_CHECK":
         const dbListIF = SYSTEM_DATABASES[formData.systemId] || [];
         return (
-          <div className="space-y-3">
-            <div>
-              <Label className="text-xs">데이터베이스 선택</Label>
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <Label className="text-sm">데이터베이스 선택</Label>
               {dbListIF.length === 0 ? (
-                <p className="text-xs text-muted-foreground py-2">선택한 시스템에 등록된 DB가 없습니다.</p>
+                <p className="text-sm text-muted-foreground py-2">선택한 시스템에 등록된 DB가 없습니다.</p>
               ) : (
                 <Select
                   value={formData.config.database || ""}
@@ -934,7 +928,7 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                     })
                   }
                 >
-                  <SelectTrigger className="text-sm">
+                  <SelectTrigger>
                     <SelectValue placeholder="DB 선택" />
                   </SelectTrigger>
                   <SelectContent>
@@ -948,8 +942,8 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                 </Select>
               )}
             </div>
-            <div>
-              <Label className="text-xs">SQL 쿼리</Label>
+            <div className="space-y-2">
+              <Label className="text-sm">SQL 쿼리</Label>
               <Textarea
                 value={formData.config.sql || ""}
                 onChange={(e) =>
@@ -959,12 +953,12 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                   })
                 }
                 placeholder="SELECT count(*) AS cnt FROM if_log WHERE status='ERROR' AND created_at >= now() - interval '10 minutes'"
-                className="text-sm font-mono"
+                className="font-mono"
                 rows={3}
               />
             </div>
-            <div>
-              <Label className="text-xs">조건 (예: cnt = 0)</Label>
+            <div className="space-y-2">
+              <Label className="text-sm">조건 (예: cnt = 0)</Label>
               <Input
                 value={formData.config.condition || ""}
                 onChange={(e) =>
@@ -974,7 +968,6 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                   })
                 }
                 placeholder="cnt = 0"
-                className="text-sm"
               />
             </div>
           </div>
@@ -983,11 +976,11 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
       case "BATCH_DATA_CHECK":
         const dbListBatch = SYSTEM_DATABASES[formData.systemId] || [];
         return (
-          <div className="space-y-3">
-            <div>
-              <Label className="text-xs">데이터베이스 선택</Label>
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <Label className="text-sm">데이터베이스 선택</Label>
               {dbListBatch.length === 0 ? (
-                <p className="text-xs text-muted-foreground py-2">선택한 시스템에 등록된 DB가 없습니다.</p>
+                <p className="text-sm text-muted-foreground py-2">선택한 시스템에 등록된 DB가 없습니다.</p>
               ) : (
                 <Select
                   value={formData.config.database || ""}
@@ -999,7 +992,7 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                     })
                   }
                 >
-                  <SelectTrigger className="text-sm">
+                  <SelectTrigger>
                     <SelectValue placeholder="DB 선택" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1013,8 +1006,8 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                 </Select>
               )}
             </div>
-            <div>
-              <Label className="text-xs">SQL 쿼리</Label>
+            <div className="space-y-2">
+              <Label className="text-sm">SQL 쿼리</Label>
               <Textarea
                 value={formData.config.sql || ""}
                 onChange={(e) =>
@@ -1024,12 +1017,12 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                   })
                 }
                 placeholder="SELECT count(*) AS cnt FROM batch_log WHERE status='ERROR' AND created_at >= now() - interval '10 minutes'"
-                className="text-sm font-mono"
+                className="font-mono"
                 rows={3}
               />
             </div>
-            <div>
-              <Label className="text-xs">조건 (예: cnt = 0)</Label>
+            <div className="space-y-2">
+              <Label className="text-sm">조건 (예: cnt = 0)</Label>
               <Input
                 value={formData.config.condition || ""}
                 onChange={(e) =>
@@ -1039,7 +1032,6 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                   })
                 }
                 placeholder="cnt = 0"
-                className="text-sm"
               />
             </div>
           </div>
@@ -1048,9 +1040,9 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
       case "BATCH_LAST_RUN_AFTER":
       case "BATCH_SUCCESS_CHECK":
         return (
-          <div className="space-y-3">
-            <div>
-              <Label className="text-xs">배치명</Label>
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <Label className="text-sm">배치명</Label>
               <Input
                 value={formData.config.batchName || ""}
                 onChange={(e) =>
@@ -1061,11 +1053,10 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                   })
                 }
                 placeholder="ORDER_BATCH"
-                className="text-sm"
               />
             </div>
-            <div>
-              <Label className="text-xs">최대 경과 시간</Label>
+            <div className="space-y-2">
+              <Label className="text-sm">최대 경과 시간</Label>
               <Input
                 value={formData.config.maxAge || ""}
                 onChange={(e) =>
@@ -1075,7 +1066,6 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                   })
                 }
                 placeholder="2h"
-                className="text-sm"
               />
             </div>
           </div>
@@ -1087,9 +1077,9 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
       case "LOG_ERROR_CHECK":
         const serverListLog = SYSTEM_SERVERS[formData.systemId] || [];
         return (
-          <div className="space-y-3">
-            <div>
-              <Label className="text-xs">로그 도구</Label>
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <Label className="text-sm">로그 도구</Label>
               <Select
                 value={formData.config.logTool || ""}
                 onValueChange={(value) =>
@@ -1100,7 +1090,7 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                   })
                 }
               >
-                <SelectTrigger className="text-sm">
+                <SelectTrigger>
                   <SelectValue placeholder="로그 도구 선택" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1111,8 +1101,8 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
             </div>
             {formData.config.logTool === "Grafana" && (
               <>
-                <div>
-                  <Label className="text-xs">Grafana URL</Label>
+                <div className="space-y-2">
+                  <Label className="text-sm">Grafana URL</Label>
                   <Input
                     value={formData.config.grafanaUrl || ""}
                     onChange={(e) =>
@@ -1122,11 +1112,10 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                       })
                     }
                     placeholder="예: https://grafana.example.com"
-                    className="text-sm"
                   />
                 </div>
-                <div>
-                  <Label className="text-xs">Dashboard ID</Label>
+                <div className="space-y-2">
+                  <Label className="text-sm">Dashboard ID</Label>
                   <Input
                     value={formData.config.dashboardId || ""}
                     onChange={(e) =>
@@ -1136,11 +1125,10 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                       })
                     }
                     placeholder="예: abc123xyz"
-                    className="text-sm"
                   />
                 </div>
-                <div>
-                  <Label className="text-xs">Panel ID</Label>
+                <div className="space-y-2">
+                  <Label className="text-sm">Panel ID</Label>
                   <Input
                     value={formData.config.panelId || ""}
                     onChange={(e) =>
@@ -1150,11 +1138,10 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                       })
                     }
                     placeholder="예: 1"
-                    className="text-sm"
                   />
                 </div>
-                <div>
-                  <Label className="text-xs">대상 정보 (Query/Label)</Label>
+                <div className="space-y-2">
+                  <Label className="text-sm">대상 정보 (Query/Label)</Label>
                   <Input
                     value={formData.config.grafanaTarget || ""}
                     onChange={(e) =>
@@ -1164,17 +1151,16 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                       })
                     }
                     placeholder='예: {app="my-service", level="error"}'
-                    className="text-sm"
                   />
                 </div>
               </>
             )}
             {formData.config.logTool === "서버로그" && (
               <>
-                <div>
-                  <Label className="text-xs">서버 선택</Label>
+                <div className="space-y-2">
+                  <Label className="text-sm">서버 선택</Label>
                   {serverListLog.length === 0 ? (
-                    <p className="text-xs text-muted-foreground py-2">선택한 시스템에 등록된 서버가 없습니다.</p>
+                    <p className="text-sm text-muted-foreground py-2">선택한 시스템에 등록된 서버가 없습니다.</p>
                   ) : (
                     <Select
                       value={formData.config.server || ""}
@@ -1192,7 +1178,7 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                         });
                       }}
                     >
-                      <SelectTrigger className="text-sm">
+                      <SelectTrigger>
                         <SelectValue placeholder="서버 선택" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1209,8 +1195,8 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                   )}
                 </div>
                 {formData.config.serverHostType === "K8S" && (
-                  <div>
-                    <Label className="text-xs">Deployment 명</Label>
+                  <div className="space-y-2">
+                    <Label className="text-sm">Deployment 명</Label>
                     <Input
                       value={formData.config.deploymentName || ""}
                       onChange={(e) =>
@@ -1220,13 +1206,12 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                         })
                       }
                       placeholder="예: my-app-deployment"
-                      className="text-sm"
                     />
                   </div>
                 )}
                 {formData.config.serverHostType === "VM" && (
-                  <div>
-                    <Label className="text-xs">Log 파일 경로</Label>
+                  <div className="space-y-2">
+                    <Label className="text-sm">Log 파일 경로</Label>
                     <Input
                       value={formData.config.logFilePath || ""}
                       onChange={(e) =>
@@ -1236,14 +1221,13 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                         })
                       }
                       placeholder="예: /var/log/app/application.log"
-                      className="text-sm"
                     />
                   </div>
                 )}
               </>
             )}
-            <div>
-              <Label className="text-xs">패턴</Label>
+            <div className="space-y-2">
+              <Label className="text-sm">패턴</Label>
               <Input
                 value={formData.config.pattern || ""}
                 onChange={(e) =>
@@ -1253,11 +1237,10 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                   })
                 }
                 placeholder="ERROR OR Exception"
-                className="text-sm"
               />
             </div>
-            <div>
-              <Label className="text-xs">시간 범위</Label>
+            <div className="space-y-2">
+              <Label className="text-sm">시간 범위</Label>
               <Input
                 value={formData.config.timeRange || ""}
                 onChange={(e) =>
@@ -1267,7 +1250,6 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                   })
                 }
                 placeholder="10m"
-                className="text-sm"
               />
             </div>
           </div>
@@ -1276,11 +1258,11 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
       case "SYS_PROCESS_RUNNING":
         const serverListSys = SYSTEM_SERVERS[formData.systemId] || [];
         return (
-          <div className="space-y-3">
-            <div>
-              <Label className="text-xs">서버 선택</Label>
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <Label className="text-sm">서버 선택</Label>
               {serverListSys.length === 0 ? (
-                <p className="text-xs text-muted-foreground py-2">선택한 시스템에 등록된 서버가 없습니다.</p>
+                <p className="text-sm text-muted-foreground py-2">선택한 시스템에 등록된 서버가 없습니다.</p>
               ) : (
                 <Select
                   value={formData.config.server || ""}
@@ -1297,7 +1279,7 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                     });
                   }}
                 >
-                  <SelectTrigger className="text-sm">
+                  <SelectTrigger>
                     <SelectValue placeholder="서버 선택" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1314,8 +1296,8 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
               )}
             </div>
             {formData.config.serverHostType === "K8S" && (
-              <div>
-                <Label className="text-xs">Deployment 명 (,로 여러개 입력 가능)</Label>
+              <div className="space-y-2">
+                <Label className="text-sm">Deployment 명 (,로 여러개 입력 가능)</Label>
                 <Input
                   value={formData.config.deploymentName || ""}
                   onChange={(e) =>
@@ -1325,14 +1307,13 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                     })
                   }
                   placeholder="예: my-app-deployment, api-deployment"
-                  className="text-sm"
                 />
-                <p className="text-xs text-muted-foreground mt-1">해당 Deployment의 POD를 조회합니다.</p>
+                <p className="text-xs text-muted-foreground">해당 Deployment의 POD를 조회합니다.</p>
               </div>
             )}
             {formData.config.serverHostType === "VM" && (
-              <div>
-                <Label className="text-xs">프로세스명 (,로 여러개 입력 가능)</Label>
+              <div className="space-y-2">
+                <Label className="text-sm">프로세스명 (,로 여러개 입력 가능)</Label>
                 <Input
                   value={formData.config.processName || ""}
                   onChange={(e) =>
@@ -1342,7 +1323,6 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                     })
                   }
                   placeholder="예: java, nginx, tomcat"
-                  className="text-sm"
                 />
               </div>
             )}
@@ -1352,11 +1332,11 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
       case "SYS_RESOURCE_CHECK":
         const serverListRes = SYSTEM_SERVERS[formData.systemId] || [];
         return (
-          <div className="space-y-3">
-            <div>
-              <Label className="text-xs">서버 선택</Label>
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <Label className="text-sm">서버 선택</Label>
               {serverListRes.length === 0 ? (
-                <p className="text-xs text-muted-foreground py-2">선택한 시스템에 등록된 서버가 없습니다.</p>
+                <p className="text-sm text-muted-foreground py-2">선택한 시스템에 등록된 서버가 없습니다.</p>
               ) : (
                 <Select
                   value={formData.config.server || ""}
@@ -1373,7 +1353,7 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                     });
                   }}
                 >
-                  <SelectTrigger className="text-sm">
+                  <SelectTrigger>
                     <SelectValue placeholder="서버 선택" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1390,8 +1370,8 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
               )}
             </div>
             {formData.config.serverHostType === "K8S" && (
-              <div>
-                <Label className="text-xs">Deployment 명 (,로 여러개 입력 가능)</Label>
+              <div className="space-y-2">
+                <Label className="text-sm">Deployment 명 (,로 여러개 입력 가능)</Label>
                 <Input
                   value={formData.config.deploymentName || ""}
                   onChange={(e) =>
@@ -1401,14 +1381,13 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                     })
                   }
                   placeholder="예: my-app-deployment, api-deployment"
-                  className="text-sm"
                 />
-                <p className="text-xs text-muted-foreground mt-1">해당 Deployment의 POD 리소스를 조회합니다.</p>
+                <p className="text-xs text-muted-foreground">해당 Deployment의 POD 리소스를 조회합니다.</p>
               </div>
             )}
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <Label className="text-xs">CPU 임계치 (%)</Label>
+            <div className="grid grid-cols-3 gap-5">
+              <div className="space-y-2">
+                <Label className="text-sm">CPU 임계치 (%)</Label>
                 <Input
                   value={formData.config.cpuThreshold || ""}
                   onChange={(e) =>
@@ -1418,11 +1397,10 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                     })
                   }
                   placeholder="80"
-                  className="text-sm"
                 />
               </div>
-              <div>
-                <Label className="text-xs">Memory 임계치 (%)</Label>
+              <div className="space-y-2">
+                <Label className="text-sm">Memory 임계치 (%)</Label>
                 <Input
                   value={formData.config.memoryThreshold || ""}
                   onChange={(e) =>
@@ -1432,11 +1410,10 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                     })
                   }
                   placeholder="85"
-                  className="text-sm"
                 />
               </div>
-              <div>
-                <Label className="text-xs">Disk 임계치 (%)</Label>
+              <div className="space-y-2">
+                <Label className="text-sm">Disk 임계치 (%)</Label>
                 <Input
                   value={formData.config.diskThreshold || ""}
                   onChange={(e) =>
@@ -1446,7 +1423,6 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                     })
                   }
                   placeholder="90"
-                  className="text-sm"
                 />
               </div>
             </div>
