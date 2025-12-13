@@ -115,6 +115,39 @@ const INTERVAL_OPTIONS = [
 // 환경 정의
 const ENVIRONMENTS = ["PROD", "DEV", "STG", "DR"];
 
+// 시스템별 DB 목록 (시스템 관리와 연동)
+const SYSTEM_DATABASES: Record<string, { id: string; dbName: string; dbType: string }[]> = {
+  s1: [
+    { id: "db1-s1", dbName: "echongmu_db", dbType: "Postgres" },
+    { id: "db2-s1", dbName: "echongmu_log_db", dbType: "Postgres" },
+  ],
+  s2: [
+    { id: "db1-s2", dbName: "bion_main_db", dbType: "MSSQL" },
+    { id: "db2-s2", dbName: "bion_report_db", dbType: "MSSQL" },
+  ],
+  s3: [
+    { id: "db1-s3", dbName: "satis_order_db", dbType: "Oracle" },
+    { id: "db2-s3", dbName: "satis_logistics_db", dbType: "Oracle" },
+  ],
+  s4: [
+    { id: "db1-s4", dbName: "its_service_db", dbType: "Postgres" },
+  ],
+  s5: [
+    { id: "db1-s5", dbName: "erp_master_db", dbType: "Oracle" },
+    { id: "db2-s5", dbName: "erp_hr_db", dbType: "Oracle" },
+    { id: "db3-s5", dbName: "erp_fi_db", dbType: "Oracle" },
+  ],
+  s6: [
+    { id: "db1-s6", dbName: "hrm_main_db", dbType: "MySQL" },
+  ],
+  s7: [
+    { id: "db1-s7", dbName: "logistics_api_db", dbType: "Postgres" },
+  ],
+  s8: [
+    { id: "db1-s8", dbName: "payment_if_db", dbType: "MySQL" },
+  ],
+};
+
 // 모니터링 체크 인터페이스
 interface MonitoringCheck {
   id: string;
@@ -630,57 +663,73 @@ export function SystemMonitoringManagement() {
         );
 
       case "DB_CONNECT":
+        const dbListConnect = SYSTEM_DATABASES[formData.systemId] || [];
         return (
           <div className="space-y-3">
             <div>
               <Label className="text-xs">데이터베이스 선택</Label>
-              <Select
-                value={formData.config.database || ""}
-                onValueChange={(value) =>
-                  setFormData({
-                    ...formData,
-                    target: value,
-                    config: { ...formData.config, database: value },
-                  })
-                }
-              >
-                <SelectTrigger className="text-sm">
-                  <SelectValue placeholder="DB 선택" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ORDER_DB">ORDER_DB</SelectItem>
-                  <SelectItem value="USER_DB">USER_DB</SelectItem>
-                  <SelectItem value="LOG_DB">LOG_DB</SelectItem>
-                </SelectContent>
-              </Select>
+              {dbListConnect.length === 0 ? (
+                <p className="text-xs text-muted-foreground py-2">선택한 시스템에 등록된 DB가 없습니다.</p>
+              ) : (
+                <Select
+                  value={formData.config.database || ""}
+                  onValueChange={(value) =>
+                    setFormData({
+                      ...formData,
+                      target: value,
+                      config: { ...formData.config, database: value },
+                    })
+                  }
+                >
+                  <SelectTrigger className="text-sm">
+                    <SelectValue placeholder="DB 선택" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {dbListConnect.map((db) => (
+                      <SelectItem key={db.id} value={db.dbName}>
+                        <span className="font-medium">{db.dbName}</span>
+                        <span className="text-xs text-muted-foreground ml-2">({db.dbType})</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
           </div>
         );
 
       case "DB_CUSTOM_QUERY_ASSERT":
+        const dbListQuery = SYSTEM_DATABASES[formData.systemId] || [];
         return (
           <div className="space-y-3">
             <div>
               <Label className="text-xs">데이터베이스 선택</Label>
-              <Select
-                value={formData.config.database || ""}
-                onValueChange={(value) =>
-                  setFormData({
-                    ...formData,
-                    target: value,
-                    config: { ...formData.config, database: value },
-                  })
-                }
-              >
-                <SelectTrigger className="text-sm">
-                  <SelectValue placeholder="DB 선택" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ORDER_DB">ORDER_DB</SelectItem>
-                  <SelectItem value="USER_DB">USER_DB</SelectItem>
-                  <SelectItem value="LOG_DB">LOG_DB</SelectItem>
-                </SelectContent>
-              </Select>
+              {dbListQuery.length === 0 ? (
+                <p className="text-xs text-muted-foreground py-2">선택한 시스템에 등록된 DB가 없습니다.</p>
+              ) : (
+                <Select
+                  value={formData.config.database || ""}
+                  onValueChange={(value) =>
+                    setFormData({
+                      ...formData,
+                      target: value,
+                      config: { ...formData.config, database: value },
+                    })
+                  }
+                >
+                  <SelectTrigger className="text-sm">
+                    <SelectValue placeholder="DB 선택" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {dbListQuery.map((db) => (
+                      <SelectItem key={db.id} value={db.dbName}>
+                        <span className="font-medium">{db.dbName}</span>
+                        <span className="text-xs text-muted-foreground ml-2">({db.dbType})</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
             <div>
               <Label className="text-xs">SQL 쿼리</Label>
