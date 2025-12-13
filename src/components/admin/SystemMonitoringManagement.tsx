@@ -814,7 +814,7 @@ export function SystemMonitoringManagement() {
                   <TableHead className="w-28">유형</TableHead>
                   <TableHead>코드</TableHead>
                   <TableHead>대상</TableHead>
-                  <TableHead className="w-16">주기</TableHead>
+                  
                   <TableHead className="w-16">중요도</TableHead>
                   <TableHead className="w-32">수정일시</TableHead>
                   <TableHead className="w-16"></TableHead>
@@ -823,7 +823,7 @@ export function SystemMonitoringManagement() {
               <TableBody>
                 {filteredChecks.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                       등록된 모니터링 체크가 없습니다.
                     </TableCell>
                   </TableRow>
@@ -857,9 +857,6 @@ export function SystemMonitoringManagement() {
                       </TableCell>
                       <TableCell className="text-sm truncate max-w-40" title={check.target}>
                         {check.target}
-                      </TableCell>
-                      <TableCell className="text-sm">
-                        {INTERVAL_OPTIONS.find((i) => i.value === check.interval)?.label || check.interval}
                       </TableCell>
                       <TableCell>
                         <Badge className={`text-xs ${getSeverityBadgeClass(check.severity)}`}>
