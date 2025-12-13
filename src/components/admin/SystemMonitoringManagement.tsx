@@ -822,11 +822,15 @@ export function SystemMonitoringManagement() {
                   </TableRow>
                 ) : (
                   filteredChecks.map((check) => (
-                    <TableRow key={check.id}>
+                    <TableRow 
+                      key={check.id} 
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => handleEdit(check)}
+                    >
                       <TableCell className="text-sm">
                         {getSystemName(check.systemId)}
                       </TableCell>
-                      <TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
                         <Switch
                           checked={check.isActive}
                           onCheckedChange={() => handleToggleActive(check.id)}
@@ -859,7 +863,7 @@ export function SystemMonitoringManagement() {
                       <TableCell className="text-xs text-muted-foreground">
                         {check.updatedAt}
                       </TableCell>
-                      <TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
                         <Button
                           variant="ghost"
                           size="sm"
