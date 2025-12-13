@@ -1007,7 +1007,6 @@ export function SystemMonitoringManagement() {
                   <Select
                     value={formData.checkType}
                     onValueChange={handleTypeChange}
-                    disabled={!!editingCheck}
                   >
                     <SelectTrigger className="text-sm">
                       <SelectValue placeholder="체크 유형 선택" />
@@ -1028,7 +1027,7 @@ export function SystemMonitoringManagement() {
                   <Select
                     value={formData.checkCode}
                     onValueChange={(value) => setFormData({ ...formData, checkCode: value, config: {} })}
-                    disabled={!formData.checkType || !!editingCheck}
+                    disabled={!formData.checkType}
                   >
                     <SelectTrigger className="text-sm">
                       <SelectValue placeholder="체크 항목 선택" />
