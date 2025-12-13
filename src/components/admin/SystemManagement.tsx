@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 import {
   Search,
   Plus,
@@ -11,6 +12,11 @@ import {
   Copy,
   Check,
   X,
+  Monitor,
+  Database,
+  Link,
+  FileCode,
+  HelpCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +29,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -144,42 +151,198 @@ export function SystemManagement() {
     <div className="space-y-6">
       {/* Header Actions */}
       <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3 flex-1">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="시스템 검색 (이름, 설명, 담당자)"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Select value={activeFilter} onValueChange={(value: "all" | "active" | "inactive") => setActiveFilter(value)}>
-            <SelectTrigger className="w-[120px]">
-              <SelectValue placeholder="사용여부" />
-            </SelectTrigger>
-            <SelectContent className="bg-popover">
-              <SelectItem value="all">전체</SelectItem>
-              <SelectItem value="active">사용</SelectItem>
-              <SelectItem value="inactive">미사용</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={typeFilter} onValueChange={(value: "all" | SystemType) => setTypeFilter(value)}>
-            <SelectTrigger className="w-[120px]">
-              <SelectValue placeholder="시스템유형" />
-            </SelectTrigger>
-            <SelectContent className="bg-popover">
-              <SelectItem value="all">전체</SelectItem>
-              {systemTypes.map((type) => (
-                <SelectItem key={type} value={type}>{type}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="시스템 검색 (이름, 설명, 담당자)"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
         </div>
         <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
           <Plus className="w-4 h-4" />
           시스템 추가
         </Button>
+      </div>
+
+      {/* Filter Stats - 시스템유형 */}
+      <div className="grid grid-cols-6 gap-3">
+        <Card 
+          className={cn(
+            "cursor-pointer transition-all hover:ring-2 hover:ring-primary/50",
+            typeFilter === "all" && "ring-2 ring-primary"
+          )}
+          onClick={() => setTypeFilter("all")}
+        >
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Server className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-xl font-bold">{systems.length}</p>
+                <p className="text-xs text-muted-foreground">전체</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card 
+          className={cn(
+            "cursor-pointer transition-all hover:ring-2 hover:ring-blue-500/50",
+            typeFilter === "WEB" && "ring-2 ring-blue-500"
+          )}
+          onClick={() => setTypeFilter("WEB")}
+        >
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                <Monitor className="w-4 h-4 text-blue-500" />
+              </div>
+              <div>
+                <p className="text-xl font-bold">{systems.filter(s => s.systemType === "WEB").length}</p>
+                <p className="text-xs text-muted-foreground">WEB</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card 
+          className={cn(
+            "cursor-pointer transition-all hover:ring-2 hover:ring-purple-500/50",
+            typeFilter === "C/S" && "ring-2 ring-purple-500"
+          )}
+          onClick={() => setTypeFilter("C/S")}
+        >
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                <Database className="w-4 h-4 text-purple-500" />
+              </div>
+              <div>
+                <p className="text-xl font-bold">{systems.filter(s => s.systemType === "C/S").length}</p>
+                <p className="text-xs text-muted-foreground">C/S</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card 
+          className={cn(
+            "cursor-pointer transition-all hover:ring-2 hover:ring-green-500/50",
+            typeFilter === "API" && "ring-2 ring-green-500"
+          )}
+          onClick={() => setTypeFilter("API")}
+        >
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center">
+                <FileCode className="w-4 h-4 text-green-500" />
+              </div>
+              <div>
+                <p className="text-xl font-bold">{systems.filter(s => s.systemType === "API").length}</p>
+                <p className="text-xs text-muted-foreground">API</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card 
+          className={cn(
+            "cursor-pointer transition-all hover:ring-2 hover:ring-orange-500/50",
+            typeFilter === "IF" && "ring-2 ring-orange-500"
+          )}
+          onClick={() => setTypeFilter("IF")}
+        >
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
+                <Link className="w-4 h-4 text-orange-500" />
+              </div>
+              <div>
+                <p className="text-xl font-bold">{systems.filter(s => s.systemType === "IF").length}</p>
+                <p className="text-xs text-muted-foreground">IF</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card 
+          className={cn(
+            "cursor-pointer transition-all hover:ring-2 hover:ring-gray-500/50",
+            typeFilter === "기타" && "ring-2 ring-gray-500"
+          )}
+          onClick={() => setTypeFilter("기타")}
+        >
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-gray-500/20 flex items-center justify-center">
+                <HelpCircle className="w-4 h-4 text-gray-500" />
+              </div>
+              <div>
+                <p className="text-xl font-bold">{systems.filter(s => s.systemType === "기타").length}</p>
+                <p className="text-xs text-muted-foreground">기타</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filter Stats - 사용여부 */}
+      <div className="grid grid-cols-3 gap-3 max-w-md">
+        <Card 
+          className={cn(
+            "cursor-pointer transition-all hover:ring-2 hover:ring-primary/50",
+            activeFilter === "all" && "ring-2 ring-primary"
+          )}
+          onClick={() => setActiveFilter("all")}
+        >
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Server className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-xl font-bold">{systems.length}</p>
+                <p className="text-xs text-muted-foreground">전체</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card 
+          className={cn(
+            "cursor-pointer transition-all hover:ring-2 hover:ring-status-online/50",
+            activeFilter === "active" && "ring-2 ring-status-online"
+          )}
+          onClick={() => setActiveFilter("active")}
+        >
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-status-online/20 flex items-center justify-center">
+                <Check className="w-4 h-4 text-status-online" />
+              </div>
+              <div>
+                <p className="text-xl font-bold">{systems.filter(s => s.isActive).length}</p>
+                <p className="text-xs text-muted-foreground">사용</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card 
+          className={cn(
+            "cursor-pointer transition-all hover:ring-2 hover:ring-muted-foreground/50",
+            activeFilter === "inactive" && "ring-2 ring-muted-foreground"
+          )}
+          onClick={() => setActiveFilter("inactive")}
+        >
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center">
+                <X className="w-4 h-4 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="text-xl font-bold">{systems.filter(s => !s.isActive).length}</p>
+                <p className="text-xs text-muted-foreground">미사용</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* System Table */}
