@@ -763,6 +763,71 @@ export function SystemMonitoringManagement() {
           </div>
         );
 
+      case "IF_DATA_CHECK":
+        const dbListIF = SYSTEM_DATABASES[formData.systemId] || [];
+        return (
+          <div className="space-y-3">
+            <div>
+              <Label className="text-xs">데이터베이스 선택</Label>
+              {dbListIF.length === 0 ? (
+                <p className="text-xs text-muted-foreground py-2">선택한 시스템에 등록된 DB가 없습니다.</p>
+              ) : (
+                <Select
+                  value={formData.config.database || ""}
+                  onValueChange={(value) =>
+                    setFormData({
+                      ...formData,
+                      target: value,
+                      config: { ...formData.config, database: value },
+                    })
+                  }
+                >
+                  <SelectTrigger className="text-sm">
+                    <SelectValue placeholder="DB 선택" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {dbListIF.map((db) => (
+                      <SelectItem key={db.id} value={db.dbName}>
+                        <span className="font-medium">{db.dbName}</span>
+                        <span className="text-xs text-muted-foreground ml-2">({db.dbType})</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+            <div>
+              <Label className="text-xs">SQL 쿼리</Label>
+              <Textarea
+                value={formData.config.sql || ""}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    config: { ...formData.config, sql: e.target.value },
+                  })
+                }
+                placeholder="SELECT count(*) AS cnt FROM if_log WHERE status='ERROR' AND created_at >= now() - interval '10 minutes'"
+                className="text-sm font-mono"
+                rows={3}
+              />
+            </div>
+            <div>
+              <Label className="text-xs">조건 (예: cnt = 0)</Label>
+              <Input
+                value={formData.config.condition || ""}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    config: { ...formData.config, condition: e.target.value },
+                  })
+                }
+                placeholder="cnt = 0"
+                className="text-sm"
+              />
+            </div>
+          </div>
+        );
+
       case "BATCH_LAST_RUN_AFTER":
       case "BATCH_SUCCESS_CHECK":
         return (
