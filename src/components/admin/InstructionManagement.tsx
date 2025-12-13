@@ -351,6 +351,7 @@ export function InstructionManagement() {
   const [createSelectedSystem, setCreateSelectedSystem] = useState<string>("");
   const [editSystemOpen, setEditSystemOpen] = useState(false);
   const [createSystemOpen, setCreateSystemOpen] = useState(false);
+  const [filterSystemOpen, setFilterSystemOpen] = useState(false);
 
   // 공용지침 필터링
   const filteredPublicInstructions = publicInstructions.filter((inst) => {
@@ -595,18 +596,64 @@ export function InstructionManagement() {
                 className="pl-10"
               />
             </div>
-            <select
-              value={selectedSystem}
-              onChange={(e) => setSelectedSystem(e.target.value)}
-              className="px-3 py-2 rounded-lg border border-border bg-background text-sm min-w-[120px]"
-            >
-              <option value="all">전체 시스템</option>
-              {systems.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
+            <Popover open={filterSystemOpen} onOpenChange={setFilterSystemOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={filterSystemOpen}
+                  className="min-w-[150px] justify-between"
+                >
+                  {selectedSystem === "all"
+                    ? "전체 시스템"
+                    : systems.find((s) => s.id === selectedSystem)?.name}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[200px] p-0 z-50">
+                <Command>
+                  <CommandInput placeholder="시스템 검색..." />
+                  <CommandList>
+                    <CommandEmpty>시스템을 찾을 수 없습니다.</CommandEmpty>
+                    <CommandGroup>
+                      <CommandItem
+                        value="all"
+                        onSelect={() => {
+                          setSelectedSystem("all");
+                          setFilterSystemOpen(false);
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            selectedSystem === "all" ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        전체 시스템
+                      </CommandItem>
+                      {systems.map((s) => (
+                        <CommandItem
+                          key={s.id}
+                          value={s.name}
+                          onSelect={() => {
+                            setSelectedSystem(s.id);
+                            setFilterSystemOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              selectedSystem === s.id ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {s.name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
             <select
               value={selectedAuthorRole}
               onChange={(e) => setSelectedAuthorRole(e.target.value)}
