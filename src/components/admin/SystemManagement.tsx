@@ -179,7 +179,7 @@ export function SystemManagement() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedSystem, setSelectedSystem] = useState<SystemData | null>(null);
   const [activeEnvTab, setActiveEnvTab] = useState<EnvType>("PROD");
-  const [showListJson, setShowListJson] = useState(false);
+  const [jsonViewSystemId, setJsonViewSystemId] = useState<string | null>(null);
   const [showDetailJson, setShowDetailJson] = useState(false);
 
   // 환경별 세부정보 상태
@@ -628,51 +628,20 @@ export function SystemManagement() {
         </Card>
       </div>
 
-      {/* System Table or JSON View */}
+      {/* System Table */}
       <div className="rounded-lg border border-border bg-card">
-        {/* Toggle Header */}
-        <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-secondary/30">
-          <span className="text-sm font-medium">시스템 목록</span>
-          <Button
-            variant={showListJson ? "default" : "outline"}
-            size="sm"
-            onClick={() => setShowListJson(!showListJson)}
-            className="h-7 gap-1.5 text-xs"
-          >
-            {showListJson ? <List className="w-3.5 h-3.5" /> : <Code className="w-3.5 h-3.5" />}
-            {showListJson ? "목록 보기" : "JSON 보기"}
-          </Button>
-        </div>
-
-        {showListJson ? (
-          <div className="p-4">
-            <div className="relative">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-2 right-2 h-7 w-7"
-                onClick={() => handleCopy(JSON.stringify(filteredSystems, null, 2))}
-              >
-                <Copy className="w-3.5 h-3.5" />
-              </Button>
-              <pre className="p-4 rounded-lg bg-secondary/50 text-xs overflow-auto max-h-[500px] font-mono">
-                {JSON.stringify(filteredSystems, null, 2)}
-              </pre>
-            </div>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-secondary/50 text-sm">
-                <tr>
-                  <th className="text-left px-4 py-3 font-medium">시스템명</th>
-                  <th className="text-left px-4 py-3 font-medium">시스템유형</th>
-                  <th className="text-left px-4 py-3 font-medium">설명</th>
-                  <th className="text-left px-4 py-3 font-medium">담당자</th>
-                  <th className="text-left px-4 py-3 font-medium">사용여부</th>
-                  <th className="text-right px-4 py-3 font-medium">액션</th>
-                </tr>
-              </thead>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-secondary/50 text-sm">
+              <tr>
+                <th className="text-left px-4 py-3 font-medium">시스템명</th>
+                <th className="text-left px-4 py-3 font-medium">시스템유형</th>
+                <th className="text-left px-4 py-3 font-medium">설명</th>
+                <th className="text-left px-4 py-3 font-medium">담당자</th>
+                <th className="text-left px-4 py-3 font-medium">사용여부</th>
+                <th className="text-right px-4 py-3 font-medium">액션</th>
+              </tr>
+            </thead>
             <tbody className="divide-y divide-border">
               {filteredSystems.map((system) => (
                 <tr 
@@ -726,6 +695,13 @@ export function SystemManagement() {
                       <DropdownMenuContent align="end" className="bg-popover">
                         <DropdownMenuItem onClick={(e) => {
                           e.stopPropagation();
+                          setJsonViewSystemId(system.id);
+                        }}>
+                          <Code className="w-4 h-4 mr-2" />
+                          JSON 보기
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
                           handleSelectSystem(system);
                         }}>
                           <Edit className="w-4 h-4 mr-2" />
@@ -749,8 +725,34 @@ export function SystemManagement() {
             </tbody>
           </table>
         </div>
-        )}
       </div>
+
+      {/* JSON View Modal for individual system */}
+      <Dialog open={jsonViewSystemId !== null} onOpenChange={(open) => !open && setJsonViewSystemId(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <Code className="w-5 h-5 text-primary" />
+              {filteredSystems.find(s => s.id === jsonViewSystemId)?.name} - JSON 보기
+            </DialogTitle>
+          </DialogHeader>
+          {jsonViewSystemId && (
+            <div className="relative">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-2 right-2 h-7 w-7 z-10"
+                onClick={() => handleCopy(JSON.stringify(filteredSystems.find(s => s.id === jsonViewSystemId), null, 2))}
+              >
+                <Copy className="w-3.5 h-3.5" />
+              </Button>
+              <pre className="p-4 rounded-lg bg-secondary/50 text-xs overflow-auto max-h-[60vh] font-mono">
+                {JSON.stringify(filteredSystems.find(s => s.id === jsonViewSystemId), null, 2)}
+              </pre>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Detail Modal */}
       <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
