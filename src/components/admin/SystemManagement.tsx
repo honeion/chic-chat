@@ -82,17 +82,49 @@ const defaultUrlInfo: UrlInfo = {
   description: "",
 };
 
+// 서버 정보 타입
+type InfraType = "CLOUD" | "ONPREM";
+type ProviderType = "AWS" | "AZURE" | "PRIVATE";
+type HostType = "K8S" | "VM";
+
+interface ServerInfo {
+  id: string;
+  infraType: InfraType; // 유형 (CLOUD/ONPREM)
+  provider: ProviderType; // 프로바이더 (AWS/AZURE/PRIVATE)
+  hostType: HostType; // host 유형 (K8S/VM)
+  description: string; // 설명
+  // K8S 전용 필드
+  subscription: string; // 구독정보
+  clusterName: string; // 클러스터명
+  namespace: string; // Namespace명
+  k8sAuth: string; // 인증정보
+  // VM 전용 필드
+  vmIp: string; // IP
+  vmOs: string; // OS
+  vmAuth: string; // 인증정보
+}
+
+const defaultServerInfo: ServerInfo = {
+  id: "",
+  infraType: "CLOUD",
+  provider: "AWS",
+  hostType: "K8S",
+  description: "",
+  subscription: "",
+  clusterName: "",
+  namespace: "",
+  k8sAuth: "",
+  vmIp: "",
+  vmOs: "",
+  vmAuth: "",
+};
+
 interface EnvDetail {
   isEnabled: boolean;
   // 접속정보 (URL 목록)
   urls: UrlInfo[];
-  // 인프라정보
-  namespace: string;
-  svc: string;
-  mcpServer: string;
-  cpu: string;
-  memory: string;
-  storage: string;
+  // 인프라정보 (서버 목록)
+  servers: ServerInfo[];
   // DB 정보
   dbHost: string;
   dbPort: string;
@@ -107,12 +139,7 @@ interface EnvDetail {
 const defaultEnvDetail: EnvDetail = {
   isEnabled: false,
   urls: [],
-  namespace: "",
-  svc: "",
-  mcpServer: "",
-  cpu: "",
-  memory: "",
-  storage: "",
+  servers: [],
   dbHost: "",
   dbPort: "",
   dbName: "",
@@ -179,16 +206,27 @@ export function SystemManagement() {
         description: "API 엔드포인트",
       },
     ];
+    const initialServers: ServerInfo[] = [
+      {
+        id: crypto.randomUUID(),
+        infraType: "CLOUD",
+        provider: "AWS",
+        hostType: "K8S",
+        description: "운영 K8S 클러스터",
+        subscription: "prod-subscription",
+        clusterName: system.shortName.toLowerCase() + "-cluster",
+        namespace: system.namespace,
+        k8sAuth: "kubeconfig",
+        vmIp: "",
+        vmOs: "",
+        vmAuth: "",
+      },
+    ];
     setEnvDetails({
       PROD: {
         isEnabled: true,
         urls: initialUrls,
-        namespace: system.namespace,
-        svc: system.svc,
-        mcpServer: system.mcpServer,
-        cpu: system.spec.cpu,
-        memory: system.spec.memory,
-        storage: system.spec.storage,
+        servers: initialServers,
         dbHost: "db-prod.example.com",
         dbPort: "5432",
         dbName: system.shortName.toLowerCase() + "_db",
@@ -238,6 +276,45 @@ export function SystemManagement() {
         ...prev[env],
         urls: prev[env].urls.map(u => 
           u.id === urlId ? { ...u, [field]: value } : u
+        ),
+      },
+    }));
+  };
+
+  // 서버 추가
+  const addServer = (env: EnvType) => {
+    const newServer: ServerInfo = {
+      ...defaultServerInfo,
+      id: crypto.randomUUID(),
+    };
+    setEnvDetails(prev => ({
+      ...prev,
+      [env]: {
+        ...prev[env],
+        servers: [...prev[env].servers, newServer],
+      },
+    }));
+  };
+
+  // 서버 삭제
+  const removeServer = (env: EnvType, serverId: string) => {
+    setEnvDetails(prev => ({
+      ...prev,
+      [env]: {
+        ...prev[env],
+        servers: prev[env].servers.filter(s => s.id !== serverId),
+      },
+    }));
+  };
+
+  // 서버 정보 업데이트
+  const updateServerInfo = (env: EnvType, serverId: string, field: keyof ServerInfo, value: string) => {
+    setEnvDetails(prev => ({
+      ...prev,
+      [env]: {
+        ...prev[env],
+        servers: prev[env].servers.map(s => 
+          s.id === serverId ? { ...s, [field]: value } : s
         ),
       },
     }));
@@ -873,66 +950,197 @@ export function SystemManagement() {
 
                         {/* 인프라정보 */}
                         <div className="p-4 rounded-lg bg-secondary/30 space-y-3">
-                          <h4 className="font-medium text-sm flex items-center gap-2">
-                            <Cloud className="w-4 h-4" />
-                            인프라정보
-                          </h4>
-                          <div className="grid grid-cols-3 gap-3">
-                            <div>
-                              <label className="text-xs text-muted-foreground">Namespace</label>
-                              <Input 
-                                value={envDetails[env].namespace}
-                                onChange={(e) => updateEnvDetail(env, "namespace", e.target.value)}
-                                placeholder="namespace"
-                                className="mt-1" 
-                              />
-                            </div>
-                            <div>
-                              <label className="text-xs text-muted-foreground">Service</label>
-                              <Input 
-                                value={envDetails[env].svc}
-                                onChange={(e) => updateEnvDetail(env, "svc", e.target.value)}
-                                placeholder="service-name"
-                                className="mt-1" 
-                              />
-                            </div>
-                            <div>
-                              <label className="text-xs text-muted-foreground">MCP Server</label>
-                              <Input 
-                                value={envDetails[env].mcpServer}
-                                onChange={(e) => updateEnvDetail(env, "mcpServer", e.target.value)}
-                                placeholder="mcp-server"
-                                className="mt-1" 
-                              />
-                            </div>
-                            <div>
-                              <label className="text-xs text-muted-foreground">CPU</label>
-                              <Input 
-                                value={envDetails[env].cpu}
-                                onChange={(e) => updateEnvDetail(env, "cpu", e.target.value)}
-                                placeholder="4 vCPU"
-                                className="mt-1" 
-                              />
-                            </div>
-                            <div>
-                              <label className="text-xs text-muted-foreground">Memory</label>
-                              <Input 
-                                value={envDetails[env].memory}
-                                onChange={(e) => updateEnvDetail(env, "memory", e.target.value)}
-                                placeholder="16GB"
-                                className="mt-1" 
-                              />
-                            </div>
-                            <div>
-                              <label className="text-xs text-muted-foreground">Storage</label>
-                              <Input 
-                                value={envDetails[env].storage}
-                                onChange={(e) => updateEnvDetail(env, "storage", e.target.value)}
-                                placeholder="500GB"
-                                className="mt-1" 
-                              />
-                            </div>
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-medium text-sm flex items-center gap-2">
+                              <Cloud className="w-4 h-4" />
+                              인프라정보
+                            </h4>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => addServer(env)}
+                              className="h-7 text-xs"
+                            >
+                              <Plus className="w-3 h-3 mr-1" />
+                              서버 추가
+                            </Button>
                           </div>
+                          
+                          {envDetails[env].servers.length === 0 ? (
+                            <div className="text-center py-4 text-muted-foreground text-sm">
+                              등록된 서버가 없습니다. 서버를 추가해주세요.
+                            </div>
+                          ) : (
+                            <div className="space-y-3">
+                              {envDetails[env].servers.map((server, index) => (
+                                <div key={server.id} className="p-3 rounded-lg bg-background/50 border border-border/50 space-y-3">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs font-medium text-muted-foreground">#{index + 1}</span>
+                                      <Badge variant={server.infraType === "CLOUD" ? "default" : "secondary"} className="text-xs">
+                                        {server.infraType}
+                                      </Badge>
+                                      <Badge variant="outline" className="text-xs">
+                                        {server.provider}
+                                      </Badge>
+                                      <Badge variant={server.hostType === "K8S" ? "default" : "secondary"} className="text-xs bg-purple-500/20 text-purple-400 border-purple-500/30">
+                                        {server.hostType}
+                                      </Badge>
+                                    </div>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-6 w-6 text-destructive hover:text-destructive"
+                                      onClick={() => removeServer(env, server.id)}
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                    </Button>
+                                  </div>
+                                  
+                                  {/* 기본 정보 */}
+                                  <div className="grid grid-cols-3 gap-2">
+                                    <div>
+                                      <label className="text-xs text-muted-foreground">유형</label>
+                                      <Select
+                                        value={server.infraType}
+                                        onValueChange={(value: InfraType) => 
+                                          updateServerInfo(env, server.id, "infraType", value)
+                                        }
+                                      >
+                                        <SelectTrigger className="h-8 text-xs mt-1">
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent className="bg-popover">
+                                          <SelectItem value="CLOUD">CLOUD</SelectItem>
+                                          <SelectItem value="ONPREM">ONPREM</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                    <div>
+                                      <label className="text-xs text-muted-foreground">프로바이더</label>
+                                      <Select
+                                        value={server.provider}
+                                        onValueChange={(value: ProviderType) => 
+                                          updateServerInfo(env, server.id, "provider", value)
+                                        }
+                                      >
+                                        <SelectTrigger className="h-8 text-xs mt-1">
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent className="bg-popover">
+                                          <SelectItem value="AWS">AWS</SelectItem>
+                                          <SelectItem value="AZURE">AZURE</SelectItem>
+                                          <SelectItem value="PRIVATE">PRIVATE</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                    <div>
+                                      <label className="text-xs text-muted-foreground">Host 유형</label>
+                                      <Select
+                                        value={server.hostType}
+                                        onValueChange={(value: HostType) => 
+                                          updateServerInfo(env, server.id, "hostType", value)
+                                        }
+                                      >
+                                        <SelectTrigger className="h-8 text-xs mt-1">
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent className="bg-popover">
+                                          <SelectItem value="K8S">K8S</SelectItem>
+                                          <SelectItem value="VM">VM</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                  </div>
+                                  
+                                  {/* K8S 전용 필드 */}
+                                  {server.hostType === "K8S" && (
+                                    <div className="grid grid-cols-2 gap-2 p-2 rounded-lg bg-purple-500/5 border border-purple-500/20">
+                                      <div>
+                                        <label className="text-xs text-muted-foreground">구독정보</label>
+                                        <Input 
+                                          value={server.subscription}
+                                          onChange={(e) => updateServerInfo(env, server.id, "subscription", e.target.value)}
+                                          placeholder="subscription-id"
+                                          className="h-8 text-xs mt-1" 
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="text-xs text-muted-foreground">클러스터명</label>
+                                        <Input 
+                                          value={server.clusterName}
+                                          onChange={(e) => updateServerInfo(env, server.id, "clusterName", e.target.value)}
+                                          placeholder="cluster-name"
+                                          className="h-8 text-xs mt-1" 
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="text-xs text-muted-foreground">Namespace명</label>
+                                        <Input 
+                                          value={server.namespace}
+                                          onChange={(e) => updateServerInfo(env, server.id, "namespace", e.target.value)}
+                                          placeholder="namespace"
+                                          className="h-8 text-xs mt-1" 
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="text-xs text-muted-foreground">인증정보</label>
+                                        <Input 
+                                          value={server.k8sAuth}
+                                          onChange={(e) => updateServerInfo(env, server.id, "k8sAuth", e.target.value)}
+                                          placeholder="kubeconfig"
+                                          className="h-8 text-xs mt-1" 
+                                        />
+                                      </div>
+                                    </div>
+                                  )}
+                                  
+                                  {/* VM 전용 필드 */}
+                                  {server.hostType === "VM" && (
+                                    <div className="grid grid-cols-3 gap-2 p-2 rounded-lg bg-orange-500/5 border border-orange-500/20">
+                                      <div>
+                                        <label className="text-xs text-muted-foreground">IP</label>
+                                        <Input 
+                                          value={server.vmIp}
+                                          onChange={(e) => updateServerInfo(env, server.id, "vmIp", e.target.value)}
+                                          placeholder="192.168.1.100"
+                                          className="h-8 text-xs mt-1" 
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="text-xs text-muted-foreground">OS</label>
+                                        <Input 
+                                          value={server.vmOs}
+                                          onChange={(e) => updateServerInfo(env, server.id, "vmOs", e.target.value)}
+                                          placeholder="Ubuntu 22.04"
+                                          className="h-8 text-xs mt-1" 
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="text-xs text-muted-foreground">인증정보</label>
+                                        <Input 
+                                          value={server.vmAuth}
+                                          onChange={(e) => updateServerInfo(env, server.id, "vmAuth", e.target.value)}
+                                          placeholder="SSH Key"
+                                          className="h-8 text-xs mt-1" 
+                                        />
+                                      </div>
+                                    </div>
+                                  )}
+                                  
+                                  <div>
+                                    <label className="text-xs text-muted-foreground">설명</label>
+                                    <Input 
+                                      value={server.description}
+                                      onChange={(e) => updateServerInfo(env, server.id, "description", e.target.value)}
+                                      placeholder="서버 설명 입력"
+                                      className="h-8 text-sm mt-1" 
+                                    />
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
 
                         {/* DB 정보 */}
