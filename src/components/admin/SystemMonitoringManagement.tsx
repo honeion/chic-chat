@@ -40,7 +40,12 @@ import {
   Activity,
   Check,
   ChevronsUpDown,
+  Code,
+  FileCode,
+  Copy,
 } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useToast } from "@/hooks/use-toast";
 import {
   Popover,
   PopoverContent,
@@ -471,6 +476,9 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCheck, setEditingCheck] = useState<MonitoringCheck | null>(null);
   const [systemSearchOpen, setSystemSearchOpen] = useState(false);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"json" | "md">("json");
+  const { toast } = useToast();
 
   // 필터 상태 - fixedSystemId가 있으면 해당 시스템으로 고정
   const [filterSystem, setFilterSystem] = useState<string>(fixedSystemId || "all");
@@ -601,6 +609,106 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
   const getSystemName = (systemId: string) => {
     const system = mockSystems.find((s) => s.id === systemId);
     return system?.shortName || systemId;
+  };
+
+  // JSON 형식으로 변환
+  const getMonitoringDataAsJson = () => {
+    const systemName = filterSystem !== "all" 
+      ? getSystemName(filterSystem) 
+      : fixedSystemId 
+        ? filterBySystemName 
+        : "전체";
+    
+    const data = {
+      system: systemName,
+      exportedAt: new Date().toISOString(),
+      totalChecks: filteredChecks.length,
+      checks: filteredChecks.map(check => ({
+        name: check.name,
+        environment: check.environment,
+        checkType: check.checkType,
+        checkCode: check.checkCode,
+        target: check.target,
+        interval: check.interval,
+        severity: check.severity,
+        isActive: check.isActive,
+        timeout: check.timeout,
+        config: check.config,
+        updatedAt: check.updatedAt,
+      }))
+    };
+    return JSON.stringify(data, null, 2);
+  };
+
+  // Markdown 형식으로 변환
+  const getMonitoringDataAsMd = () => {
+    const systemName = filterSystem !== "all" 
+      ? getSystemName(filterSystem) 
+      : fixedSystemId 
+        ? filterBySystemName 
+        : "전체";
+    
+    let md = `# ${systemName} 모니터링 설정\n\n`;
+    md += `> 내보내기 시간: ${new Date().toLocaleString("ko-KR")}\n\n`;
+    md += `**총 ${filteredChecks.length}개의 체크 항목**\n\n`;
+    md += `---\n\n`;
+
+    // 체크 유형별로 그룹화
+    const grouped = filteredChecks.reduce((acc, check) => {
+      if (!acc[check.checkType]) acc[check.checkType] = [];
+      acc[check.checkType].push(check);
+      return acc;
+    }, {} as Record<string, MonitoringCheck[]>);
+
+    Object.entries(grouped).forEach(([type, checks]) => {
+      const typeInfo = CHECK_TYPES.find(t => t.value === type);
+      md += `## ${typeInfo?.label || type} (${checks.length}개)\n\n`;
+
+      checks.forEach((check, idx) => {
+        md += `### ${idx + 1}. ${check.name}\n\n`;
+        md += `| 항목 | 값 |\n`;
+        md += `|------|----|\n`;
+        md += `| 환경 | ${check.environment} |\n`;
+        md += `| 체크코드 | \`${check.checkCode}\` |\n`;
+        md += `| 대상 | ${check.target} |\n`;
+        md += `| 실행주기 | ${check.interval} |\n`;
+        md += `| 중요도 | ${check.severity} |\n`;
+        md += `| 사용여부 | ${check.isActive ? "✅ 사용" : "❌ 중지"} |\n`;
+        md += `| 타임아웃 | ${check.timeout}초 |\n`;
+        
+        if (Object.keys(check.config).length > 0) {
+          md += `\n**상세 설정:**\n\n`;
+          md += `\`\`\`json\n${JSON.stringify(check.config, null, 2)}\n\`\`\`\n`;
+        }
+        md += `\n`;
+      });
+    });
+
+    return md;
+  };
+
+  // 클립보드 복사
+  const handleCopy = () => {
+    const content = viewMode === "json" ? getMonitoringDataAsJson() : getMonitoringDataAsMd();
+    navigator.clipboard.writeText(content);
+    toast({
+      title: "복사 완료",
+      description: `${viewMode.toUpperCase()} 형식으로 클립보드에 복사되었습니다.`,
+    });
+  };
+
+  // 뷰 모달 열기
+  const openViewModal = (mode: "json" | "md") => {
+    if (filterSystem === "all" && !fixedSystemId) {
+      toast({
+        title: "시스템 선택 필요",
+        description: "모니터링 정보를 보려면 시스템을 선택해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setViewMode(mode);
+    setViewModalOpen(true);
   };
 
   // 중요도 배지 색상
@@ -1501,6 +1609,27 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
           />
         </div>
 
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => openViewModal("json")} 
+            size="sm" 
+            variant="outline"
+            disabled={filterSystem === "all" && !fixedSystemId}
+          >
+            <Code className="w-4 h-4 mr-1" />
+            JSON
+          </Button>
+          <Button 
+            onClick={() => openViewModal("md")} 
+            size="sm" 
+            variant="outline"
+            disabled={filterSystem === "all" && !fixedSystemId}
+          >
+            <FileCode className="w-4 h-4 mr-1" />
+            MD
+          </Button>
+        </div>
+
         <Button onClick={handleAdd} size="sm">
           <Plus className="w-4 h-4 mr-1" />
           체크 추가
@@ -1828,6 +1957,45 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                 </Button>
               </div>
             </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* JSON/MD 뷰 모달 */}
+        <Dialog open={viewModalOpen} onOpenChange={setViewModalOpen}>
+          <DialogContent className="max-w-4xl max-h-[85vh]">
+            <DialogHeader className="pb-4 border-b">
+              <div className="flex items-center justify-between">
+                <DialogTitle className="text-lg flex items-center gap-2">
+                  {viewMode === "json" ? <Code className="w-5 h-5" /> : <FileCode className="w-5 h-5" />}
+                  {filterSystem !== "all" ? getSystemName(filterSystem) : filterBySystemName} 모니터링 설정 ({viewMode.toUpperCase()})
+                </DialogTitle>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant={viewMode === "json" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setViewMode("json")}
+                  >
+                    JSON
+                  </Button>
+                  <Button
+                    variant={viewMode === "md" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setViewMode("md")}
+                  >
+                    MD
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleCopy}>
+                    <Copy className="w-4 h-4 mr-1" />
+                    복사
+                  </Button>
+                </div>
+              </div>
+            </DialogHeader>
+            <ScrollArea className="h-[60vh] mt-4">
+              <pre className="text-sm font-mono bg-muted/50 p-4 rounded-lg whitespace-pre-wrap break-words">
+                {viewMode === "json" ? getMonitoringDataAsJson() : getMonitoringDataAsMd()}
+              </pre>
+            </ScrollArea>
           </DialogContent>
         </Dialog>
     </>
