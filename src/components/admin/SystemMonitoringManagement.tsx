@@ -83,6 +83,7 @@ const CHECK_CODES: Record<string, { code: string; label: string; description: st
     { code: "IF_LOG_CHECK", label: "I/F 로그 확인", description: "인터페이스 로그 에러 여부" },
   ],
   BATCH: [
+    { code: "BATCH_DATA_CHECK", label: "BATCH 데이터 확인", description: "배치 데이터 정상 여부" },
     { code: "BATCH_LAST_RUN_AFTER", label: "배치 실행 확인", description: "배치 최근 실행 여부" },
     { code: "BATCH_SUCCESS_CHECK", label: "배치 성공 확인", description: "배치 정상 완료 여부" },
   ],
@@ -807,6 +808,71 @@ export function SystemMonitoringManagement() {
                   })
                 }
                 placeholder="SELECT count(*) AS cnt FROM if_log WHERE status='ERROR' AND created_at >= now() - interval '10 minutes'"
+                className="text-sm font-mono"
+                rows={3}
+              />
+            </div>
+            <div>
+              <Label className="text-xs">조건 (예: cnt = 0)</Label>
+              <Input
+                value={formData.config.condition || ""}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    config: { ...formData.config, condition: e.target.value },
+                  })
+                }
+                placeholder="cnt = 0"
+                className="text-sm"
+              />
+            </div>
+          </div>
+        );
+
+      case "BATCH_DATA_CHECK":
+        const dbListBatch = SYSTEM_DATABASES[formData.systemId] || [];
+        return (
+          <div className="space-y-3">
+            <div>
+              <Label className="text-xs">데이터베이스 선택</Label>
+              {dbListBatch.length === 0 ? (
+                <p className="text-xs text-muted-foreground py-2">선택한 시스템에 등록된 DB가 없습니다.</p>
+              ) : (
+                <Select
+                  value={formData.config.database || ""}
+                  onValueChange={(value) =>
+                    setFormData({
+                      ...formData,
+                      target: value,
+                      config: { ...formData.config, database: value },
+                    })
+                  }
+                >
+                  <SelectTrigger className="text-sm">
+                    <SelectValue placeholder="DB 선택" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {dbListBatch.map((db) => (
+                      <SelectItem key={db.id} value={db.dbName}>
+                        <span className="font-medium">{db.dbName}</span>
+                        <span className="text-xs text-muted-foreground ml-2">({db.dbType})</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+            <div>
+              <Label className="text-xs">SQL 쿼리</Label>
+              <Textarea
+                value={formData.config.sql || ""}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    config: { ...formData.config, sql: e.target.value },
+                  })
+                }
+                placeholder="SELECT count(*) AS cnt FROM batch_log WHERE status='ERROR' AND created_at >= now() - interval '10 minutes'"
                 className="text-sm font-mono"
                 rows={3}
               />
