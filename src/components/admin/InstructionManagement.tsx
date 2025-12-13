@@ -921,7 +921,7 @@ export function InstructionManagement() {
 
       {/* Create Modal */}
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {createType === "public" ? (
@@ -937,33 +937,102 @@ export function InstructionManagement() {
               )}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div>
-              <label className="text-sm font-medium mb-1.5 block">지침명</label>
-              <Input placeholder="지침 이름 입력" />
-            </div>
-            {createType === "system" && (
+
+          <div className="flex gap-6 py-4 h-[calc(90vh-180px)]">
+            {/* 좌측: 기본 정보 및 Tool/지식 선택 */}
+            <div className="w-[400px] flex-shrink-0 space-y-4 overflow-y-auto pr-2">
               <div>
-                <label className="text-sm font-medium mb-1.5 block">시스템</label>
-                <select className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm">
-                  <option value="">시스템 선택</option>
-                  {systems.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name}
-                    </option>
-                  ))}
-                </select>
+                <label className="text-sm font-medium mb-1.5 block">지침명</label>
+                <Input placeholder="지침 이름 입력" />
               </div>
-            )}
-            <div>
-              <label className="text-sm font-medium mb-1.5 block">설명</label>
-              <Textarea placeholder="지침 설명 입력" rows={2} />
+
+              {createType === "system" && (
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block">시스템</label>
+                  <select className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm">
+                    <option value="">시스템 선택</option>
+                    {systems.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">설명</label>
+                <Textarea placeholder="지침 설명 입력" rows={2} />
+              </div>
+
+              {/* Tool 선택 */}
+              <div>
+                <label className="text-sm font-medium mb-2 block text-muted-foreground flex items-center gap-2">
+                  <Wrench className="w-4 h-4" />
+                  Tool 선택
+                </label>
+                <div className="p-2 rounded-lg border border-border bg-secondary/20 max-h-32 overflow-y-auto">
+                  <div className="grid grid-cols-1 gap-1">
+                    {mockTools.map((tool) => (
+                      <label
+                        key={tool.id}
+                        className="flex items-center gap-2 p-2 rounded cursor-pointer transition-colors bg-background hover:bg-secondary/50"
+                      >
+                        <Checkbox />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{tool.name}</p>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* 지식 선택 */}
+              <div>
+                <label className="text-sm font-medium mb-2 block text-muted-foreground flex items-center gap-2">
+                  <BookOpen className="w-4 h-4" />
+                  지식 선택
+                </label>
+                <div className="p-2 rounded-lg border border-border bg-secondary/20 max-h-32 overflow-y-auto">
+                  <div className="grid grid-cols-1 gap-1">
+                    {mockKnowledge.map((knowledge) => (
+                      <label
+                        key={knowledge.id}
+                        className="flex items-center gap-2 p-2 rounded cursor-pointer transition-colors bg-background hover:bg-secondary/50"
+                      >
+                        <Checkbox />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1">
+                            {knowledge.type === "RAG" ? (
+                              <Database className="w-3 h-3 text-blue-500 flex-shrink-0" />
+                            ) : (
+                              <BookOpen className="w-3 h-3 text-green-500 flex-shrink-0" />
+                            )}
+                            <p className="text-sm font-medium truncate">{knowledge.name}</p>
+                          </div>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
-            <div>
-              <label className="text-sm font-medium mb-1.5 block">내용 (Markdown)</label>
-              <Textarea placeholder="지침 내용 입력" rows={8} className="font-mono" />
+
+            {/* 우측: Markdown 편집 영역 */}
+            <div className="flex-1 flex flex-col min-w-0">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium text-muted-foreground">
+                  지침 내용 (Markdown)
+                </label>
+              </div>
+              <Textarea
+                placeholder="지침 내용을 Markdown 형식으로 입력하세요..."
+                className="flex-1 font-mono text-sm resize-none"
+              />
             </div>
           </div>
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>
               취소
