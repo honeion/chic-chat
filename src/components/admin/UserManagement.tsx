@@ -31,6 +31,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 
+type UserRole = "운영자" | "현업담당자" | "관리자";
+
 interface UserData {
   id: string;
   employeeId: string;
@@ -38,10 +40,8 @@ interface UserData {
   email: string;
   department: string;
   position: string;
-  customerCompany: string;
+  role: UserRole;
   systems: string[];
-  permissions: string[];
-  isAdmin: boolean;
   createdAt: string;
   lastLogin: string;
 }
@@ -55,10 +55,8 @@ const mockUsers: UserData[] = [
     email: "kim@example.com",
     department: "IT운영팀",
     position: "과장",
-    customerCompany: "A고객사",
+    role: "운영자",
     systems: ["e-총무", "BiOn"],
-    permissions: ["ITS Agent", "SOP Agent", "Tool-1", "Tool-2"],
-    isAdmin: false,
     createdAt: "2024-01-15",
     lastLogin: "2024-12-09 09:30",
   },
@@ -69,10 +67,8 @@ const mockUsers: UserData[] = [
     email: "lee@example.com",
     department: "SI사업부",
     position: "대리",
-    customerCompany: "B고객사",
+    role: "현업담당자",
     systems: ["SATIS", "ITS"],
-    permissions: ["모니터링 Agent", "DB Agent", "Tool-3"],
-    isAdmin: false,
     createdAt: "2024-02-20",
     lastLogin: "2024-12-08 14:20",
   },
@@ -83,12 +79,22 @@ const mockUsers: UserData[] = [
     email: "admin@example.com",
     department: "경영지원팀",
     position: "팀장",
-    customerCompany: "-",
+    role: "관리자",
     systems: ["e-총무", "BiOn", "SATIS", "ITS"],
-    permissions: ["전체 Agent", "전체 Tool"],
-    isAdmin: true,
     createdAt: "2023-06-01",
     lastLogin: "2024-12-09 10:00",
+  },
+  {
+    id: "u4",
+    employeeId: "EMP004",
+    name: "최운영",
+    email: "choi@example.com",
+    department: "IT운영팀",
+    position: "대리",
+    role: "운영자",
+    systems: ["e-총무"],
+    createdAt: "2024-03-10",
+    lastLogin: "2024-12-09 08:00",
   },
 ];
 
@@ -156,7 +162,7 @@ export function UserManagement() {
                 <Server className="w-5 h-5 text-accent" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{users.filter((u) => !u.isAdmin && u.customerCompany === "-").length}</p>
+                <p className="text-2xl font-bold">{users.filter((u) => u.role === "운영자").length}</p>
                 <p className="text-xs text-muted-foreground">운영자</p>
               </div>
             </div>
@@ -170,7 +176,7 @@ export function UserManagement() {
               </div>
               <div>
                 <p className="text-2xl font-bold">
-                  {users.filter((u) => u.customerCompany !== "-").length}
+                  {users.filter((u) => u.role === "현업담당자").length}
                 </p>
                 <p className="text-xs text-muted-foreground">현업담당자</p>
               </div>
@@ -184,7 +190,7 @@ export function UserManagement() {
                 <Shield className="w-5 h-5 text-status-online" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{users.filter((u) => u.isAdmin).length}</p>
+                <p className="text-2xl font-bold">{users.filter((u) => u.role === "관리자").length}</p>
                 <p className="text-xs text-muted-foreground">관리자</p>
               </div>
             </div>
@@ -224,7 +230,7 @@ export function UserManagement() {
                         <div>
                           <div className="flex items-center gap-2">
                             <p className="font-medium text-sm">{user.name}</p>
-                            {user.isAdmin && (
+                            {user.role === "관리자" && (
                               <Badge variant="default" className="text-xs px-1.5 py-0">
                                 Admin
                               </Badge>
@@ -253,18 +259,12 @@ export function UserManagement() {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex flex-wrap gap-1">
-                        {user.permissions.slice(0, 2).map((perm) => (
-                          <Badge key={perm} variant="outline" className="text-xs">
-                            {perm}
-                          </Badge>
-                        ))}
-                        {user.permissions.length > 2 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{user.permissions.length - 2}
-                          </Badge>
-                        )}
-                      </div>
+                      <Badge 
+                        variant={user.role === "관리자" ? "default" : user.role === "운영자" ? "secondary" : "outline"} 
+                        className="text-xs"
+                      >
+                        {user.role}
+                      </Badge>
                     </td>
                     <td className="px-4 py-3 text-sm text-muted-foreground">{user.lastLogin}</td>
                     <td className="px-4 py-3 text-right">
@@ -325,14 +325,12 @@ export function UserManagement() {
               </div>
             </div>
             <div>
-              <label className="text-sm font-medium mb-1.5 block">고객사</label>
-              <Input placeholder="담당 고객사 입력" />
-            </div>
-            <div className="flex items-center gap-2">
-              <input type="checkbox" id="isAdmin" className="rounded" />
-              <label htmlFor="isAdmin" className="text-sm">
-                관리자 권한 부여
-              </label>
+              <label className="text-sm font-medium mb-1.5 block">권한</label>
+              <select className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
+                <option value="운영자">운영자</option>
+                <option value="현업담당자">현업담당자</option>
+                <option value="관리자">관리자</option>
+              </select>
             </div>
           </div>
           <DialogFooter>
@@ -376,22 +374,15 @@ export function UserManagement() {
               </div>
             </div>
             <div>
-              <label className="text-sm font-medium mb-1.5 block">고객사</label>
-              <Input
-                placeholder="담당 고객사 입력"
-                defaultValue={selectedUser?.customerCompany}
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="isAdminEdit"
-                className="rounded"
-                defaultChecked={selectedUser?.isAdmin}
-              />
-              <label htmlFor="isAdminEdit" className="text-sm">
-                관리자 권한 부여
-              </label>
+              <label className="text-sm font-medium mb-1.5 block">권한</label>
+              <select 
+                className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                defaultValue={selectedUser?.role}
+              >
+                <option value="운영자">운영자</option>
+                <option value="현업담당자">현업담당자</option>
+                <option value="관리자">관리자</option>
+              </select>
             </div>
           </div>
           <DialogFooter>
