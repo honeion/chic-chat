@@ -172,7 +172,7 @@ export function UserManagement() {
                 <p className="text-2xl font-bold">
                   {users.filter((u) => u.customerCompany !== "-").length}
                 </p>
-                <p className="text-xs text-muted-foreground">고객사</p>
+                <p className="text-xs text-muted-foreground">현업담당자</p>
               </div>
             </div>
           </CardContent>
