@@ -107,16 +107,6 @@ const SEVERITY_OPTIONS = [
   { value: "WARN", label: "WARN", color: "bg-yellow-500" },
   { value: "CRIT", label: "CRIT", color: "bg-red-500" },
 ];
-
-// 실행 주기 정의
-const INTERVAL_OPTIONS = [
-  { value: "5m", label: "5분" },
-  { value: "10m", label: "10분" },
-  { value: "30m", label: "30분" },
-  { value: "1h", label: "매시간" },
-  { value: "1d", label: "매일" },
-];
-
 // 환경 정의
 const ENVIRONMENTS = ["PROD", "DEV", "STG", "DR"];
 
@@ -196,7 +186,6 @@ interface MonitoringCheck {
   checkType: string;
   checkCode: string;
   target: string;
-  interval: string;
   severity: string;
   isActive: boolean;
   timeout: number;
@@ -217,7 +206,6 @@ const mockMonitoringChecks: MonitoringCheck[] = [
     checkType: "HTTP",
     checkCode: "HTTP_STATUS_200",
     target: "https://api.e-chongmu.example.com/health",
-    interval: "5m",
     severity: "WARN",
     isActive: true,
     timeout: 30,
@@ -233,7 +221,6 @@ const mockMonitoringChecks: MonitoringCheck[] = [
     checkType: "HTTP",
     checkCode: "HTTP_LATENCY_UNDER_MS",
     target: "https://api.e-chongmu.example.com/api/main",
-    interval: "5m",
     severity: "WARN",
     isActive: true,
     timeout: 30,
@@ -249,7 +236,6 @@ const mockMonitoringChecks: MonitoringCheck[] = [
     checkType: "HTTP",
     checkCode: "HTTP_CUSTOM_HEALTH",
     target: "https://api.e-chongmu.example.com/custom-health",
-    interval: "10m",
     severity: "CRIT",
     isActive: true,
     timeout: 30,
@@ -266,7 +252,6 @@ const mockMonitoringChecks: MonitoringCheck[] = [
     checkType: "DB",
     checkCode: "DB_CONNECT",
     target: "chongmu_main_db",
-    interval: "10m",
     severity: "CRIT",
     isActive: true,
     timeout: 60,
@@ -282,7 +267,6 @@ const mockMonitoringChecks: MonitoringCheck[] = [
     checkType: "DB",
     checkCode: "DB_CUSTOM_QUERY_ASSERT",
     target: "chongmu_main_db",
-    interval: "30m",
     severity: "WARN",
     isActive: true,
     timeout: 60,
@@ -299,7 +283,6 @@ const mockMonitoringChecks: MonitoringCheck[] = [
     checkType: "INTERFACE",
     checkCode: "IF_DATA_CHECK",
     target: "chongmu_main_db",
-    interval: "30m",
     severity: "WARN",
     isActive: true,
     timeout: 60,
@@ -315,7 +298,6 @@ const mockMonitoringChecks: MonitoringCheck[] = [
     checkType: "INTERFACE",
     checkCode: "IF_LOG_CHECK",
     target: "서버로그",
-    interval: "1h",
     severity: "WARN",
     isActive: true,
     timeout: 60,
@@ -332,7 +314,6 @@ const mockMonitoringChecks: MonitoringCheck[] = [
     checkType: "BATCH",
     checkCode: "BATCH_DATA_CHECK",
     target: "chongmu_main_db",
-    interval: "1h",
     severity: "CRIT",
     isActive: true,
     timeout: 120,
@@ -348,7 +329,6 @@ const mockMonitoringChecks: MonitoringCheck[] = [
     checkType: "BATCH",
     checkCode: "BATCH_LOG_CHECK",
     target: "Grafana",
-    interval: "1d",
     severity: "CRIT",
     isActive: true,
     timeout: 120,
@@ -365,7 +345,6 @@ const mockMonitoringChecks: MonitoringCheck[] = [
     checkType: "SYSTEM",
     checkCode: "SYS_PROCESS_RUNNING",
     target: "echongmu-web-01",
-    interval: "5m",
     severity: "CRIT",
     isActive: true,
     timeout: 30,
@@ -381,7 +360,6 @@ const mockMonitoringChecks: MonitoringCheck[] = [
     checkType: "SYSTEM",
     checkCode: "SYS_RESOURCE_CHECK",
     target: "echongmu-app-k8s",
-    interval: "5m",
     severity: "WARN",
     isActive: true,
     timeout: 30,
@@ -398,7 +376,6 @@ const mockMonitoringChecks: MonitoringCheck[] = [
     checkType: "LOG",
     checkCode: "LOG_PATTERN_COUNT_ZERO",
     target: "Grafana",
-    interval: "10m",
     severity: "WARN",
     isActive: true,
     timeout: 30,
@@ -414,7 +391,6 @@ const mockMonitoringChecks: MonitoringCheck[] = [
     checkType: "LOG",
     checkCode: "LOG_ERROR_CHECK",
     target: "서버로그",
-    interval: "5m",
     severity: "CRIT",
     isActive: true,
     timeout: 30,
@@ -430,7 +406,6 @@ const mockMonitoringChecks: MonitoringCheck[] = [
     checkType: "HTTP",
     checkCode: "HTTP_STATUS_200",
     target: "https://api.bion.example.com/health",
-    interval: "5m",
     severity: "WARN",
     isActive: true,
     timeout: 30,
@@ -446,7 +421,6 @@ const mockMonitoringChecks: MonitoringCheck[] = [
     checkType: "LOG",
     checkCode: "LOG_ERROR_CHECK",
     target: "ELK",
-    interval: "10m",
     severity: "INFO",
     isActive: false,
     timeout: 30,
@@ -496,7 +470,6 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
     checkType: "",
     checkCode: "",
     target: "",
-    interval: "5m",
     severity: "WARN",
     isActive: true,
     timeout: 30,
@@ -537,7 +510,6 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
       checkType: "",
       checkCode: "",
       target: "",
-      interval: "5m",
       severity: "WARN",
       isActive: true,
       timeout: 30,
@@ -556,7 +528,6 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
       checkType: check.checkType,
       checkCode: check.checkCode,
       target: check.target,
-      interval: check.interval,
       severity: check.severity,
       isActive: check.isActive,
       timeout: check.timeout,
@@ -629,7 +600,6 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
         checkType: check.checkType,
         checkCode: check.checkCode,
         target: check.target,
-        interval: check.interval,
         severity: check.severity,
         isActive: check.isActive,
         timeout: check.timeout,
@@ -671,7 +641,6 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
         md += `| 환경 | ${check.environment} |\n`;
         md += `| 체크코드 | \`${check.checkCode}\` |\n`;
         md += `| 대상 | ${check.target} |\n`;
-        md += `| 실행주기 | ${check.interval} |\n`;
         md += `| 중요도 | ${check.severity} |\n`;
         md += `| 사용여부 | ${check.isActive ? "✅ 사용" : "❌ 중지"} |\n`;
         md += `| 타임아웃 | ${check.timeout}초 |\n`;
