@@ -1156,29 +1156,44 @@ export function SystemMonitoringManagement() {
         );
 
       case "SYS_PROCESS_RUNNING":
+        const serverListSys = SYSTEM_SERVERS[formData.systemId] || [];
         return (
           <div className="space-y-3">
             <div>
               <Label className="text-xs">서버 선택</Label>
-              <Select
-                value={formData.config.server || ""}
-                onValueChange={(value) =>
-                  setFormData({
-                    ...formData,
-                    target: value,
-                    config: { ...formData.config, server: value },
-                  })
-                }
-              >
-                <SelectTrigger className="text-sm">
-                  <SelectValue placeholder="서버 선택" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="WEB-01">WEB-01</SelectItem>
-                  <SelectItem value="WEB-02">WEB-02</SelectItem>
-                  <SelectItem value="APP-01">APP-01</SelectItem>
-                </SelectContent>
-              </Select>
+              {serverListSys.length === 0 ? (
+                <p className="text-xs text-muted-foreground py-2">선택한 시스템에 등록된 서버가 없습니다.</p>
+              ) : (
+                <Select
+                  value={formData.config.server || ""}
+                  onValueChange={(value) => {
+                    const selectedServer = serverListSys.find(s => s.serverName === value);
+                    setFormData({
+                      ...formData,
+                      target: value,
+                      config: { 
+                        ...formData.config, 
+                        server: value,
+                        serverHostType: selectedServer?.hostType || "",
+                      },
+                    });
+                  }}
+                >
+                  <SelectTrigger className="text-sm">
+                    <SelectValue placeholder="서버 선택" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {serverListSys.map((server) => (
+                      <SelectItem key={server.id} value={server.serverName}>
+                        <span className="font-medium">{server.serverName}</span>
+                        <span className="text-xs text-muted-foreground ml-2">
+                          ({server.hostType}{server.vmIp ? ` - ${server.vmIp}` : server.namespace ? ` - ${server.namespace}` : ""})
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
             <div>
               <Label className="text-xs">프로세스명</Label>
