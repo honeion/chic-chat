@@ -1773,8 +1773,8 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
               <div className="space-y-5 p-4 rounded-lg bg-muted/30 border border-border/50">
                 <h3 className="text-sm font-semibold text-muted-foreground">체크 설정</h3>
                 
-                <div className="grid grid-cols-2 gap-5">
-                  <div className="space-y-2">
+                <div className="flex gap-5">
+                  <div className="space-y-2 w-36 shrink-0">
                     <Label className="text-sm">체크 유형 *</Label>
                     <Select
                       value={formData.checkType}
@@ -1796,7 +1796,7 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2 flex-1">
                     <Label className="text-sm">체크 항목 *</Label>
                     <Select
                       value={formData.checkCode}
@@ -1806,11 +1806,11 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                       <SelectTrigger>
                         <SelectValue placeholder={formData.checkType ? "항목 선택" : "유형을 먼저 선택"} />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="max-w-[500px]">
                         {CHECK_CODES[formData.checkType]?.map((code) => (
                           <SelectItem key={code.code} value={code.code}>
-                            <div className="flex flex-col">
-                              <span>{code.label}</span>
+                            <div className="flex items-center gap-3">
+                              <span className="font-medium">{code.label}</span>
                               <span className="text-xs text-muted-foreground">{code.description}</span>
                             </div>
                           </SelectItem>
