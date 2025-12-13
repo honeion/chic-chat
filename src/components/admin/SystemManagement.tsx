@@ -450,8 +450,8 @@ export function SystemManagement() {
     navigator.clipboard.writeText(text);
   };
 
-  // 시스템 정보를 Markdown 형식으로 변환
-  const systemToMarkdown = (system: SystemData): string => {
+  // 시스템 정보를 Markdown 형식으로 변환 (상세정보 포함)
+  const systemToMarkdown = (system: SystemData, details: Record<EnvType, EnvDetail>): string => {
     const lines: string[] = [
       `# ${system.name} (${system.shortName})`,
       "",
@@ -471,23 +471,67 @@ export function SystemManagement() {
       "",
       system.description,
       "",
-      "## 접속 정보",
-      "",
-      `- **URL**: ${system.url || "-"}`,
-      `- **API Endpoint**: ${system.apiEndpoint || "-"}`,
-      `- **Namespace**: ${system.namespace || "-"}`,
-      `- **Service**: ${system.svc || "-"}`,
-      `- **MCP Server**: ${system.mcpServer || "-"}`,
-      "",
-      "## 인프라 스펙",
-      "",
-      `| 항목 | 값 |`,
-      `|------|-----|`,
-      `| CPU | ${system.spec?.cpu || "-"} |`,
-      `| Memory | ${system.spec?.memory || "-"} |`,
-      `| Storage | ${system.spec?.storage || "-"} |`,
-      "",
     ];
+
+    // 환경별 상세정보 추가
+    (["PROD", "DEV", "STG", "DR"] as EnvType[]).forEach((env) => {
+      const envDetail = details[env];
+      if (!envDetail.isEnabled) return;
+      
+      lines.push(`## ${env} 환경`);
+      lines.push("");
+      
+      // 접속정보
+      if (envDetail.urls.length > 0) {
+        lines.push("### 접속정보");
+        lines.push("");
+        envDetail.urls.forEach((url, idx) => {
+          lines.push(`**URL ${idx + 1}**${url.isPrimary ? " (대표)" : ""}`);
+          lines.push(`- URL: ${url.url || "-"}`);
+          lines.push(`- 접속유형: ${url.accessType === "external" ? "외부" : "내부"}`);
+          lines.push(`- hosts 필요: ${url.hostsRequired ? `예 (${url.hostsIp})` : "아니오"}`);
+          lines.push(`- 설명: ${url.description || "-"}`);
+          lines.push("");
+        });
+      }
+      
+      // 인프라정보
+      if (envDetail.servers.length > 0) {
+        lines.push("### 인프라정보");
+        lines.push("");
+        envDetail.servers.forEach((server, idx) => {
+          lines.push(`**서버 ${idx + 1}** (${server.infraType}/${server.provider}/${server.hostType})`);
+          if (server.hostType === "K8S") {
+            lines.push(`- 구독정보: ${server.subscription || "-"}`);
+            lines.push(`- 클러스터명: ${server.clusterName || "-"}`);
+            lines.push(`- Namespace: ${server.namespace || "-"}`);
+            lines.push(`- 인증정보: ${server.k8sAuth || "-"}`);
+          } else {
+            lines.push(`- VM IP: ${server.vmIp || "-"}`);
+            lines.push(`- VM OS: ${server.vmOs || "-"}`);
+            lines.push(`- 인증정보: ${server.vmAuth || "-"}`);
+          }
+          lines.push(`- 설명: ${server.description || "-"}`);
+          lines.push("");
+        });
+      }
+      
+      // DB정보
+      if (envDetail.databases.length > 0) {
+        lines.push("### DB정보");
+        lines.push("");
+        envDetail.databases.forEach((db, idx) => {
+          lines.push(`**DB ${idx + 1}** (${db.dbType})`);
+          lines.push(`- IP: ${db.dbIp || "-"}`);
+          lines.push(`- Port: ${db.dbPort || "-"}`);
+          lines.push(`- DB Name: ${db.dbName || "-"}`);
+          lines.push(`- DB User: ${db.dbUser || "-"}`);
+          lines.push(`- Key Vault Key: ${db.keyVaultKey || "-"}`);
+          lines.push("");
+        });
+      }
+    });
+
     return lines.join("\n");
   };
 
@@ -738,6 +782,9 @@ export function SystemManagement() {
                       <DropdownMenuContent align="end" className="bg-popover">
                         <DropdownMenuItem onClick={(e) => {
                           e.stopPropagation();
+                          // 상세정보 초기화 후 JSON 보기
+                          handleSelectSystem(system);
+                          setIsDetailModalOpen(false);
                           setViewFormat("json");
                           setJsonViewSystemId(system.id);
                         }}>
@@ -746,6 +793,9 @@ export function SystemManagement() {
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={(e) => {
                           e.stopPropagation();
+                          // 상세정보 초기화 후 MD 보기
+                          handleSelectSystem(system);
+                          setIsDetailModalOpen(false);
                           setViewFormat("md");
                           setJsonViewSystemId(system.id);
                         }}>
@@ -796,9 +846,10 @@ export function SystemManagement() {
           {jsonViewSystemId && (() => {
             const system = filteredSystems.find(s => s.id === jsonViewSystemId);
             if (!system) return null;
+            const fullData = { system, envDetails };
             const content = viewFormat === "json" 
-              ? JSON.stringify(system, null, 2) 
-              : systemToMarkdown(system);
+              ? JSON.stringify(fullData, null, 2) 
+              : systemToMarkdown(system, envDetails);
             return (
               <div className="relative">
                 <Button
