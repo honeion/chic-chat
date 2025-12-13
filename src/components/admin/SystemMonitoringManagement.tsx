@@ -201,9 +201,11 @@ interface MonitoringCheck {
 
 // Mock 데이터
 const mockMonitoringChecks: MonitoringCheck[] = [
-  // e-총무 시스템 - HTTP (HTTP_STATUS_200)
+  // ===== e-총무 시스템 (s1) - 모든 체크 유형/항목 =====
+  
+  // HTTP - HTTP_STATUS_200
   {
-    id: "mc1",
+    id: "mc1-1",
     systemId: "s1",
     environment: "PROD",
     name: "e-총무 API 헬스체크",
@@ -217,7 +219,7 @@ const mockMonitoringChecks: MonitoringCheck[] = [
     config: { url: "https://api.e-chongmu.example.com/health" },
     updatedAt: "2024-01-15 14:30",
   },
-  // e-총무 시스템 - HTTP (HTTP_LATENCY_UNDER_MS)
+  // HTTP - HTTP_LATENCY_UNDER_MS
   {
     id: "mc1-2",
     systemId: "s1",
@@ -233,23 +235,40 @@ const mockMonitoringChecks: MonitoringCheck[] = [
     config: { url: "https://api.e-chongmu.example.com/api/main", maxLatency: "3000" },
     updatedAt: "2024-01-15 14:35",
   },
-  // e-총무 시스템 - DB (DB_CONNECT)
+  // HTTP - HTTP_CUSTOM_HEALTH
   {
-    id: "mc2",
+    id: "mc1-3",
+    systemId: "s1",
+    environment: "PROD",
+    name: "e-총무 사용자 지정 헬스체크",
+    checkType: "HTTP",
+    checkCode: "HTTP_CUSTOM_HEALTH",
+    target: "https://api.e-chongmu.example.com/custom-health",
+    interval: "10m",
+    severity: "CRIT",
+    isActive: true,
+    timeout: 30,
+    config: { url: "https://api.e-chongmu.example.com/custom-health", expectedValue: '{"status":"UP","db":"connected"}' },
+    updatedAt: "2024-01-15 14:40",
+  },
+  
+  // DB - DB_CONNECT
+  {
+    id: "mc2-1",
     systemId: "s1",
     environment: "PROD",
     name: "e-총무 DB 접속 확인",
     checkType: "DB",
     checkCode: "DB_CONNECT",
-    target: "CHONGMU_DB",
+    target: "chongmu_main_db",
     interval: "10m",
     severity: "CRIT",
     isActive: true,
     timeout: 60,
-    config: { database: "CHONGMU_DB" },
+    config: { database: "chongmu_main_db" },
     updatedAt: "2024-01-14 10:00",
   },
-  // e-총무 시스템 - DB (DB_CUSTOM_QUERY_ASSERT)
+  // DB - DB_CUSTOM_QUERY_ASSERT
   {
     id: "mc2-2",
     systemId: "s1",
@@ -257,31 +276,32 @@ const mockMonitoringChecks: MonitoringCheck[] = [
     name: "e-총무 미처리 건수 체크",
     checkType: "DB",
     checkCode: "DB_CUSTOM_QUERY_ASSERT",
-    target: "CHONGMU_DB",
+    target: "chongmu_main_db",
     interval: "30m",
     severity: "WARN",
     isActive: true,
     timeout: 60,
-    config: { database: "CHONGMU_DB", query: "SELECT COUNT(*) FROM pending_tasks WHERE created_at < NOW() - INTERVAL '1 hour'", assertCondition: "result == 0" },
+    config: { database: "chongmu_main_db", sql: "SELECT COUNT(*) AS cnt FROM pending_tasks WHERE created_at < NOW() - INTERVAL '1 hour'", condition: "cnt = 0" },
     updatedAt: "2024-01-14 10:30",
   },
-  // e-총무 시스템 - INTERFACE (IF_DATA_CHECK)
+  
+  // INTERFACE - IF_DATA_CHECK
   {
-    id: "mc3",
+    id: "mc3-1",
     systemId: "s1",
     environment: "PROD",
     name: "e-총무 ERP 연동 데이터 확인",
     checkType: "INTERFACE",
     checkCode: "IF_DATA_CHECK",
-    target: "ERP_IF",
+    target: "chongmu_main_db",
     interval: "30m",
     severity: "WARN",
     isActive: true,
     timeout: 60,
-    config: { interfaceName: "ERP_SYNC", checkQuery: "SELECT COUNT(*) FROM if_erp_log WHERE status='ERROR'" },
+    config: { database: "chongmu_main_db", sql: "SELECT COUNT(*) AS cnt FROM if_erp_log WHERE status='ERROR' AND created_at >= NOW() - INTERVAL '30 minutes'", condition: "cnt = 0" },
     updatedAt: "2024-01-14 09:00",
   },
-  // e-총무 시스템 - INTERFACE (IF_LOG_CHECK)
+  // INTERFACE - IF_LOG_CHECK
   {
     id: "mc3-2",
     systemId: "s1",
@@ -289,63 +309,65 @@ const mockMonitoringChecks: MonitoringCheck[] = [
     name: "e-총무 HR 연동 로그 확인",
     checkType: "INTERFACE",
     checkCode: "IF_LOG_CHECK",
-    target: "HR_IF",
+    target: "서버로그",
     interval: "1h",
     severity: "WARN",
     isActive: true,
     timeout: 60,
-    config: { interfaceName: "HR_SYNC", logPath: "/var/log/if/hr_sync.log", errorPattern: "ERROR|FAIL" },
+    config: { logTool: "서버로그", server: "echongmu-web-01", serverHostType: "VM", logFilePath: "/var/log/if/hr_sync.log", pattern: "ERROR|FAIL", timeRange: "1h" },
     updatedAt: "2024-01-14 09:30",
   },
-  // e-총무 시스템 - BATCH (BATCH_LAST_RUN_AFTER)
+  
+  // BATCH - BATCH_DATA_CHECK
   {
-    id: "mc4",
+    id: "mc4-1",
     systemId: "s1",
     environment: "PROD",
-    name: "e-총무 일일정산 배치",
+    name: "e-총무 일일정산 배치 데이터 확인",
     checkType: "BATCH",
-    checkCode: "BATCH_LAST_RUN_AFTER",
-    target: "DAILY_SETTLE_BATCH",
+    checkCode: "BATCH_DATA_CHECK",
+    target: "chongmu_main_db",
     interval: "1h",
     severity: "CRIT",
     isActive: true,
     timeout: 120,
-    config: { batchName: "DAILY_SETTLE_BATCH", maxAge: "24h" },
+    config: { database: "chongmu_main_db", sql: "SELECT COUNT(*) AS cnt FROM daily_settle_log WHERE status='ERROR' AND batch_date = CURRENT_DATE", condition: "cnt = 0" },
     updatedAt: "2024-01-13 09:00",
   },
-  // e-총무 시스템 - BATCH (BATCH_SUCCESS_CHECK)
+  // BATCH - BATCH_LOG_CHECK
   {
     id: "mc4-2",
     systemId: "s1",
     environment: "PROD",
-    name: "e-총무 월마감 배치 성공 확인",
+    name: "e-총무 월마감 배치 로그 확인",
     checkType: "BATCH",
-    checkCode: "BATCH_SUCCESS_CHECK",
-    target: "MONTHLY_CLOSE_BATCH",
+    checkCode: "BATCH_LOG_CHECK",
+    target: "Grafana",
     interval: "1d",
     severity: "CRIT",
     isActive: true,
     timeout: 120,
-    config: { batchName: "MONTHLY_CLOSE_BATCH", expectedStatus: "SUCCESS" },
+    config: { logTool: "Grafana", grafanaUrl: "https://grafana.e-chongmu.example.com", dashboardId: "batch-logs", panelId: "1", grafanaTarget: '{app="batch-scheduler", job="monthly-close"}', pattern: "FATAL|ERROR", timeRange: "24h" },
     updatedAt: "2024-01-13 09:30",
   },
-  // e-총무 시스템 - SYSTEM (SYS_PROCESS_RUNNING)
+  
+  // SYSTEM - SYS_PROCESS_RUNNING
   {
-    id: "mc5",
+    id: "mc5-1",
     systemId: "s1",
     environment: "PROD",
     name: "e-총무 WAS 프로세스 확인",
     checkType: "SYSTEM",
     checkCode: "SYS_PROCESS_RUNNING",
-    target: "chongmu-was",
+    target: "echongmu-web-01",
     interval: "5m",
     severity: "CRIT",
     isActive: true,
     timeout: 30,
-    config: { processName: "java", processKeyword: "chongmu-was" },
+    config: { server: "echongmu-web-01", serverHostType: "VM", processName: "java, nginx" },
     updatedAt: "2024-01-12 18:00",
   },
-  // e-총무 시스템 - SYSTEM (SYS_RESOURCE_CHECK)
+  // SYSTEM - SYS_RESOURCE_CHECK
   {
     id: "mc5-2",
     systemId: "s1",
@@ -353,31 +375,32 @@ const mockMonitoringChecks: MonitoringCheck[] = [
     name: "e-총무 서버 리소스 확인",
     checkType: "SYSTEM",
     checkCode: "SYS_RESOURCE_CHECK",
-    target: "chongmu-was-01",
+    target: "echongmu-app-k8s",
     interval: "5m",
     severity: "WARN",
     isActive: true,
     timeout: 30,
-    config: { cpuThreshold: "80", memoryThreshold: "85", diskThreshold: "90" },
+    config: { server: "echongmu-app-k8s", serverHostType: "K8S", deploymentName: "chongmu-api, chongmu-web", cpuThreshold: "80", memoryThreshold: "85", diskThreshold: "90" },
     updatedAt: "2024-01-12 18:30",
   },
-  // e-총무 시스템 - LOG (LOG_PATTERN_COUNT_ZERO)
+  
+  // LOG - LOG_PATTERN_COUNT_ZERO
   {
-    id: "mc6",
+    id: "mc6-1",
     systemId: "s1",
     environment: "PROD",
     name: "e-총무 에러 로그 모니터링",
     checkType: "LOG",
     checkCode: "LOG_PATTERN_COUNT_ZERO",
-    target: "ELK",
+    target: "Grafana",
     interval: "10m",
     severity: "WARN",
     isActive: true,
     timeout: 30,
-    config: { logTool: "ELK", pattern: "ERROR OR Exception", timeRange: "10m" },
+    config: { logTool: "Grafana", grafanaUrl: "https://grafana.e-chongmu.example.com", dashboardId: "app-logs", panelId: "2", grafanaTarget: '{app="chongmu-api", level="error"}', pattern: "ERROR OR Exception", timeRange: "10m" },
     updatedAt: "2024-01-12 16:45",
   },
-  // e-총무 시스템 - LOG (LOG_ERROR_CHECK)
+  // LOG - LOG_ERROR_CHECK
   {
     id: "mc6-2",
     systemId: "s1",
@@ -385,12 +408,12 @@ const mockMonitoringChecks: MonitoringCheck[] = [
     name: "e-총무 FATAL 로그 체크",
     checkType: "LOG",
     checkCode: "LOG_ERROR_CHECK",
-    target: "ELK",
+    target: "서버로그",
     interval: "5m",
     severity: "CRIT",
     isActive: true,
     timeout: 30,
-    config: { logTool: "ELK", pattern: "FATAL", timeRange: "5m" },
+    config: { logTool: "서버로그", server: "echongmu-web-02", serverHostType: "VM", logFilePath: "/var/log/chongmu/application.log", pattern: "FATAL", timeRange: "5m" },
     updatedAt: "2024-01-12 17:00",
   },
   // BiOn 시스템 샘플
