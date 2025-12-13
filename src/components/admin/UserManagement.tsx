@@ -195,10 +195,10 @@ export function UserManagement() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-5 gap-3">
+      <div className="flex gap-3">
         <Card 
           className={cn(
-            "cursor-pointer transition-all hover:ring-2 hover:ring-primary/50",
+            "cursor-pointer transition-all hover:ring-2 hover:ring-primary/50 flex-shrink-0",
             roleFilter === "all" && "ring-2 ring-primary"
           )}
           onClick={() => setRoleFilter("all")}
@@ -217,7 +217,7 @@ export function UserManagement() {
         </Card>
         <Card 
           className={cn(
-            "cursor-pointer transition-all hover:ring-2 hover:ring-accent/50",
+            "cursor-pointer transition-all hover:ring-2 hover:ring-accent/50 flex-shrink-0",
             roleFilter === "운영자(조회)" && "ring-2 ring-accent"
           )}
           onClick={() => setRoleFilter("운영자(조회)")}
@@ -229,14 +229,14 @@ export function UserManagement() {
               </div>
               <div>
                 <p className="text-xl font-bold">{users.filter((u) => u.role === "운영자(조회)").length}</p>
-                <p className="text-xs text-muted-foreground">조회</p>
+                <p className="text-xs text-muted-foreground">운영자(조회)</p>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card 
           className={cn(
-            "cursor-pointer transition-all hover:ring-2 hover:ring-blue-500/50",
+            "cursor-pointer transition-all hover:ring-2 hover:ring-blue-500/50 flex-shrink-0",
             roleFilter === "운영자(제어)" && "ring-2 ring-blue-500"
           )}
           onClick={() => setRoleFilter("운영자(제어)")}
@@ -248,14 +248,14 @@ export function UserManagement() {
               </div>
               <div>
                 <p className="text-xl font-bold">{users.filter((u) => u.role === "운영자(제어)").length}</p>
-                <p className="text-xs text-muted-foreground">제어</p>
+                <p className="text-xs text-muted-foreground">운영자(제어)</p>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card 
           className={cn(
-            "cursor-pointer transition-all hover:ring-2 hover:ring-muted-foreground/50",
+            "cursor-pointer transition-all hover:ring-2 hover:ring-muted-foreground/50 flex-shrink-0",
             roleFilter === "현업담당자" && "ring-2 ring-muted-foreground"
           )}
           onClick={() => setRoleFilter("현업담당자")}
@@ -269,14 +269,14 @@ export function UserManagement() {
                 <p className="text-xl font-bold">
                   {users.filter((u) => u.role === "현업담당자").length}
                 </p>
-                <p className="text-xs text-muted-foreground">현업</p>
+                <p className="text-xs text-muted-foreground">현업담당자</p>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card 
           className={cn(
-            "cursor-pointer transition-all hover:ring-2 hover:ring-status-online/50",
+            "cursor-pointer transition-all hover:ring-2 hover:ring-status-online/50 flex-shrink-0",
             roleFilter === "관리자" && "ring-2 ring-status-online"
           )}
           onClick={() => setRoleFilter("관리자")}
