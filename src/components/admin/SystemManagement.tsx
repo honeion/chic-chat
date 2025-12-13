@@ -18,6 +18,7 @@ import {
   FileCode,
   HelpCircle,
   MoreHorizontal,
+  Activity,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,8 +54,54 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { SystemData, mockSystems, systemTypes, SystemType } from "@/data/systems";
+
+// 환경별 세부정보 타입
+type EnvType = "PROD" | "DEV" | "STG" | "DR";
+
+interface EnvDetail {
+  isEnabled: boolean;
+  // 접속정보
+  url: string;
+  apiEndpoint: string;
+  // 인프라정보
+  namespace: string;
+  svc: string;
+  mcpServer: string;
+  cpu: string;
+  memory: string;
+  storage: string;
+  // DB 정보
+  dbHost: string;
+  dbPort: string;
+  dbName: string;
+  dbUser: string;
+  // 모니터링 정보
+  monitoringUrl: string;
+  logPath: string;
+  alertEmail: string;
+}
+
+const defaultEnvDetail: EnvDetail = {
+  isEnabled: false,
+  url: "",
+  apiEndpoint: "",
+  namespace: "",
+  svc: "",
+  mcpServer: "",
+  cpu: "",
+  memory: "",
+  storage: "",
+  dbHost: "",
+  dbPort: "",
+  dbName: "",
+  dbUser: "",
+  monitoringUrl: "",
+  logPath: "",
+  alertEmail: "",
+};
 
 export function SystemManagement() {
   const [systems, setSystems] = useState<SystemData[]>(mockSystems);
@@ -64,6 +111,15 @@ export function SystemManagement() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedSystem, setSelectedSystem] = useState<SystemData | null>(null);
+  const [activeEnvTab, setActiveEnvTab] = useState<EnvType>("PROD");
+
+  // 환경별 세부정보 상태
+  const [envDetails, setEnvDetails] = useState<Record<EnvType, EnvDetail>>({
+    PROD: { ...defaultEnvDetail, isEnabled: true },
+    DEV: { ...defaultEnvDetail },
+    STG: { ...defaultEnvDetail },
+    DR: { ...defaultEnvDetail },
+  });
 
   // Create form state
   const [createForm, setCreateForm] = useState({
@@ -78,6 +134,47 @@ export function SystemManagement() {
     manager: "",
     isActive: true,
   });
+
+  // 시스템 선택 시 환경 세부정보 초기화
+  const handleSelectSystem = (system: SystemData) => {
+    setSelectedSystem(system);
+    setActiveEnvTab("PROD");
+    // 선택된 시스템의 기존 데이터로 PROD 환경 초기화
+    setEnvDetails({
+      PROD: {
+        isEnabled: true,
+        url: system.url,
+        apiEndpoint: system.apiEndpoint,
+        namespace: system.namespace,
+        svc: system.svc,
+        mcpServer: system.mcpServer,
+        cpu: system.spec.cpu,
+        memory: system.spec.memory,
+        storage: system.spec.storage,
+        dbHost: "db-prod.example.com",
+        dbPort: "5432",
+        dbName: system.shortName.toLowerCase() + "_db",
+        dbUser: system.shortName.toLowerCase() + "_user",
+        monitoringUrl: "https://monitor.example.com/" + system.shortName.toLowerCase(),
+        logPath: "/var/log/" + system.shortName.toLowerCase(),
+        alertEmail: system.manager + "@example.com",
+      },
+      DEV: { ...defaultEnvDetail },
+      STG: { ...defaultEnvDetail },
+      DR: { ...defaultEnvDetail },
+    });
+    setIsDetailModalOpen(true);
+  };
+
+  const updateEnvDetail = (env: EnvType, field: keyof EnvDetail, value: string | boolean) => {
+    setEnvDetails(prev => ({
+      ...prev,
+      [env]: {
+        ...prev[env],
+        [field]: value,
+      },
+    }));
+  };
 
   const filteredSystems = systems.filter((system) => {
     const matchesSearch =
@@ -325,10 +422,7 @@ export function SystemManagement() {
                 <tr 
                   key={system.id} 
                   className="hover:bg-secondary/30 transition-colors cursor-pointer"
-                  onClick={() => {
-                    setSelectedSystem(system);
-                    setIsDetailModalOpen(true);
-                  }}
+                  onClick={() => handleSelectSystem(system)}
                 >
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
@@ -376,8 +470,7 @@ export function SystemManagement() {
                       <DropdownMenuContent align="end" className="bg-popover">
                         <DropdownMenuItem onClick={(e) => {
                           e.stopPropagation();
-                          setSelectedSystem(system);
-                          setIsDetailModalOpen(true);
+                          handleSelectSystem(system);
                         }}>
                           <Edit className="w-4 h-4 mr-2" />
                           수정
@@ -404,7 +497,7 @@ export function SystemManagement() {
 
       {/* Detail Modal */}
       <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
               <Server className="w-5 h-5 text-primary" />
@@ -412,152 +505,356 @@ export function SystemManagement() {
             </DialogTitle>
           </DialogHeader>
           {selectedSystem && (
-            <div className="space-y-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium mb-1.5 block text-muted-foreground">
-                    시스템약어명
-                  </label>
-                  <Input defaultValue={selectedSystem.shortName} />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1.5 block text-muted-foreground">
-                    시스템명
-                  </label>
-                  <Input defaultValue={selectedSystem.name} />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium mb-1.5 block text-muted-foreground">
-                    시스템유형
-                  </label>
-                  <Select defaultValue={selectedSystem.systemType}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {systemTypes.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium mb-1.5 block text-muted-foreground">
-                    담당자
-                  </label>
-                  <Input defaultValue={selectedSystem.manager} />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1.5 block text-muted-foreground">
-                    상태
-                  </label>
-                  <div className="flex items-center gap-4 mt-2">
-                    {getStatusBadge(selectedSystem.status)}
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">사용여부</span>
-                      <Switch defaultChecked={selectedSystem.isActive} />
+            <div className="space-y-6 py-4">
+              {/* Overview Section */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold flex items-center gap-2 text-primary">
+                  <Server className="w-4 h-4" />
+                  Overview
+                </h3>
+                <div className="p-4 rounded-lg bg-secondary/30 space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium mb-1.5 block text-muted-foreground">
+                        시스템약어명
+                      </label>
+                      <Input defaultValue={selectedSystem.shortName} />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-1.5 block text-muted-foreground">
+                        시스템명
+                      </label>
+                      <Input defaultValue={selectedSystem.name} />
                     </div>
                   </div>
-                </div>
-              </div>
 
-              <div>
-                <label className="text-sm font-medium mb-1.5 block text-muted-foreground">
-                  설명
-                </label>
-                <Textarea defaultValue={selectedSystem.description} rows={2} />
-              </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium mb-1.5 block text-muted-foreground">
+                        시스템유형
+                      </label>
+                      <Select defaultValue={selectedSystem.systemType}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-popover">
+                          {systemTypes.map((type) => (
+                            <SelectItem key={type} value={type}>
+                              {type}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-1.5 block text-muted-foreground">
+                        사용여부
+                      </label>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Switch defaultChecked={selectedSystem.isActive} />
+                        <span className="text-sm text-muted-foreground">
+                          {selectedSystem.isActive ? "사용" : "미사용"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
 
-              <div className="p-4 rounded-lg bg-secondary/50 space-y-3">
-                <h4 className="font-medium text-sm flex items-center gap-2">
-                  <Globe className="w-4 h-4" />
-                  접속 정보
-                </h4>
-                <div className="grid grid-cols-1 gap-3">
                   <div>
-                    <label className="text-xs text-muted-foreground">URL</label>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Input defaultValue={selectedSystem.url} className="flex-1" />
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleCopy(selectedSystem.url)}
-                      >
-                        <Copy className="w-4 h-4" />
-                      </Button>
-                      <Button variant="outline" size="icon" asChild>
-                        <a href={selectedSystem.url} target="_blank" rel="noopener noreferrer">
-                          <ExternalLink className="w-4 h-4" />
-                        </a>
-                      </Button>
-                    </div>
+                    <label className="text-sm font-medium mb-1.5 block text-muted-foreground">
+                      설명
+                    </label>
+                    <Textarea defaultValue={selectedSystem.description} rows={2} />
                   </div>
-                  <div>
-                    <label className="text-xs text-muted-foreground">API Endpoint</label>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Input defaultValue={selectedSystem.apiEndpoint} className="flex-1" />
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleCopy(selectedSystem.apiEndpoint)}
-                      >
-                        <Copy className="w-4 h-4" />
-                      </Button>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium mb-1.5 block text-muted-foreground">
+                        담당자
+                      </label>
+                      <Input 
+                        defaultValue={selectedSystem.manager} 
+                        disabled 
+                        className="bg-muted/50 cursor-not-allowed"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        * 담당자는 사용자관리에서 수정할 수 있습니다.
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-1.5 block text-muted-foreground">
+                        등록/수정일
+                      </label>
+                      <div className="text-sm text-muted-foreground mt-2 space-y-1">
+                        <p>생성: {selectedSystem.createdAt}</p>
+                        <p>수정: {selectedSystem.updatedAt}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="p-4 rounded-lg bg-secondary/50 space-y-3">
-                <h4 className="font-medium text-sm flex items-center gap-2">
+              {/* Environment Detail Section */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-semibold flex items-center gap-2 text-primary">
                   <Cloud className="w-4 h-4" />
-                  인프라 정보
-                </h4>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-xs text-muted-foreground">Namespace</label>
-                    <Input defaultValue={selectedSystem.namespace} className="mt-1" />
-                  </div>
-                  <div>
-                    <label className="text-xs text-muted-foreground">Service</label>
-                    <Input defaultValue={selectedSystem.svc} className="mt-1" />
-                  </div>
-                  <div>
-                    <label className="text-xs text-muted-foreground">MCP Server</label>
-                    <Input defaultValue={selectedSystem.mcpServer} className="mt-1" />
-                  </div>
-                </div>
-              </div>
+                  세부정보 (환경별)
+                </h3>
+                
+                <Tabs value={activeEnvTab} onValueChange={(v) => setActiveEnvTab(v as EnvType)}>
+                  <TabsList className="grid w-full grid-cols-4">
+                    <TabsTrigger value="PROD" className="gap-1">
+                      PROD
+                      {envDetails.PROD.isEnabled && <CheckCircle className="w-3 h-3 text-status-online" />}
+                    </TabsTrigger>
+                    <TabsTrigger value="DEV" className="gap-1">
+                      DEV
+                      {envDetails.DEV.isEnabled && <CheckCircle className="w-3 h-3 text-status-online" />}
+                    </TabsTrigger>
+                    <TabsTrigger value="STG" className="gap-1">
+                      STG
+                      {envDetails.STG.isEnabled && <CheckCircle className="w-3 h-3 text-status-online" />}
+                    </TabsTrigger>
+                    <TabsTrigger value="DR" className="gap-1">
+                      DR
+                      {envDetails.DR.isEnabled && <CheckCircle className="w-3 h-3 text-status-online" />}
+                    </TabsTrigger>
+                  </TabsList>
 
-              <div className="p-4 rounded-lg bg-secondary/50 space-y-3">
-                <h4 className="font-medium text-sm">시스템 스펙</h4>
-                <div className="grid grid-cols-3 gap-3">
-                  <div>
-                    <label className="text-xs text-muted-foreground">CPU</label>
-                    <Input defaultValue={selectedSystem.spec.cpu} className="mt-1" />
-                  </div>
-                  <div>
-                    <label className="text-xs text-muted-foreground">Memory</label>
-                    <Input defaultValue={selectedSystem.spec.memory} className="mt-1" />
-                  </div>
-                  <div>
-                    <label className="text-xs text-muted-foreground">Storage</label>
-                    <Input defaultValue={selectedSystem.spec.storage} className="mt-1" />
-                  </div>
-                </div>
-              </div>
+                  {(["PROD", "DEV", "STG", "DR"] as EnvType[]).map((env) => (
+                    <TabsContent key={env} value={env} className="space-y-4 mt-4">
+                      {/* Environment Enable Toggle */}
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/30 border border-border">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">{env} 환경 사용</span>
+                          {envDetails[env].isEnabled ? (
+                            <Badge className="bg-status-online text-white text-xs">활성</Badge>
+                          ) : (
+                            <Badge variant="secondary" className="text-xs">비활성</Badge>
+                          )}
+                        </div>
+                        <Switch
+                          checked={envDetails[env].isEnabled}
+                          onCheckedChange={(checked) => updateEnvDetail(env, "isEnabled", checked)}
+                        />
+                      </div>
 
-              <div className="text-xs text-muted-foreground flex justify-between">
-                <span>생성일: {selectedSystem.createdAt}</span>
-                <span>수정일: {selectedSystem.updatedAt}</span>
+                      {/* Environment Details (disabled when not enabled) */}
+                      <div className={cn(
+                        "space-y-4 transition-opacity",
+                        !envDetails[env].isEnabled && "opacity-50 pointer-events-none"
+                      )}>
+                        {/* 접속정보 */}
+                        <div className="p-4 rounded-lg bg-secondary/30 space-y-3">
+                          <h4 className="font-medium text-sm flex items-center gap-2">
+                            <Globe className="w-4 h-4" />
+                            접속정보
+                          </h4>
+                          <div className="grid grid-cols-1 gap-3">
+                            <div>
+                              <label className="text-xs text-muted-foreground">URL</label>
+                              <div className="flex items-center gap-2 mt-1">
+                                <Input 
+                                  value={envDetails[env].url}
+                                  onChange={(e) => updateEnvDetail(env, "url", e.target.value)}
+                                  placeholder="https://example.com"
+                                  className="flex-1" 
+                                />
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => handleCopy(envDetails[env].url)}
+                                  disabled={!envDetails[env].url}
+                                >
+                                  <Copy className="w-4 h-4" />
+                                </Button>
+                                <Button variant="outline" size="icon" asChild>
+                                  <a href={envDetails[env].url} target="_blank" rel="noopener noreferrer">
+                                    <ExternalLink className="w-4 h-4" />
+                                  </a>
+                                </Button>
+                              </div>
+                            </div>
+                            <div>
+                              <label className="text-xs text-muted-foreground">API Endpoint</label>
+                              <div className="flex items-center gap-2 mt-1">
+                                <Input 
+                                  value={envDetails[env].apiEndpoint}
+                                  onChange={(e) => updateEnvDetail(env, "apiEndpoint", e.target.value)}
+                                  placeholder="https://api.example.com/v1"
+                                  className="flex-1" 
+                                />
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => handleCopy(envDetails[env].apiEndpoint)}
+                                  disabled={!envDetails[env].apiEndpoint}
+                                >
+                                  <Copy className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 인프라정보 */}
+                        <div className="p-4 rounded-lg bg-secondary/30 space-y-3">
+                          <h4 className="font-medium text-sm flex items-center gap-2">
+                            <Cloud className="w-4 h-4" />
+                            인프라정보
+                          </h4>
+                          <div className="grid grid-cols-3 gap-3">
+                            <div>
+                              <label className="text-xs text-muted-foreground">Namespace</label>
+                              <Input 
+                                value={envDetails[env].namespace}
+                                onChange={(e) => updateEnvDetail(env, "namespace", e.target.value)}
+                                placeholder="namespace"
+                                className="mt-1" 
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs text-muted-foreground">Service</label>
+                              <Input 
+                                value={envDetails[env].svc}
+                                onChange={(e) => updateEnvDetail(env, "svc", e.target.value)}
+                                placeholder="service-name"
+                                className="mt-1" 
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs text-muted-foreground">MCP Server</label>
+                              <Input 
+                                value={envDetails[env].mcpServer}
+                                onChange={(e) => updateEnvDetail(env, "mcpServer", e.target.value)}
+                                placeholder="mcp-server"
+                                className="mt-1" 
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs text-muted-foreground">CPU</label>
+                              <Input 
+                                value={envDetails[env].cpu}
+                                onChange={(e) => updateEnvDetail(env, "cpu", e.target.value)}
+                                placeholder="4 vCPU"
+                                className="mt-1" 
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs text-muted-foreground">Memory</label>
+                              <Input 
+                                value={envDetails[env].memory}
+                                onChange={(e) => updateEnvDetail(env, "memory", e.target.value)}
+                                placeholder="16GB"
+                                className="mt-1" 
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs text-muted-foreground">Storage</label>
+                              <Input 
+                                value={envDetails[env].storage}
+                                onChange={(e) => updateEnvDetail(env, "storage", e.target.value)}
+                                placeholder="500GB"
+                                className="mt-1" 
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* DB 정보 */}
+                        <div className="p-4 rounded-lg bg-secondary/30 space-y-3">
+                          <h4 className="font-medium text-sm flex items-center gap-2">
+                            <Database className="w-4 h-4" />
+                            DB 정보
+                          </h4>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="text-xs text-muted-foreground">DB Host</label>
+                              <Input 
+                                value={envDetails[env].dbHost}
+                                onChange={(e) => updateEnvDetail(env, "dbHost", e.target.value)}
+                                placeholder="db.example.com"
+                                className="mt-1" 
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs text-muted-foreground">Port</label>
+                              <Input 
+                                value={envDetails[env].dbPort}
+                                onChange={(e) => updateEnvDetail(env, "dbPort", e.target.value)}
+                                placeholder="5432"
+                                className="mt-1" 
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs text-muted-foreground">Database Name</label>
+                              <Input 
+                                value={envDetails[env].dbName}
+                                onChange={(e) => updateEnvDetail(env, "dbName", e.target.value)}
+                                placeholder="database_name"
+                                className="mt-1" 
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs text-muted-foreground">DB User</label>
+                              <Input 
+                                value={envDetails[env].dbUser}
+                                onChange={(e) => updateEnvDetail(env, "dbUser", e.target.value)}
+                                placeholder="db_user"
+                                className="mt-1" 
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 모니터링 정보 */}
+                        <div className="p-4 rounded-lg bg-secondary/30 space-y-3">
+                          <h4 className="font-medium text-sm flex items-center gap-2">
+                            <Activity className="w-4 h-4" />
+                            모니터링 정보
+                          </h4>
+                          <div className="grid grid-cols-1 gap-3">
+                            <div>
+                              <label className="text-xs text-muted-foreground">모니터링 URL</label>
+                              <div className="flex items-center gap-2 mt-1">
+                                <Input 
+                                  value={envDetails[env].monitoringUrl}
+                                  onChange={(e) => updateEnvDetail(env, "monitoringUrl", e.target.value)}
+                                  placeholder="https://monitor.example.com"
+                                  className="flex-1" 
+                                />
+                                <Button variant="outline" size="icon" asChild>
+                                  <a href={envDetails[env].monitoringUrl} target="_blank" rel="noopener noreferrer">
+                                    <ExternalLink className="w-4 h-4" />
+                                  </a>
+                                </Button>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <label className="text-xs text-muted-foreground">Log Path</label>
+                                <Input 
+                                  value={envDetails[env].logPath}
+                                  onChange={(e) => updateEnvDetail(env, "logPath", e.target.value)}
+                                  placeholder="/var/log/app"
+                                  className="mt-1" 
+                                />
+                              </div>
+                              <div>
+                                <label className="text-xs text-muted-foreground">Alert Email</label>
+                                <Input 
+                                  value={envDetails[env].alertEmail}
+                                  onChange={(e) => updateEnvDetail(env, "alertEmail", e.target.value)}
+                                  placeholder="alert@example.com"
+                                  className="mt-1" 
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </TabsContent>
+                  ))}
+                </Tabs>
               </div>
             </div>
           )}
