@@ -109,6 +109,7 @@ export function UserManagement() {
   const [users, setUsers] = useState<UserData[]>(mockUsers);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<"all" | "active" | "inactive">("all");
+  const [roleFilter, setRoleFilter] = useState<"all" | UserRole>("all");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
@@ -124,7 +125,10 @@ export function UserManagement() {
       (activeFilter === "active" && user.isActive) ||
       (activeFilter === "inactive" && !user.isActive);
     
-    return matchesSearch && matchesActive;
+    const matchesRole =
+      roleFilter === "all" || user.role === roleFilter;
+    
+    return matchesSearch && matchesActive && matchesRole;
   });
 
   const handleDelete = (userId: string) => {
@@ -168,7 +172,13 @@ export function UserManagement() {
 
       {/* Stats */}
       <div className="grid grid-cols-4 gap-4">
-        <Card>
+        <Card 
+          className={cn(
+            "cursor-pointer transition-all hover:ring-2 hover:ring-primary/50",
+            roleFilter === "all" && "ring-2 ring-primary"
+          )}
+          onClick={() => setRoleFilter("all")}
+        >
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -181,7 +191,13 @@ export function UserManagement() {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card 
+          className={cn(
+            "cursor-pointer transition-all hover:ring-2 hover:ring-accent/50",
+            roleFilter === "운영자" && "ring-2 ring-accent"
+          )}
+          onClick={() => setRoleFilter("운영자")}
+        >
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center">
@@ -194,7 +210,13 @@ export function UserManagement() {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card 
+          className={cn(
+            "cursor-pointer transition-all hover:ring-2 hover:ring-muted-foreground/50",
+            roleFilter === "현업담당자" && "ring-2 ring-muted-foreground"
+          )}
+          onClick={() => setRoleFilter("현업담당자")}
+        >
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
@@ -209,7 +231,13 @@ export function UserManagement() {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card 
+          className={cn(
+            "cursor-pointer transition-all hover:ring-2 hover:ring-status-online/50",
+            roleFilter === "관리자" && "ring-2 ring-status-online"
+          )}
+          onClick={() => setRoleFilter("관리자")}
+        >
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-status-online/20 flex items-center justify-center">
