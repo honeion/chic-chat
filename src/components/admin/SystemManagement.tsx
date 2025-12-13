@@ -61,11 +61,31 @@ import { SystemData, mockSystems, systemTypes, SystemType } from "@/data/systems
 // 환경별 세부정보 타입
 type EnvType = "PROD" | "DEV" | "STG" | "DR";
 
+// URL 정보 타입
+interface UrlInfo {
+  id: string;
+  url: string;
+  accessType: "internal" | "external"; // 내부/외부 구분
+  isPrimary: boolean; // 대표URL 여부
+  hostsRequired: boolean; // hosts 필요여부
+  hostsIp: string; // hosts 필요시 IP 정보
+  description: string; // 설명정보
+}
+
+const defaultUrlInfo: UrlInfo = {
+  id: "",
+  url: "",
+  accessType: "internal",
+  isPrimary: false,
+  hostsRequired: false,
+  hostsIp: "",
+  description: "",
+};
+
 interface EnvDetail {
   isEnabled: boolean;
-  // 접속정보
-  url: string;
-  apiEndpoint: string;
+  // 접속정보 (URL 목록)
+  urls: UrlInfo[];
   // 인프라정보
   namespace: string;
   svc: string;
@@ -86,8 +106,7 @@ interface EnvDetail {
 
 const defaultEnvDetail: EnvDetail = {
   isEnabled: false,
-  url: "",
-  apiEndpoint: "",
+  urls: [],
   namespace: "",
   svc: "",
   mcpServer: "",
@@ -140,11 +159,30 @@ export function SystemManagement() {
     setSelectedSystem(system);
     setActiveEnvTab("PROD");
     // 선택된 시스템의 기존 데이터로 PROD 환경 초기화
+    const initialUrls: UrlInfo[] = [
+      {
+        id: crypto.randomUUID(),
+        url: system.url,
+        accessType: "external",
+        isPrimary: true,
+        hostsRequired: false,
+        hostsIp: "",
+        description: "서비스 대표 URL",
+      },
+      {
+        id: crypto.randomUUID(),
+        url: system.apiEndpoint,
+        accessType: "internal",
+        isPrimary: false,
+        hostsRequired: true,
+        hostsIp: "10.0.0.100",
+        description: "API 엔드포인트",
+      },
+    ];
     setEnvDetails({
       PROD: {
         isEnabled: true,
-        url: system.url,
-        apiEndpoint: system.apiEndpoint,
+        urls: initialUrls,
         namespace: system.namespace,
         svc: system.svc,
         mcpServer: system.mcpServer,
@@ -164,6 +202,45 @@ export function SystemManagement() {
       DR: { ...defaultEnvDetail },
     });
     setIsDetailModalOpen(true);
+  };
+
+  // URL 추가
+  const addUrl = (env: EnvType) => {
+    const newUrl: UrlInfo = {
+      ...defaultUrlInfo,
+      id: crypto.randomUUID(),
+    };
+    setEnvDetails(prev => ({
+      ...prev,
+      [env]: {
+        ...prev[env],
+        urls: [...prev[env].urls, newUrl],
+      },
+    }));
+  };
+
+  // URL 삭제
+  const removeUrl = (env: EnvType, urlId: string) => {
+    setEnvDetails(prev => ({
+      ...prev,
+      [env]: {
+        ...prev[env],
+        urls: prev[env].urls.filter(u => u.id !== urlId),
+      },
+    }));
+  };
+
+  // URL 정보 업데이트
+  const updateUrlInfo = (env: EnvType, urlId: string, field: keyof UrlInfo, value: string | boolean) => {
+    setEnvDetails(prev => ({
+      ...prev,
+      [env]: {
+        ...prev[env],
+        urls: prev[env].urls.map(u => 
+          u.id === urlId ? { ...u, [field]: value } : u
+        ),
+      },
+    }));
   };
 
   const updateEnvDetail = (env: EnvType, field: keyof EnvDetail, value: string | boolean) => {
@@ -645,55 +722,153 @@ export function SystemManagement() {
                       )}>
                         {/* 접속정보 */}
                         <div className="p-4 rounded-lg bg-secondary/30 space-y-3">
-                          <h4 className="font-medium text-sm flex items-center gap-2">
-                            <Globe className="w-4 h-4" />
-                            접속정보
-                          </h4>
-                          <div className="grid grid-cols-1 gap-3">
-                            <div>
-                              <label className="text-xs text-muted-foreground">URL</label>
-                              <div className="flex items-center gap-2 mt-1">
-                                <Input 
-                                  value={envDetails[env].url}
-                                  onChange={(e) => updateEnvDetail(env, "url", e.target.value)}
-                                  placeholder="https://example.com"
-                                  className="flex-1" 
-                                />
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  onClick={() => handleCopy(envDetails[env].url)}
-                                  disabled={!envDetails[env].url}
-                                >
-                                  <Copy className="w-4 h-4" />
-                                </Button>
-                                <Button variant="outline" size="icon" asChild>
-                                  <a href={envDetails[env].url} target="_blank" rel="noopener noreferrer">
-                                    <ExternalLink className="w-4 h-4" />
-                                  </a>
-                                </Button>
-                              </div>
-                            </div>
-                            <div>
-                              <label className="text-xs text-muted-foreground">API Endpoint</label>
-                              <div className="flex items-center gap-2 mt-1">
-                                <Input 
-                                  value={envDetails[env].apiEndpoint}
-                                  onChange={(e) => updateEnvDetail(env, "apiEndpoint", e.target.value)}
-                                  placeholder="https://api.example.com/v1"
-                                  className="flex-1" 
-                                />
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  onClick={() => handleCopy(envDetails[env].apiEndpoint)}
-                                  disabled={!envDetails[env].apiEndpoint}
-                                >
-                                  <Copy className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            </div>
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-medium text-sm flex items-center gap-2">
+                              <Globe className="w-4 h-4" />
+                              접속정보
+                            </h4>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => addUrl(env)}
+                              className="h-7 text-xs"
+                            >
+                              <Plus className="w-3 h-3 mr-1" />
+                              URL 추가
+                            </Button>
                           </div>
+                          
+                          {envDetails[env].urls.length === 0 ? (
+                            <div className="text-center py-4 text-muted-foreground text-sm">
+                              등록된 URL이 없습니다. URL을 추가해주세요.
+                            </div>
+                          ) : (
+                            <div className="space-y-3">
+                              {envDetails[env].urls.map((urlInfo, index) => (
+                                <div key={urlInfo.id} className="p-3 rounded-lg bg-background/50 border border-border/50 space-y-2">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs font-medium text-muted-foreground">#{index + 1}</span>
+                                      {urlInfo.isPrimary && (
+                                        <Badge className="bg-primary text-primary-foreground text-xs">대표</Badge>
+                                      )}
+                                      <Badge variant={urlInfo.accessType === "external" ? "default" : "secondary"} className="text-xs">
+                                        {urlInfo.accessType === "external" ? "외부" : "내부"}
+                                      </Badge>
+                                      {urlInfo.hostsRequired && (
+                                        <Badge variant="outline" className="text-xs">hosts 필요</Badge>
+                                      )}
+                                    </div>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-6 w-6 text-destructive hover:text-destructive"
+                                      onClick={() => removeUrl(env, urlInfo.id)}
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                    </Button>
+                                  </div>
+                                  
+                                  <div className="grid grid-cols-1 gap-2">
+                                    <div>
+                                      <label className="text-xs text-muted-foreground">URL</label>
+                                      <div className="flex items-center gap-2 mt-1">
+                                        <Input 
+                                          value={urlInfo.url}
+                                          onChange={(e) => updateUrlInfo(env, urlInfo.id, "url", e.target.value)}
+                                          placeholder="https://example.com"
+                                          className="flex-1 h-8 text-sm" 
+                                        />
+                                        <Button
+                                          variant="outline"
+                                          size="icon"
+                                          className="h-8 w-8"
+                                          onClick={() => handleCopy(urlInfo.url)}
+                                          disabled={!urlInfo.url}
+                                        >
+                                          <Copy className="w-3 h-3" />
+                                        </Button>
+                                        <Button variant="outline" size="icon" className="h-8 w-8" asChild>
+                                          <a href={urlInfo.url} target="_blank" rel="noopener noreferrer">
+                                            <ExternalLink className="w-3 h-3" />
+                                          </a>
+                                        </Button>
+                                      </div>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-4 gap-2">
+                                      <div>
+                                        <label className="text-xs text-muted-foreground">내부/외부</label>
+                                        <Select
+                                          value={urlInfo.accessType}
+                                          onValueChange={(value: "internal" | "external") => 
+                                            updateUrlInfo(env, urlInfo.id, "accessType", value)
+                                          }
+                                        >
+                                          <SelectTrigger className="h-8 text-xs mt-1">
+                                            <SelectValue />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            <SelectItem value="internal">내부</SelectItem>
+                                            <SelectItem value="external">외부</SelectItem>
+                                          </SelectContent>
+                                        </Select>
+                                      </div>
+                                      <div>
+                                        <label className="text-xs text-muted-foreground">대표URL</label>
+                                        <div className="flex items-center gap-2 mt-2">
+                                          <Switch
+                                            checked={urlInfo.isPrimary}
+                                            onCheckedChange={(checked) => 
+                                              updateUrlInfo(env, urlInfo.id, "isPrimary", checked)
+                                            }
+                                          />
+                                          <span className="text-xs text-muted-foreground">
+                                            {urlInfo.isPrimary ? "예" : "아니오"}
+                                          </span>
+                                        </div>
+                                      </div>
+                                      <div>
+                                        <label className="text-xs text-muted-foreground">hosts 필요</label>
+                                        <div className="flex items-center gap-2 mt-2">
+                                          <Switch
+                                            checked={urlInfo.hostsRequired}
+                                            onCheckedChange={(checked) => 
+                                              updateUrlInfo(env, urlInfo.id, "hostsRequired", checked)
+                                            }
+                                          />
+                                          <span className="text-xs text-muted-foreground">
+                                            {urlInfo.hostsRequired ? "예" : "아니오"}
+                                          </span>
+                                        </div>
+                                      </div>
+                                      {urlInfo.hostsRequired && (
+                                        <div>
+                                          <label className="text-xs text-muted-foreground">hosts IP</label>
+                                          <Input 
+                                            value={urlInfo.hostsIp}
+                                            onChange={(e) => updateUrlInfo(env, urlInfo.id, "hostsIp", e.target.value)}
+                                            placeholder="10.0.0.100"
+                                            className="h-8 text-xs mt-1" 
+                                          />
+                                        </div>
+                                      )}
+                                    </div>
+                                    
+                                    <div>
+                                      <label className="text-xs text-muted-foreground">설명</label>
+                                      <Input 
+                                        value={urlInfo.description}
+                                        onChange={(e) => updateUrlInfo(env, urlInfo.id, "description", e.target.value)}
+                                        placeholder="URL 설명 입력"
+                                        className="h-8 text-sm mt-1" 
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
 
                         {/* 인프라정보 */}
