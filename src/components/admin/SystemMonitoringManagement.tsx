@@ -481,7 +481,7 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
   const { toast } = useToast();
 
   // 필터 상태 - fixedSystemId가 있으면 해당 시스템으로 고정
-  const [filterSystem, setFilterSystem] = useState<string>(fixedSystemId || "all");
+  const [filterSystem, setFilterSystem] = useState<string>(fixedSystemId || "s1");
   const [filterEnv, setFilterEnv] = useState<string>("all");
   const [filterType, setFilterType] = useState<string>("all");
   const [filterSeverity, setFilterSeverity] = useState<string>("all");
