@@ -144,7 +144,35 @@ export function UserManagement() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{users.length}</p>
-                <p className="text-xs text-muted-foreground">전체 사용자</p>
+                <p className="text-xs text-muted-foreground">전체사용자</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center">
+                <Server className="w-5 h-5 text-accent" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{users.filter((u) => !u.isAdmin && u.customerCompany === "-").length}</p>
+                <p className="text-xs text-muted-foreground">운영자</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
+                <Briefcase className="w-5 h-5 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">
+                  {users.filter((u) => u.customerCompany !== "-").length}
+                </p>
+                <p className="text-xs text-muted-foreground">고객사</p>
               </div>
             </div>
           </CardContent>
@@ -158,36 +186,6 @@ export function UserManagement() {
               <div>
                 <p className="text-2xl font-bold">{users.filter((u) => u.isAdmin).length}</p>
                 <p className="text-xs text-muted-foreground">관리자</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center">
-                <Building className="w-5 h-5 text-accent" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">
-                  {new Set(users.map((u) => u.department)).size}
-                </p>
-                <p className="text-xs text-muted-foreground">부서</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
-                <Briefcase className="w-5 h-5 text-muted-foreground" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">
-                  {new Set(users.map((u) => u.customerCompany).filter((c) => c !== "-")).size}
-                </p>
-                <p className="text-xs text-muted-foreground">고객사</p>
               </div>
             </div>
           </CardContent>
