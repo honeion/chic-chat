@@ -6,7 +6,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ChatSession } from "@/pages/AgentDetail";
-import { MonitoringSettingsModal } from "./MonitoringSettingsModal";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { SystemMonitoringManagement } from "@/components/admin/SystemMonitoringManagement";
 
 // 감지 항목 타입 정의
 type DetectionSeverity = "critical" | "warning" | "info";
@@ -346,12 +347,25 @@ export function MonitoringAgentDashboard({
       </div>
 
       {/* 모니터링 설정 모달 */}
-      <MonitoringSettingsModal
-        isOpen={settingsModalSystem !== null}
-        onClose={() => setSettingsModalSystem(null)}
-        systemName={settingsModalSystem?.name || ""}
-        systemId={settingsModalSystem?.id || ""}
-      />
+      <Dialog 
+        open={settingsModalSystem !== null} 
+        onOpenChange={(open) => !open && setSettingsModalSystem(null)}
+      >
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="pb-4 border-b">
+            <DialogTitle className="text-lg flex items-center gap-2">
+              <Settings className="w-5 h-5" />
+              {settingsModalSystem?.name} 모니터링 설정
+            </DialogTitle>
+          </DialogHeader>
+          <div className="pt-4">
+            <SystemMonitoringManagement 
+              filterBySystemName={settingsModalSystem?.name} 
+              isEmbedded={true} 
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
