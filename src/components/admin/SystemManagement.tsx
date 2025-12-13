@@ -738,10 +738,19 @@ export function SystemManagement() {
                       <DropdownMenuContent align="end" className="bg-popover">
                         <DropdownMenuItem onClick={(e) => {
                           e.stopPropagation();
+                          setViewFormat("json");
                           setJsonViewSystemId(system.id);
                         }}>
                           <Code className="w-4 h-4 mr-2" />
                           JSON 보기
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          setViewFormat("md");
+                          setJsonViewSystemId(system.id);
+                        }}>
+                          <FileText className="w-4 h-4 mr-2" />
+                          MD 보기
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={(e) => {
                           e.stopPropagation();
@@ -779,29 +788,9 @@ export function SystemManagement() {
       }}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                {viewFormat === "json" ? <Code className="w-5 h-5 text-primary" /> : <FileText className="w-5 h-5 text-primary" />}
-                {filteredSystems.find(s => s.id === jsonViewSystemId)?.name}
-              </div>
-              <div className="flex items-center gap-1">
-                <Button
-                  variant={viewFormat === "json" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setViewFormat("json")}
-                  className="h-7 text-xs"
-                >
-                  JSON
-                </Button>
-                <Button
-                  variant={viewFormat === "md" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setViewFormat("md")}
-                  className="h-7 text-xs"
-                >
-                  MD
-                </Button>
-              </div>
+            <DialogTitle className="flex items-center gap-3">
+              {viewFormat === "json" ? <Code className="w-5 h-5 text-primary" /> : <FileText className="w-5 h-5 text-primary" />}
+              {filteredSystems.find(s => s.id === jsonViewSystemId)?.name} - {viewFormat === "json" ? "JSON" : "MD"} 보기
             </DialogTitle>
           </DialogHeader>
           {jsonViewSystemId && (() => {
