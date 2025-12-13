@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { cn } from "@/lib/utils";
 import {
   Search,
   Plus,
@@ -7,13 +6,12 @@ import {
   Trash2,
   Server,
   Globe,
-  Link2,
   Cloud,
-  MoreHorizontal,
   ExternalLink,
   Copy,
+  Check,
+  X,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,15 +22,25 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 
-import { SystemData, mockSystems } from "@/data/systems";
+import { SystemData, mockSystems, systemTypes, SystemType } from "@/data/systems";
 
 export function SystemManagement() {
   const [systems, setSystems] = useState<SystemData[]>(mockSystems);
@@ -41,10 +49,24 @@ export function SystemManagement() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedSystem, setSelectedSystem] = useState<SystemData | null>(null);
 
+  // Create form state
+  const [createForm, setCreateForm] = useState({
+    name: "",
+    description: "",
+    systemType: "WEB" as SystemType,
+    url: "",
+    apiEndpoint: "",
+    namespace: "",
+    mcpServer: "",
+    manager: "",
+    isActive: true,
+  });
+
   const filteredSystems = systems.filter(
     (system) =>
       system.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      system.description.toLowerCase().includes(searchQuery.toLowerCase())
+      system.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      system.manager.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const getStatusBadge = (status: SystemData["status"]) => {
@@ -58,8 +80,53 @@ export function SystemManagement() {
     }
   };
 
+  const getTypeBadge = (type: SystemType) => {
+    const colorMap: Record<SystemType, string> = {
+      "WEB": "bg-blue-500/20 text-blue-400 border-blue-500/30",
+      "C/S": "bg-purple-500/20 text-purple-400 border-purple-500/30",
+      "API": "bg-green-500/20 text-green-400 border-green-500/30",
+      "IF": "bg-orange-500/20 text-orange-400 border-orange-500/30",
+      "기타": "bg-gray-500/20 text-gray-400 border-gray-500/30",
+    };
+    return (
+      <Badge variant="outline" className={colorMap[type]}>
+        {type}
+      </Badge>
+    );
+  };
+
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
+  };
+
+  const handleCreate = () => {
+    const newSystem: SystemData = {
+      id: `s${Date.now()}`,
+      ...createForm,
+      svc: `${createForm.name.toLowerCase()}-svc`,
+      spec: { cpu: "4 vCPU", memory: "16GB", storage: "500GB" },
+      status: createForm.isActive ? "active" : "inactive",
+      managers: [createForm.manager],
+      createdAt: new Date().toISOString().split("T")[0],
+      updatedAt: new Date().toISOString().split("T")[0],
+    };
+    setSystems([...systems, newSystem]);
+    setIsCreateModalOpen(false);
+    setCreateForm({
+      name: "",
+      description: "",
+      systemType: "WEB",
+      url: "",
+      apiEndpoint: "",
+      namespace: "",
+      mcpServer: "",
+      manager: "",
+      isActive: true,
+    });
+  };
+
+  const handleDelete = (id: string) => {
+    setSystems(systems.filter((s) => s.id !== id));
   };
 
   return (
@@ -69,7 +136,7 @@ export function SystemManagement() {
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="시스템 검색"
+            placeholder="시스템 검색 (이름, 설명, 담당자)"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -81,83 +148,80 @@ export function SystemManagement() {
         </Button>
       </div>
 
-      {/* System Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filteredSystems.map((system) => (
-          <Card
-            key={system.id}
-            className="cursor-pointer hover:border-primary/50 transition-colors"
-            onClick={() => {
-              setSelectedSystem(system);
-              setIsDetailModalOpen(true);
-            }}
-          >
-            <CardHeader className="bg-primary/10 pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                    <Server className="w-5 h-5 text-primary" />
+      {/* System Table */}
+      <div className="rounded-lg border border-border bg-card">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-muted/50">
+              <TableHead className="w-[150px]">시스템명</TableHead>
+              <TableHead className="w-[100px]">시스템유형</TableHead>
+              <TableHead className="w-[200px]">설명</TableHead>
+              <TableHead className="w-[100px]">담당자</TableHead>
+              <TableHead className="w-[100px]">상태</TableHead>
+              <TableHead className="w-[80px] text-center">사용여부</TableHead>
+              <TableHead className="w-[100px] text-center">관리</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredSystems.map((system) => (
+              <TableRow
+                key={system.id}
+                className="cursor-pointer hover:bg-muted/30"
+                onClick={() => {
+                  setSelectedSystem(system);
+                  setIsDetailModalOpen(true);
+                }}
+              >
+                <TableCell className="font-medium">
+                  <div className="flex items-center gap-2">
+                    <Server className="w-4 h-4 text-primary" />
+                    {system.name}
                   </div>
-                  <div>
-                    <CardTitle className="text-base">{system.name}</CardTitle>
-                    <p className="text-xs text-muted-foreground">{system.description}</p>
-                  </div>
-                </div>
-                {getStatusBadge(system.status)}
-              </div>
-            </CardHeader>
-            <CardContent className="pt-4 space-y-3">
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="flex items-center gap-2">
-                  <Globe className="w-4 h-4 text-muted-foreground" />
-                  <span className="truncate text-muted-foreground">{system.url}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Link2 className="w-4 h-4 text-muted-foreground" />
-                  <span className="truncate text-muted-foreground">{system.namespace}</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Cloud className="w-4 h-4 text-muted-foreground" />
-                <span className="text-muted-foreground">MCP: {system.mcpServer}</span>
-              </div>
-              <div className="flex items-center justify-between pt-2 border-t border-border">
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  담당자: {system.managers.join(", ")}
-                </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <MoreHorizontal className="w-4 h-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
+                </TableCell>
+                <TableCell>{getTypeBadge(system.systemType)}</TableCell>
+                <TableCell className="text-muted-foreground truncate max-w-[200px]">
+                  {system.description}
+                </TableCell>
+                <TableCell>{system.manager}</TableCell>
+                <TableCell>{getStatusBadge(system.status)}</TableCell>
+                <TableCell className="text-center">
+                  {system.isActive ? (
+                    <Check className="w-4 h-4 text-status-online mx-auto" />
+                  ) : (
+                    <X className="w-4 h-4 text-muted-foreground mx-auto" />
+                  )}
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center justify-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedSystem(system);
                         setIsDetailModalOpen(true);
                       }}
                     >
-                      <Edit className="w-4 h-4 mr-2" />
-                      수정
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive hover:text-destructive"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setSystems(systems.filter((s) => s.id !== system.id));
+                        handleDelete(system.id);
                       }}
-                      className="text-destructive"
                     >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      삭제
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
 
       {/* Detail Modal */}
@@ -180,9 +244,41 @@ export function SystemManagement() {
                 </div>
                 <div>
                   <label className="text-sm font-medium mb-1.5 block text-muted-foreground">
+                    시스템유형
+                  </label>
+                  <Select defaultValue={selectedSystem.systemType}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {systemTypes.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block text-muted-foreground">
+                    담당자
+                  </label>
+                  <Input defaultValue={selectedSystem.manager} />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block text-muted-foreground">
                     상태
                   </label>
-                  <div className="mt-1">{getStatusBadge(selectedSystem.status)}</div>
+                  <div className="flex items-center gap-4 mt-2">
+                    {getStatusBadge(selectedSystem.status)}
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">사용여부</span>
+                      <Switch defaultChecked={selectedSystem.isActive} />
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -294,30 +390,101 @@ export function SystemManagement() {
             <DialogTitle>시스템 추가</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <div>
-              <label className="text-sm font-medium mb-1.5 block">시스템명</label>
-              <Input placeholder="시스템 이름 입력" />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">시스템명</label>
+                <Input
+                  placeholder="시스템 이름 입력"
+                  value={createForm.name}
+                  onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">시스템유형</label>
+                <Select
+                  value={createForm.systemType}
+                  onValueChange={(value: SystemType) =>
+                    setCreateForm({ ...createForm, systemType: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {systemTypes.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div>
               <label className="text-sm font-medium mb-1.5 block">설명</label>
-              <Textarea placeholder="시스템 설명 입력" rows={2} />
+              <Textarea
+                placeholder="시스템 설명 입력"
+                rows={2}
+                value={createForm.description}
+                onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">담당자</label>
+                <Input
+                  placeholder="담당자 이름"
+                  value={createForm.manager}
+                  onChange={(e) => setCreateForm({ ...createForm, manager: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">사용여부</label>
+                <div className="flex items-center gap-2 mt-2">
+                  <Switch
+                    checked={createForm.isActive}
+                    onCheckedChange={(checked) =>
+                      setCreateForm({ ...createForm, isActive: checked })
+                    }
+                  />
+                  <span className="text-sm text-muted-foreground">
+                    {createForm.isActive ? "사용" : "미사용"}
+                  </span>
+                </div>
+              </div>
             </div>
             <div>
               <label className="text-sm font-medium mb-1.5 block">URL</label>
-              <Input placeholder="https://example.com" />
+              <Input
+                placeholder="https://example.com"
+                value={createForm.url}
+                onChange={(e) => setCreateForm({ ...createForm, url: e.target.value })}
+              />
             </div>
             <div>
               <label className="text-sm font-medium mb-1.5 block">API Endpoint</label>
-              <Input placeholder="https://api.example.com/v1" />
+              <Input
+                placeholder="https://api.example.com/v1"
+                value={createForm.apiEndpoint}
+                onChange={(e) => setCreateForm({ ...createForm, apiEndpoint: e.target.value })}
+              />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium mb-1.5 block">Namespace</label>
-                <Input placeholder="namespace" />
+                <Input
+                  placeholder="namespace"
+                  value={createForm.namespace}
+                  onChange={(e) => setCreateForm({ ...createForm, namespace: e.target.value })}
+                />
               </div>
               <div>
                 <label className="text-sm font-medium mb-1.5 block">MCP Server</label>
-                <Input placeholder="mcp-server-01" />
+                <Input
+                  placeholder="mcp-server-01"
+                  value={createForm.mcpServer}
+                  onChange={(e) => setCreateForm({ ...createForm, mcpServer: e.target.value })}
+                />
               </div>
             </div>
           </div>
@@ -325,7 +492,7 @@ export function SystemManagement() {
             <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>
               취소
             </Button>
-            <Button onClick={() => setIsCreateModalOpen(false)}>추가</Button>
+            <Button onClick={handleCreate}>추가</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
