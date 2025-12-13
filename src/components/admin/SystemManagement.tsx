@@ -21,6 +21,7 @@ import {
   Activity,
   Code,
   List,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -180,6 +181,7 @@ export function SystemManagement() {
   const [selectedSystem, setSelectedSystem] = useState<SystemData | null>(null);
   const [activeEnvTab, setActiveEnvTab] = useState<EnvType>("PROD");
   const [jsonViewSystemId, setJsonViewSystemId] = useState<string | null>(null);
+  const [viewFormat, setViewFormat] = useState<"json" | "md">("json");
   const [showDetailJson, setShowDetailJson] = useState(false);
 
   // 환경별 세부정보 상태
@@ -446,6 +448,47 @@ export function SystemManagement() {
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
+  };
+
+  // 시스템 정보를 Markdown 형식으로 변환
+  const systemToMarkdown = (system: SystemData): string => {
+    const lines: string[] = [
+      `# ${system.name} (${system.shortName})`,
+      "",
+      "## 기본 정보",
+      "",
+      `| 항목 | 값 |`,
+      `|------|-----|`,
+      `| 시스템 ID | ${system.id} |`,
+      `| 시스템 유형 | ${system.systemType} |`,
+      `| 담당자 | ${system.manager} |`,
+      `| 사용여부 | ${system.isActive ? "사용" : "미사용"} |`,
+      `| 상태 | ${system.status} |`,
+      `| 생성일 | ${system.createdAt} |`,
+      `| 수정일 | ${system.updatedAt} |`,
+      "",
+      "## 설명",
+      "",
+      system.description,
+      "",
+      "## 접속 정보",
+      "",
+      `- **URL**: ${system.url || "-"}`,
+      `- **API Endpoint**: ${system.apiEndpoint || "-"}`,
+      `- **Namespace**: ${system.namespace || "-"}`,
+      `- **Service**: ${system.svc || "-"}`,
+      `- **MCP Server**: ${system.mcpServer || "-"}`,
+      "",
+      "## 인프라 스펙",
+      "",
+      `| 항목 | 값 |`,
+      `|------|-----|`,
+      `| CPU | ${system.spec?.cpu || "-"} |`,
+      `| Memory | ${system.spec?.memory || "-"} |`,
+      `| Storage | ${system.spec?.storage || "-"} |`,
+      "",
+    ];
+    return lines.join("\n");
   };
 
   const handleCreate = () => {
@@ -727,30 +770,62 @@ export function SystemManagement() {
         </div>
       </div>
 
-      {/* JSON View Modal for individual system */}
-      <Dialog open={jsonViewSystemId !== null} onOpenChange={(open) => !open && setJsonViewSystemId(null)}>
+      {/* JSON/MD View Modal for individual system */}
+      <Dialog open={jsonViewSystemId !== null} onOpenChange={(open) => {
+        if (!open) {
+          setJsonViewSystemId(null);
+          setViewFormat("json");
+        }
+      }}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-3">
-              <Code className="w-5 h-5 text-primary" />
-              {filteredSystems.find(s => s.id === jsonViewSystemId)?.name} - JSON 보기
+            <DialogTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {viewFormat === "json" ? <Code className="w-5 h-5 text-primary" /> : <FileText className="w-5 h-5 text-primary" />}
+                {filteredSystems.find(s => s.id === jsonViewSystemId)?.name}
+              </div>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant={viewFormat === "json" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setViewFormat("json")}
+                  className="h-7 text-xs"
+                >
+                  JSON
+                </Button>
+                <Button
+                  variant={viewFormat === "md" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setViewFormat("md")}
+                  className="h-7 text-xs"
+                >
+                  MD
+                </Button>
+              </div>
             </DialogTitle>
           </DialogHeader>
-          {jsonViewSystemId && (
-            <div className="relative">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-2 right-2 h-7 w-7 z-10"
-                onClick={() => handleCopy(JSON.stringify(filteredSystems.find(s => s.id === jsonViewSystemId), null, 2))}
-              >
-                <Copy className="w-3.5 h-3.5" />
-              </Button>
-              <pre className="p-4 rounded-lg bg-secondary/50 text-xs overflow-auto max-h-[60vh] font-mono">
-                {JSON.stringify(filteredSystems.find(s => s.id === jsonViewSystemId), null, 2)}
-              </pre>
-            </div>
-          )}
+          {jsonViewSystemId && (() => {
+            const system = filteredSystems.find(s => s.id === jsonViewSystemId);
+            if (!system) return null;
+            const content = viewFormat === "json" 
+              ? JSON.stringify(system, null, 2) 
+              : systemToMarkdown(system);
+            return (
+              <div className="relative">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-2 right-2 h-7 w-7 z-10"
+                  onClick={() => handleCopy(content)}
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                </Button>
+                <pre className="p-4 rounded-lg bg-secondary/50 text-xs overflow-auto max-h-[60vh] font-mono whitespace-pre-wrap">
+                  {content}
+                </pre>
+              </div>
+            );
+          })()}
         </DialogContent>
       </Dialog>
 
