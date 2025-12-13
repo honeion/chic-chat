@@ -19,6 +19,8 @@ import {
   HelpCircle,
   MoreHorizontal,
   Activity,
+  Code,
+  List,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -177,6 +179,8 @@ export function SystemManagement() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedSystem, setSelectedSystem] = useState<SystemData | null>(null);
   const [activeEnvTab, setActiveEnvTab] = useState<EnvType>("PROD");
+  const [showListJson, setShowListJson] = useState(false);
+  const [showDetailJson, setShowDetailJson] = useState(false);
 
   // 환경별 세부정보 상태
   const [envDetails, setEnvDetails] = useState<Record<EnvType, EnvDetail>>({
@@ -624,20 +628,51 @@ export function SystemManagement() {
         </Card>
       </div>
 
-      {/* System Table */}
+      {/* System Table or JSON View */}
       <div className="rounded-lg border border-border bg-card">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-secondary/50 text-sm">
-              <tr>
-                <th className="text-left px-4 py-3 font-medium">시스템명</th>
-                <th className="text-left px-4 py-3 font-medium">시스템유형</th>
-                <th className="text-left px-4 py-3 font-medium">설명</th>
-                <th className="text-left px-4 py-3 font-medium">담당자</th>
-                <th className="text-left px-4 py-3 font-medium">사용여부</th>
-                <th className="text-right px-4 py-3 font-medium">액션</th>
-              </tr>
-            </thead>
+        {/* Toggle Header */}
+        <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-secondary/30">
+          <span className="text-sm font-medium">시스템 목록</span>
+          <Button
+            variant={showListJson ? "default" : "outline"}
+            size="sm"
+            onClick={() => setShowListJson(!showListJson)}
+            className="h-7 gap-1.5 text-xs"
+          >
+            {showListJson ? <List className="w-3.5 h-3.5" /> : <Code className="w-3.5 h-3.5" />}
+            {showListJson ? "목록 보기" : "JSON 보기"}
+          </Button>
+        </div>
+
+        {showListJson ? (
+          <div className="p-4">
+            <div className="relative">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-2 right-2 h-7 w-7"
+                onClick={() => handleCopy(JSON.stringify(filteredSystems, null, 2))}
+              >
+                <Copy className="w-3.5 h-3.5" />
+              </Button>
+              <pre className="p-4 rounded-lg bg-secondary/50 text-xs overflow-auto max-h-[500px] font-mono">
+                {JSON.stringify(filteredSystems, null, 2)}
+              </pre>
+            </div>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-secondary/50 text-sm">
+                <tr>
+                  <th className="text-left px-4 py-3 font-medium">시스템명</th>
+                  <th className="text-left px-4 py-3 font-medium">시스템유형</th>
+                  <th className="text-left px-4 py-3 font-medium">설명</th>
+                  <th className="text-left px-4 py-3 font-medium">담당자</th>
+                  <th className="text-left px-4 py-3 font-medium">사용여부</th>
+                  <th className="text-right px-4 py-3 font-medium">액션</th>
+                </tr>
+              </thead>
             <tbody className="divide-y divide-border">
               {filteredSystems.map((system) => (
                 <tr 
@@ -714,6 +749,7 @@ export function SystemManagement() {
             </tbody>
           </table>
         </div>
+        )}
       </div>
 
       {/* Detail Modal */}
@@ -727,6 +763,35 @@ export function SystemManagement() {
           </DialogHeader>
           {selectedSystem && (
             <div className="space-y-6 py-4">
+              {/* JSON Toggle */}
+              <div className="flex items-center justify-end">
+                <Button
+                  variant={showDetailJson ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setShowDetailJson(!showDetailJson)}
+                  className="h-7 gap-1.5 text-xs"
+                >
+                  {showDetailJson ? <List className="w-3.5 h-3.5" /> : <Code className="w-3.5 h-3.5" />}
+                  {showDetailJson ? "상세정보 보기" : "JSON 보기"}
+                </Button>
+              </div>
+
+              {showDetailJson ? (
+                <div className="relative">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-2 right-2 h-7 w-7 z-10"
+                    onClick={() => handleCopy(JSON.stringify({ system: selectedSystem, envDetails }, null, 2))}
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                  </Button>
+                  <pre className="p-4 rounded-lg bg-secondary/50 text-xs overflow-auto max-h-[60vh] font-mono">
+                    {JSON.stringify({ system: selectedSystem, envDetails }, null, 2)}
+                  </pre>
+                </div>
+              ) : (
+                <>
               {/* Overview Section */}
               <div className="space-y-4">
                 <h3 className="text-sm font-semibold flex items-center gap-2 text-primary">
@@ -1351,6 +1416,8 @@ export function SystemManagement() {
                   ))}
                 </Tabs>
               </div>
+                </>
+              )}
             </div>
           )}
           <DialogFooter>
