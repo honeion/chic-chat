@@ -739,9 +739,9 @@ export function SystemMonitoringManagement() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
+                  <TableHead className="w-24">시스템명</TableHead>
                   <TableHead className="w-12">사용</TableHead>
                   <TableHead>체크 이름</TableHead>
-                  <TableHead className="w-24">시스템명</TableHead>
                   <TableHead className="w-16">환경</TableHead>
                   <TableHead className="w-28">유형</TableHead>
                   <TableHead>코드</TableHead>
@@ -762,6 +762,9 @@ export function SystemMonitoringManagement() {
                 ) : (
                   filteredChecks.map((check) => (
                     <TableRow key={check.id}>
+                      <TableCell className="text-sm">
+                        {getSystemName(check.systemId)}
+                      </TableCell>
                       <TableCell>
                         <Switch
                           checked={check.isActive}
@@ -770,9 +773,6 @@ export function SystemMonitoringManagement() {
                         />
                       </TableCell>
                       <TableCell className="font-medium">{check.name}</TableCell>
-                      <TableCell className="text-sm">
-                        {getSystemName(check.systemId)}
-                      </TableCell>
                       <TableCell>
                         <Badge variant="secondary" className="text-xs">
                           {check.environment}
