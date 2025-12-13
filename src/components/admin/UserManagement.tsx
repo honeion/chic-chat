@@ -277,15 +277,8 @@ export function UserManagement() {
       </div>
 
       {/* User List */}
-      <Card>
-        <CardHeader className="bg-primary/10">
-          <CardTitle className="text-base flex items-center gap-2">
-            <User className="w-5 h-5" />
-            사용자 목록
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
+      <div className="rounded-lg border border-border bg-card">
+        <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-secondary/50 text-sm">
                 <tr>
@@ -379,9 +372,8 @@ export function UserManagement() {
                 ))}
               </tbody>
             </table>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Create User Modal */}
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
