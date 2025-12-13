@@ -35,7 +35,7 @@ import { Badge } from "@/components/ui/badge";
 import { getSystemNames } from "@/data/systems";
 import { SystemMultiSelect } from "./SystemMultiSelect";
 
-type UserRole = "운영자" | "현업담당자" | "관리자";
+type UserRole = "운영자(조회)" | "운영자(제어)" | "현업담당자" | "관리자";
 
 interface UserData {
   id: string;
@@ -63,7 +63,7 @@ const mockUsers: UserData[] = [
     email: "kim@example.com",
     department: "IT운영팀",
     position: "과장",
-    role: "운영자",
+    role: "운영자(제어)",
     systems: ["e-총무", "BiOn"],
     isActive: true,
     createdAt: "2024-01-15",
@@ -102,7 +102,7 @@ const mockUsers: UserData[] = [
     email: "choi@example.com",
     department: "IT운영팀",
     position: "대리",
-    role: "운영자",
+    role: "운영자(조회)",
     systems: ["e-총무"],
     isActive: false,
     createdAt: "2024-03-10",
@@ -218,9 +218,9 @@ export function UserManagement() {
         <Card 
           className={cn(
             "cursor-pointer transition-all hover:ring-2 hover:ring-accent/50",
-            roleFilter === "운영자" && "ring-2 ring-accent"
+            roleFilter === "운영자(조회)" && "ring-2 ring-accent"
           )}
-          onClick={() => setRoleFilter("운영자")}
+          onClick={() => setRoleFilter("운영자(조회)")}
         >
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -228,8 +228,27 @@ export function UserManagement() {
                 <Server className="w-5 h-5 text-accent" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{users.filter((u) => u.role === "운영자").length}</p>
-                <p className="text-xs text-muted-foreground">운영자</p>
+                <p className="text-2xl font-bold">{users.filter((u) => u.role === "운영자(조회)").length}</p>
+                <p className="text-xs text-muted-foreground">운영자(조회)</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card 
+          className={cn(
+            "cursor-pointer transition-all hover:ring-2 hover:ring-blue-500/50",
+            roleFilter === "운영자(제어)" && "ring-2 ring-blue-500"
+          )}
+          onClick={() => setRoleFilter("운영자(제어)")}
+        >
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                <Server className="w-5 h-5 text-blue-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{users.filter((u) => u.role === "운영자(제어)").length}</p>
+                <p className="text-xs text-muted-foreground">운영자(제어)</p>
               </div>
             </div>
           </CardContent>
@@ -327,7 +346,7 @@ export function UserManagement() {
                     </td>
                     <td className="px-4 py-3">
                       <Badge 
-                        variant={user.role === "관리자" ? "default" : user.role === "운영자" ? "secondary" : "outline"} 
+                        variant={user.role === "관리자" ? "default" : user.role.startsWith("운영자") ? "secondary" : "outline"} 
                         className="text-xs"
                       >
                         {user.role}
@@ -419,7 +438,8 @@ export function UserManagement() {
               <div>
                 <label className="text-sm font-medium mb-1.5 block">권한</label>
                 <select className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
-                  <option value="운영자">운영자</option>
+                  <option value="운영자(조회)">운영자(조회)</option>
+                  <option value="운영자(제어)">운영자(제어)</option>
                   <option value="현업담당자">현업담당자</option>
                   <option value="관리자">관리자</option>
                 </select>
@@ -493,7 +513,8 @@ export function UserManagement() {
                   className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
                   defaultValue={selectedUser?.role}
                 >
-                  <option value="운영자">운영자</option>
+                  <option value="운영자(조회)">운영자(조회)</option>
+                  <option value="운영자(제어)">운영자(제어)</option>
                   <option value="현업담당자">현업담당자</option>
                   <option value="관리자">관리자</option>
                 </select>
