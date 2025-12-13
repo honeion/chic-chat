@@ -117,7 +117,7 @@ interface MonitoringCheck {
 
 // Mock 데이터
 const mockMonitoringChecks: MonitoringCheck[] = [
-  // e-총무 시스템 - HTTP
+  // e-총무 시스템 - HTTP (HTTP_STATUS_200)
   {
     id: "mc1",
     systemId: "s1",
@@ -133,7 +133,23 @@ const mockMonitoringChecks: MonitoringCheck[] = [
     config: { url: "https://api.e-chongmu.example.com/health" },
     updatedAt: "2024-01-15 14:30",
   },
-  // e-총무 시스템 - DB
+  // e-총무 시스템 - HTTP (HTTP_LATENCY_UNDER_MS)
+  {
+    id: "mc1-2",
+    systemId: "s1",
+    environment: "PROD",
+    name: "e-총무 API 응답시간 체크",
+    checkType: "HTTP",
+    checkCode: "HTTP_LATENCY_UNDER_MS",
+    target: "https://api.e-chongmu.example.com/api/main",
+    interval: "5m",
+    severity: "WARN",
+    isActive: true,
+    timeout: 30,
+    config: { url: "https://api.e-chongmu.example.com/api/main", maxLatency: "3000" },
+    updatedAt: "2024-01-15 14:35",
+  },
+  // e-총무 시스템 - DB (DB_CONNECT)
   {
     id: "mc2",
     systemId: "s1",
@@ -149,7 +165,23 @@ const mockMonitoringChecks: MonitoringCheck[] = [
     config: { database: "CHONGMU_DB" },
     updatedAt: "2024-01-14 10:00",
   },
-  // e-총무 시스템 - INTERFACE
+  // e-총무 시스템 - DB (DB_CUSTOM_QUERY_ASSERT)
+  {
+    id: "mc2-2",
+    systemId: "s1",
+    environment: "PROD",
+    name: "e-총무 미처리 건수 체크",
+    checkType: "DB",
+    checkCode: "DB_CUSTOM_QUERY_ASSERT",
+    target: "CHONGMU_DB",
+    interval: "30m",
+    severity: "WARN",
+    isActive: true,
+    timeout: 60,
+    config: { database: "CHONGMU_DB", query: "SELECT COUNT(*) FROM pending_tasks WHERE created_at < NOW() - INTERVAL '1 hour'", assertCondition: "result == 0" },
+    updatedAt: "2024-01-14 10:30",
+  },
+  // e-총무 시스템 - INTERFACE (IF_DATA_CHECK)
   {
     id: "mc3",
     systemId: "s1",
@@ -165,7 +197,23 @@ const mockMonitoringChecks: MonitoringCheck[] = [
     config: { interfaceName: "ERP_SYNC", checkQuery: "SELECT COUNT(*) FROM if_erp_log WHERE status='ERROR'" },
     updatedAt: "2024-01-14 09:00",
   },
-  // e-총무 시스템 - BATCH
+  // e-총무 시스템 - INTERFACE (IF_LOG_CHECK)
+  {
+    id: "mc3-2",
+    systemId: "s1",
+    environment: "PROD",
+    name: "e-총무 HR 연동 로그 확인",
+    checkType: "INTERFACE",
+    checkCode: "IF_LOG_CHECK",
+    target: "HR_IF",
+    interval: "1h",
+    severity: "WARN",
+    isActive: true,
+    timeout: 60,
+    config: { interfaceName: "HR_SYNC", logPath: "/var/log/if/hr_sync.log", errorPattern: "ERROR|FAIL" },
+    updatedAt: "2024-01-14 09:30",
+  },
+  // e-총무 시스템 - BATCH (BATCH_LAST_RUN_AFTER)
   {
     id: "mc4",
     systemId: "s1",
@@ -181,7 +229,23 @@ const mockMonitoringChecks: MonitoringCheck[] = [
     config: { batchName: "DAILY_SETTLE_BATCH", maxAge: "24h" },
     updatedAt: "2024-01-13 09:00",
   },
-  // e-총무 시스템 - SYSTEM
+  // e-총무 시스템 - BATCH (BATCH_SUCCESS_CHECK)
+  {
+    id: "mc4-2",
+    systemId: "s1",
+    environment: "PROD",
+    name: "e-총무 월마감 배치 성공 확인",
+    checkType: "BATCH",
+    checkCode: "BATCH_SUCCESS_CHECK",
+    target: "MONTHLY_CLOSE_BATCH",
+    interval: "1d",
+    severity: "CRIT",
+    isActive: true,
+    timeout: 120,
+    config: { batchName: "MONTHLY_CLOSE_BATCH", expectedStatus: "SUCCESS" },
+    updatedAt: "2024-01-13 09:30",
+  },
+  // e-총무 시스템 - SYSTEM (SYS_PROCESS_RUNNING)
   {
     id: "mc5",
     systemId: "s1",
@@ -197,7 +261,23 @@ const mockMonitoringChecks: MonitoringCheck[] = [
     config: { processName: "java", processKeyword: "chongmu-was" },
     updatedAt: "2024-01-12 18:00",
   },
-  // e-총무 시스템 - LOG
+  // e-총무 시스템 - SYSTEM (SYS_RESOURCE_CHECK)
+  {
+    id: "mc5-2",
+    systemId: "s1",
+    environment: "PROD",
+    name: "e-총무 서버 리소스 확인",
+    checkType: "SYSTEM",
+    checkCode: "SYS_RESOURCE_CHECK",
+    target: "chongmu-was-01",
+    interval: "5m",
+    severity: "WARN",
+    isActive: true,
+    timeout: 30,
+    config: { cpuThreshold: "80", memoryThreshold: "85", diskThreshold: "90" },
+    updatedAt: "2024-01-12 18:30",
+  },
+  // e-총무 시스템 - LOG (LOG_PATTERN_COUNT_ZERO)
   {
     id: "mc6",
     systemId: "s1",
@@ -212,6 +292,22 @@ const mockMonitoringChecks: MonitoringCheck[] = [
     timeout: 30,
     config: { logTool: "ELK", pattern: "ERROR OR Exception", timeRange: "10m" },
     updatedAt: "2024-01-12 16:45",
+  },
+  // e-총무 시스템 - LOG (LOG_ERROR_CHECK)
+  {
+    id: "mc6-2",
+    systemId: "s1",
+    environment: "PROD",
+    name: "e-총무 FATAL 로그 체크",
+    checkType: "LOG",
+    checkCode: "LOG_ERROR_CHECK",
+    target: "ELK",
+    interval: "5m",
+    severity: "CRIT",
+    isActive: true,
+    timeout: 30,
+    config: { logTool: "ELK", pattern: "FATAL", timeRange: "5m" },
+    updatedAt: "2024-01-12 17:00",
   },
   // BiOn 시스템 샘플
   {
