@@ -1392,19 +1392,50 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
       <div className="flex flex-wrap gap-3 p-3 rounded-lg bg-muted/30">
         {/* 시스템 필터 - fixedSystemId가 없을 때만 표시 */}
         {!fixedSystemId && (
-          <Select value={filterSystem} onValueChange={setFilterSystem}>
-            <SelectTrigger className="w-32 text-sm">
-              <SelectValue placeholder="시스템" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">전체 시스템</SelectItem>
-              {mockSystems.map((sys) => (
-                <SelectItem key={sys.id} value={sys.id}>
-                  {sys.shortName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                className="w-48 justify-between text-sm font-normal"
+              >
+                {filterSystem !== "all"
+                  ? mockSystems.find((sys) => sys.id === filterSystem)?.shortName
+                  : "시스템 선택..."}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[250px] p-0" align="start">
+              <Command>
+                <CommandInput placeholder="시스템 검색..." />
+                <CommandList>
+                  <CommandEmpty>시스템을 찾을 수 없습니다.</CommandEmpty>
+                  <CommandGroup>
+                    {mockSystems.map((sys) => (
+                      <CommandItem
+                        key={sys.id}
+                        value={sys.shortName + " " + sys.name}
+                        onSelect={() => {
+                          setFilterSystem(sys.id);
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            filterSystem === sys.id ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        <div className="flex flex-col">
+                          <span className="font-medium">{sys.shortName}</span>
+                          <span className="text-xs text-muted-foreground">{sys.name}</span>
+                        </div>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
         )}
 
         <Select value={filterEnv} onValueChange={setFilterEnv}>
