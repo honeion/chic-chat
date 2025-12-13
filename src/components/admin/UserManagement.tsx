@@ -32,6 +32,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import { getSystemNames } from "@/data/systems";
 
 type UserRole = "운영자" | "현업담당자" | "관리자";
 
@@ -49,8 +50,8 @@ interface UserData {
   lastLogin: string;
 }
 
-// 시스템 목록
-const availableSystems = ["e-총무", "BiOn", "SATIS", "ITS"];
+// 시스템관리에서 시스템 목록 가져오기
+const availableSystems = getSystemNames();
 
 // Mock data
 const mockUsers: UserData[] = [
