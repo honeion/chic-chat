@@ -61,6 +61,7 @@ export function SystemManagement() {
   // Create form state
   const [createForm, setCreateForm] = useState({
     name: "",
+    shortName: "",
     description: "",
     systemType: "WEB" as SystemType,
     url: "",
@@ -74,6 +75,7 @@ export function SystemManagement() {
   const filteredSystems = systems.filter((system) => {
     const matchesSearch =
       system.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      system.shortName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       system.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       system.manager.toLowerCase().includes(searchQuery.toLowerCase());
     
@@ -132,6 +134,7 @@ export function SystemManagement() {
     setIsCreateModalOpen(false);
     setCreateForm({
       name: "",
+      shortName: "",
       description: "",
       systemType: "WEB",
       url: "",
@@ -323,7 +326,10 @@ export function SystemManagement() {
                 <TableCell className="font-medium">
                   <div className="flex items-center gap-2">
                     <Server className="w-4 h-4 text-primary" />
-                    {system.name}
+                    <div>
+                      <p className="font-medium">{system.shortName}</p>
+                      <p className="text-xs text-muted-foreground">{system.name}</p>
+                    </div>
                   </div>
                 </TableCell>
                 <TableCell>{getTypeBadge(system.systemType)}</TableCell>
@@ -386,10 +392,19 @@ export function SystemManagement() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium mb-1.5 block text-muted-foreground">
+                    시스템약어명
+                  </label>
+                  <Input defaultValue={selectedSystem.shortName} />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block text-muted-foreground">
                     시스템명
                   </label>
                   <Input defaultValue={selectedSystem.name} />
                 </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium mb-1.5 block text-muted-foreground">
                     시스템유형
@@ -540,13 +555,23 @@ export function SystemManagement() {
           <div className="space-y-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
+                <label className="text-sm font-medium mb-1.5 block">시스템약어명</label>
+                <Input
+                  placeholder="약어명 입력 (예: ITS)"
+                  value={createForm.shortName}
+                  onChange={(e) => setCreateForm({ ...createForm, shortName: e.target.value })}
+                />
+              </div>
+              <div>
                 <label className="text-sm font-medium mb-1.5 block">시스템명</label>
                 <Input
-                  placeholder="시스템 이름 입력"
+                  placeholder="시스템 전체 이름 입력"
                   value={createForm.name}
                   onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
                 />
               </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium mb-1.5 block">시스템유형</label>
                 <Select

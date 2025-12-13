@@ -7,6 +7,7 @@ export const systemTypes: SystemType[] = ["WEB", "C/S", "API", "IF", "기타"];
 export interface SystemData {
   id: string;
   name: string;
+  shortName: string;
   description: string;
   systemType: SystemType;
   url: string;
@@ -30,7 +31,8 @@ export interface SystemData {
 export const mockSystems: SystemData[] = [
   {
     id: "s1",
-    name: "e-총무",
+    name: "전자총무관리시스템",
+    shortName: "e-총무",
     description: "전자 총무 관리 시스템",
     systemType: "WEB",
     url: "https://e-chongmu.example.com",
@@ -48,7 +50,8 @@ export const mockSystems: SystemData[] = [
   },
   {
     id: "s2",
-    name: "BiOn",
+    name: "비즈니스온라인플랫폼",
+    shortName: "BiOn",
     description: "비즈니스 온라인 플랫폼",
     systemType: "WEB",
     url: "https://bion.example.com",
@@ -66,7 +69,8 @@ export const mockSystems: SystemData[] = [
   },
   {
     id: "s3",
-    name: "SATIS",
+    name: "영업물류통합관리시스템",
+    shortName: "SATIS",
     description: "영업/물류 통합 관리 시스템",
     systemType: "API",
     url: "https://satis.example.com",
@@ -84,7 +88,8 @@ export const mockSystems: SystemData[] = [
   },
   {
     id: "s4",
-    name: "ITS",
+    name: "IT서비스관리시스템",
+    shortName: "ITS",
     description: "IT 서비스 관리 시스템",
     systemType: "WEB",
     url: "https://its.example.com",
@@ -102,7 +107,8 @@ export const mockSystems: SystemData[] = [
   },
   {
     id: "s5",
-    name: "ERP",
+    name: "전사자원관리시스템",
+    shortName: "ERP",
     description: "전사 자원 관리 시스템",
     systemType: "C/S",
     url: "https://erp.example.com",
@@ -120,7 +126,8 @@ export const mockSystems: SystemData[] = [
   },
   {
     id: "s6",
-    name: "HR시스템",
+    name: "인사관리시스템",
+    shortName: "HRM",
     description: "인사 관리 시스템",
     systemType: "WEB",
     url: "https://hr.example.com",
@@ -138,7 +145,8 @@ export const mockSystems: SystemData[] = [
   },
   {
     id: "s7",
-    name: "물류API",
+    name: "물류연동API시스템",
+    shortName: "물류API",
     description: "물류 연동 API 시스템",
     systemType: "API",
     url: "https://logistics-api.example.com",
@@ -156,7 +164,8 @@ export const mockSystems: SystemData[] = [
   },
   {
     id: "s8",
-    name: "결제IF",
+    name: "결제인터페이스시스템",
+    shortName: "결제IF",
     description: "결제 인터페이스 시스템",
     systemType: "IF",
     url: "https://payment-if.example.com",
