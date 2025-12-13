@@ -273,16 +273,11 @@ export function UserManagement() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-1">
-                        {user.systems.slice(0, 2).map((system) => (
+                        {user.systems.map((system) => (
                           <Badge key={system} variant="secondary" className="text-xs">
                             {system}
                           </Badge>
                         ))}
-                        {user.systems.length > 2 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{user.systems.length - 2}
-                          </Badge>
-                        )}
                       </div>
                     </td>
                     <td className="px-4 py-3">
