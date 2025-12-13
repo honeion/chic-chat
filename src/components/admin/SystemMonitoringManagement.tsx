@@ -770,10 +770,8 @@ export function SystemMonitoringManagement() {
                         />
                       </TableCell>
                       <TableCell className="font-medium">{check.name}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="text-xs">
-                          {getSystemName(check.systemId)}
-                        </Badge>
+                      <TableCell className="text-sm">
+                        {getSystemName(check.systemId)}
                       </TableCell>
                       <TableCell>
                         <Badge variant="secondary" className="text-xs">
