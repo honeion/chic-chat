@@ -991,36 +991,77 @@ export function SystemMonitoringManagement() {
               </Select>
             </div>
             {formData.config.logTool === "서버로그" && (
-              <div>
-                <Label className="text-xs">서버 선택</Label>
-                {serverListLog.length === 0 ? (
-                  <p className="text-xs text-muted-foreground py-2">선택한 시스템에 등록된 서버가 없습니다.</p>
-                ) : (
-                  <Select
-                    value={formData.config.server || ""}
-                    onValueChange={(value) =>
-                      setFormData({
-                        ...formData,
-                        config: { ...formData.config, server: value },
-                      })
-                    }
-                  >
-                    <SelectTrigger className="text-sm">
-                      <SelectValue placeholder="서버 선택" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {serverListLog.map((server) => (
-                        <SelectItem key={server.id} value={server.serverName}>
-                          <span className="font-medium">{server.serverName}</span>
-                          <span className="text-xs text-muted-foreground ml-2">
-                            ({server.hostType}{server.vmIp ? ` - ${server.vmIp}` : server.namespace ? ` - ${server.namespace}` : ""})
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              <>
+                <div>
+                  <Label className="text-xs">서버 선택</Label>
+                  {serverListLog.length === 0 ? (
+                    <p className="text-xs text-muted-foreground py-2">선택한 시스템에 등록된 서버가 없습니다.</p>
+                  ) : (
+                    <Select
+                      value={formData.config.server || ""}
+                      onValueChange={(value) => {
+                        const selectedServer = serverListLog.find(s => s.serverName === value);
+                        setFormData({
+                          ...formData,
+                          config: { 
+                            ...formData.config, 
+                            server: value,
+                            serverHostType: selectedServer?.hostType || "",
+                            deploymentName: "",
+                            logFilePath: "",
+                          },
+                        });
+                      }}
+                    >
+                      <SelectTrigger className="text-sm">
+                        <SelectValue placeholder="서버 선택" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {serverListLog.map((server) => (
+                          <SelectItem key={server.id} value={server.serverName}>
+                            <span className="font-medium">{server.serverName}</span>
+                            <span className="text-xs text-muted-foreground ml-2">
+                              ({server.hostType}{server.vmIp ? ` - ${server.vmIp}` : server.namespace ? ` - ${server.namespace}` : ""})
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+                {formData.config.serverHostType === "K8S" && (
+                  <div>
+                    <Label className="text-xs">Deployment 명</Label>
+                    <Input
+                      value={formData.config.deploymentName || ""}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          config: { ...formData.config, deploymentName: e.target.value },
+                        })
+                      }
+                      placeholder="예: my-app-deployment"
+                      className="text-sm"
+                    />
+                  </div>
                 )}
-              </div>
+                {formData.config.serverHostType === "VM" && (
+                  <div>
+                    <Label className="text-xs">Log 파일 경로</Label>
+                    <Input
+                      value={formData.config.logFilePath || ""}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          config: { ...formData.config, logFilePath: e.target.value },
+                        })
+                      }
+                      placeholder="예: /var/log/app/application.log"
+                      className="text-sm"
+                    />
+                  </div>
+                )}
+              </>
             )}
             <div>
               <Label className="text-xs">패턴</Label>
