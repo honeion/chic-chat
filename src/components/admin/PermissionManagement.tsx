@@ -277,73 +277,87 @@ export function PermissionManagement() {
           </CardContent>
         </Card>
       ) : (
-        <Card>
-          <CardHeader className="bg-primary/10">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Wrench className="w-5 h-5" />
-              권한 그룹별 Tool 접근 권한
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-secondary/50 text-sm">
-                  <tr>
-                    <th className="text-left px-4 py-3 font-medium min-w-[180px]">권한 그룹</th>
-                    {Object.entries(toolsByCategory).map(([category, categoryTools]) => (
-                      <th key={category} colSpan={categoryTools.length} className="text-center px-2 py-2 font-medium text-xs border-l border-border">
-                        <div className="text-muted-foreground mb-1">{category}</div>
-                        <div className="flex justify-center gap-1">
-                          {categoryTools.map((tool) => (
-                            <span key={tool.id} className="text-[10px] px-1 min-w-[60px]">{tool.name}</span>
-                          ))}
-                        </div>
-                      </th>
-                    ))}
-                    <th className="text-center px-4 py-3 font-medium border-l border-border">활성</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {rolePermissions.map((role) => (
-                    <tr 
-                      key={role.roleId} 
-                      className={cn(
-                        "hover:bg-secondary/30 transition-colors",
-                        selectedRole === role.roleId && "bg-primary/5"
-                      )}
-                    >
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
-                            {role.icon}
+        <div className="grid grid-cols-4 gap-4">
+          {/* Role selector on left */}
+          <div className="col-span-1 space-y-2">
+            {rolePermissions.map((role) => (
+              <Card 
+                key={role.roleId}
+                className={cn(
+                  "cursor-pointer transition-all hover:ring-2 hover:ring-primary/50",
+                  selectedRole === role.roleId && "ring-2 ring-primary bg-primary/5"
+                )}
+                onClick={() => setSelectedRole(role.roleId)}
+              >
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
+                      {role.icon}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{role.roleName}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {countEnabled(role.toolPermissions)}/{tools.length} Tool
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Tool permissions on right */}
+          <div className="col-span-3">
+            <Card className="h-full">
+              <CardHeader className="bg-primary/10 py-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Wrench className="w-5 h-5" />
+                  {selectedRole ? `${selectedRole} Tool 접근 권한` : 'Tool 접근 권한'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4">
+                {selectedRole ? (
+                  <div className="space-y-6">
+                    {Object.entries(toolsByCategory).map(([category, categoryTools]) => {
+                      const role = rolePermissions.find(r => r.roleId === selectedRole)!;
+                      return (
+                        <div key={category}>
+                          <h4 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-primary" />
+                            {category}
+                          </h4>
+                          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                            {categoryTools.map((tool) => (
+                              <div
+                                key={tool.id}
+                                className={cn(
+                                  "flex items-center justify-between p-3 rounded-lg border transition-all",
+                                  role.toolPermissions[tool.id]
+                                    ? "bg-primary/10 border-primary/30"
+                                    : "bg-secondary/30 border-border"
+                                )}
+                              >
+                                <span className="text-sm font-medium">{tool.name}</span>
+                                <Switch
+                                  checked={role.toolPermissions[tool.id] || false}
+                                  onCheckedChange={() => toggleToolPermission(role.roleId, tool.id)}
+                                />
+                              </div>
+                            ))}
                           </div>
-                          <div>
-                            <p className="font-medium text-sm">{role.roleName}</p>
-                          </div>
                         </div>
-                      </td>
-                      {Object.entries(toolsByCategory).map(([category, categoryTools]) => (
-                        categoryTools.map((tool, idx) => (
-                          <td key={tool.id} className={cn("text-center px-2 py-3", idx === 0 && "border-l border-border")}>
-                            <Switch
-                              checked={role.toolPermissions[tool.id] || false}
-                              onCheckedChange={() => toggleToolPermission(role.roleId, tool.id)}
-                            />
-                          </td>
-                        ))
-                      ))}
-                      <td className="text-center px-4 py-3 border-l border-border">
-                        <Badge variant="secondary">
-                          {countEnabled(role.toolPermissions)}/{tools.length}
-                        </Badge>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center h-40 text-muted-foreground">
+                    <p>좌측에서 권한 그룹을 선택하세요</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       )}
 
       {/* Legend */}
