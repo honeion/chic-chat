@@ -19,6 +19,7 @@ interface RolePermission {
   roleName: string;
   description: string;
   icon: React.ReactNode;
+  controlPermission: boolean;
   agentPermissions: Record<string, boolean>;
   toolPermissions: Record<string, boolean>;
 }
@@ -51,6 +52,7 @@ const initialRolePermissions: RolePermission[] = [
     roleName: "관리자",
     description: "시스템 전체 관리 권한을 가진 최고 권한 그룹",
     icon: <Crown className="w-5 h-5 text-status-online" />,
+    controlPermission: true,
     agentPermissions: {
       its: true, sop: true, change: true, db: true, monitoring: true, report: true, biz: true, infra: true,
     },
@@ -61,6 +63,7 @@ const initialRolePermissions: RolePermission[] = [
     roleName: "운영자(제어)",
     description: "시스템 운영 및 제어 권한을 가진 그룹",
     icon: <Server className="w-5 h-5 text-blue-500" />,
+    controlPermission: true,
     agentPermissions: {
       its: true, sop: true, change: true, db: true, monitoring: true, report: true, biz: true, infra: true,
     },
@@ -71,8 +74,9 @@ const initialRolePermissions: RolePermission[] = [
     roleName: "운영자(조회)",
     description: "시스템 모니터링 및 조회만 가능한 그룹",
     icon: <Server className="w-5 h-5 text-accent" />,
+    controlPermission: false,
     agentPermissions: {
-      its: true, sop: true, change: false, db: true, monitoring: true, report: true, biz: true, infra: false,
+      its: true, sop: true, change: true, db: true, monitoring: true, report: true, biz: true, infra: true,
     },
     toolPermissions: { t1: true, t2: true, t3: true, t4: true, t5: false, t6: true, t7: false, t8: false },
   },
@@ -81,8 +85,9 @@ const initialRolePermissions: RolePermission[] = [
     roleName: "현업담당자",
     description: "업무 시스템 사용 및 요청 권한을 가진 그룹",
     icon: <Briefcase className="w-5 h-5 text-muted-foreground" />,
+    controlPermission: true,
     agentPermissions: {
-      its: true, sop: false, change: false, db: false, monitoring: false, report: true, biz: true, infra: false,
+      its: false, sop: false, change: false, db: false, monitoring: false, report: false, biz: true, infra: false,
     },
     toolPermissions: { t1: false, t2: false, t3: false, t4: true, t5: false, t6: true, t7: false, t8: false },
   },
@@ -92,6 +97,16 @@ export function PermissionManagement() {
   const [rolePermissions, setRolePermissions] = useState<RolePermission[]>(initialRolePermissions);
   const [viewMode, setViewMode] = useState<"agent" | "tool">("agent");
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
+
+  const toggleControlPermission = (roleId: UserRole) => {
+    setRolePermissions(
+      rolePermissions.map((r) =>
+        r.roleId === roleId
+          ? { ...r, controlPermission: !r.controlPermission }
+          : r
+      )
+    );
+  };
 
   const toggleAgentPermission = (roleId: UserRole, agentId: string) => {
     setRolePermissions(
@@ -207,6 +222,7 @@ export function PermissionManagement() {
                 <thead className="bg-secondary/50 text-sm">
                   <tr>
                     <th className="text-left px-4 py-3 font-medium min-w-[180px]">권한 그룹</th>
+                    <th className="text-center px-3 py-3 font-medium text-xs bg-primary/10">제어</th>
                     {agents.map((agent) => (
                       <th key={agent.id} className="text-center px-3 py-3 font-medium text-xs">
                         {agent.name}
@@ -233,6 +249,12 @@ export function PermissionManagement() {
                             <p className="font-medium text-sm">{role.roleName}</p>
                           </div>
                         </div>
+                      </td>
+                      <td className="text-center px-3 py-3 bg-primary/5">
+                        <Switch
+                          checked={role.controlPermission}
+                          onCheckedChange={() => toggleControlPermission(role.roleId)}
+                        />
                       </td>
                       {agents.map((agent) => (
                         <td key={agent.id} className="text-center px-3 py-3">
