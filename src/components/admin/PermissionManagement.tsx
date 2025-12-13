@@ -326,19 +326,20 @@ export function PermissionManagement() {
                             <span className="w-2 h-2 rounded-full bg-primary" />
                             {category}
                           </h4>
-                          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
                             {categoryTools.map((tool) => (
                               <div
                                 key={tool.id}
                                 className={cn(
-                                  "flex items-center justify-between p-3 rounded-lg border transition-all",
+                                  "flex items-center justify-between px-2 py-1.5 rounded border transition-all",
                                   role.toolPermissions[tool.id]
                                     ? "bg-primary/10 border-primary/30"
                                     : "bg-secondary/30 border-border"
                                 )}
                               >
-                                <span className="text-sm font-medium">{tool.name}</span>
+                                <span className="text-xs font-medium truncate mr-1">{tool.name}</span>
                                 <Switch
+                                  className="scale-75"
                                   checked={role.toolPermissions[tool.id] || false}
                                   onCheckedChange={() => toggleToolPermission(role.roleId, tool.id)}
                                 />
