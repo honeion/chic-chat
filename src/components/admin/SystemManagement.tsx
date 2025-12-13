@@ -92,6 +92,7 @@ type HostType = "K8S" | "VM";
 
 interface ServerInfo {
   id: string;
+  serverName: string; // 서버명
   infraType: InfraType; // 유형 (CLOUD/ONPREM)
   provider: ProviderType; // 프로바이더 (AWS/AZURE/PRIVATE)
   hostType: HostType; // host 유형 (K8S/VM)
@@ -109,6 +110,7 @@ interface ServerInfo {
 
 const defaultServerInfo: ServerInfo = {
   id: "",
+  serverName: "",
   infraType: "CLOUD",
   provider: "AWS",
   hostType: "K8S",
@@ -234,6 +236,7 @@ export function SystemManagement() {
     const initialServers: ServerInfo[] = [
       {
         id: crypto.randomUUID(),
+        serverName: system.shortName + "-PROD-01",
         infraType: "CLOUD",
         provider: "AWS",
         hostType: "K8S",
@@ -500,7 +503,7 @@ export function SystemManagement() {
         lines.push("### 인프라정보");
         lines.push("");
         envDetail.servers.forEach((server, idx) => {
-          lines.push(`**서버 ${idx + 1}** (${server.infraType}/${server.provider}/${server.hostType})`);
+          lines.push(`**${server.serverName || `서버 ${idx + 1}`}** (${server.infraType}/${server.provider}/${server.hostType})`);
           if (server.hostType === "K8S") {
             lines.push(`- 구독정보: ${server.subscription || "-"}`);
             lines.push(`- 클러스터명: ${server.clusterName || "-"}`);
@@ -1238,6 +1241,17 @@ export function SystemManagement() {
                                     >
                                       <Trash2 className="w-3 h-3" />
                                     </Button>
+                                  </div>
+                                  
+                                  {/* 서버명 */}
+                                  <div>
+                                    <label className="text-xs text-muted-foreground">서버명</label>
+                                    <Input
+                                      value={server.serverName}
+                                      onChange={(e) => updateServerInfo(env, server.id, "serverName", e.target.value)}
+                                      placeholder="서버명 입력"
+                                      className="h-8 text-xs mt-1"
+                                    />
                                   </div>
                                   
                                   {/* 기본 정보 */}
