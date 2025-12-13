@@ -10,13 +10,14 @@ import {
   Cloud,
   ExternalLink,
   Copy,
-  Check,
-  X,
+  CheckCircle,
+  XCircle,
   Monitor,
   Database,
   Link,
   FileCode,
   HelpCircle,
+  MoreHorizontal,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,6 +47,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 import { SystemData, mockSystems, systemTypes, SystemType } from "@/data/systems";
 
@@ -301,81 +308,100 @@ export function SystemManagement() {
 
       {/* System Table */}
       <div className="rounded-lg border border-border bg-card">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-muted/50">
-              <TableHead className="w-[150px]">시스템명</TableHead>
-              <TableHead className="w-[100px]">시스템유형</TableHead>
-              <TableHead className="w-[200px]">설명</TableHead>
-              <TableHead className="w-[100px]">담당자</TableHead>
-              <TableHead className="w-[100px]">상태</TableHead>
-              <TableHead className="w-[80px] text-center">사용여부</TableHead>
-              <TableHead className="w-[100px] text-center">관리</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredSystems.map((system) => (
-              <TableRow
-                key={system.id}
-                className="cursor-pointer hover:bg-muted/30"
-                onClick={() => {
-                  setSelectedSystem(system);
-                  setIsDetailModalOpen(true);
-                }}
-              >
-                <TableCell className="font-medium">
-                  <div className="flex items-center gap-2">
-                    <Server className="w-4 h-4 text-primary" />
-                    <div>
-                      <p className="font-medium">{system.shortName}</p>
-                      <p className="text-xs text-muted-foreground">{system.name}</p>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-secondary/50 text-sm">
+              <tr>
+                <th className="text-left px-4 py-3 font-medium">시스템명</th>
+                <th className="text-left px-4 py-3 font-medium">시스템유형</th>
+                <th className="text-left px-4 py-3 font-medium">설명</th>
+                <th className="text-left px-4 py-3 font-medium">담당자</th>
+                <th className="text-left px-4 py-3 font-medium">상태</th>
+                <th className="text-left px-4 py-3 font-medium">사용여부</th>
+                <th className="text-right px-4 py-3 font-medium">액션</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {filteredSystems.map((system) => (
+                <tr 
+                  key={system.id} 
+                  className="hover:bg-secondary/30 transition-colors cursor-pointer"
+                  onClick={() => {
+                    setSelectedSystem(system);
+                    setIsDetailModalOpen(true);
+                  }}
+                >
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center">
+                        <Server className="w-4 h-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">{system.shortName}</p>
+                        <p className="text-xs text-muted-foreground">{system.name}</p>
+                      </div>
                     </div>
-                  </div>
-                </TableCell>
-                <TableCell>{getTypeBadge(system.systemType)}</TableCell>
-                <TableCell className="text-muted-foreground truncate max-w-[200px]">
-                  {system.description}
-                </TableCell>
-                <TableCell>{system.manager}</TableCell>
-                <TableCell>{getStatusBadge(system.status)}</TableCell>
-                <TableCell className="text-center">
-                  {system.isActive ? (
-                    <Check className="w-4 h-4 text-status-online mx-auto" />
-                  ) : (
-                    <X className="w-4 h-4 text-muted-foreground mx-auto" />
-                  )}
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center justify-center gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedSystem(system);
-                        setIsDetailModalOpen(true);
-                      }}
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-destructive hover:text-destructive"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDelete(system.id);
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                  </td>
+                  <td className="px-4 py-3">
+                    {getTypeBadge(system.systemType)}
+                  </td>
+                  <td className="px-4 py-3">
+                    <p className="text-sm text-muted-foreground truncate max-w-[200px]">
+                      {system.description}
+                    </p>
+                  </td>
+                  <td className="px-4 py-3 text-sm">{system.manager}</td>
+                  <td className="px-4 py-3">{getStatusBadge(system.status)}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-1">
+                      {system.isActive ? (
+                        <CheckCircle className="w-4 h-4 text-status-online" />
+                      ) : (
+                        <XCircle className="w-4 h-4 text-destructive" />
+                      )}
+                      <span className={cn("text-xs", system.isActive ? "text-status-online" : "text-destructive")}>
+                        {system.isActive ? "사용" : "미사용"}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <MoreHorizontal className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="bg-popover">
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedSystem(system);
+                          setIsDetailModalOpen(true);
+                        }}>
+                          <Edit className="w-4 h-4 mr-2" />
+                          수정
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(system.id);
+                          }}
+                          className="text-destructive"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          삭제
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Detail Modal */}
