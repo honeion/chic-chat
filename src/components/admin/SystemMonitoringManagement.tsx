@@ -964,6 +964,7 @@ export function SystemMonitoringManagement() {
           </div>
         );
 
+      case "IF_LOG_CHECK":
       case "LOG_PATTERN_COUNT_ZERO":
       case "LOG_ERROR_CHECK":
         const serverListLog = SYSTEM_SERVERS[formData.systemId] || [];
