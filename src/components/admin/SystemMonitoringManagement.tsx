@@ -1206,9 +1206,9 @@ export function SystemMonitoringManagement() {
                       {formData.checkType &&
                         CHECK_CODES[formData.checkType]?.map((code) => (
                           <SelectItem key={code.code} value={code.code}>
-                            <div>
-                              <div className="font-medium">{code.label}</div>
-                              <div className="text-xs text-muted-foreground">{code.description}</div>
+                            <div className="flex items-center gap-3">
+                              <span className="font-medium">{code.label}</span>
+                              <span className="text-xs text-muted-foreground">- {code.description}</span>
                             </div>
                           </SelectItem>
                         ))}
