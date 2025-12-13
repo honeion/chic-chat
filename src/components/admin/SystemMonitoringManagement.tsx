@@ -950,9 +950,8 @@ export function SystemMonitoringManagement() {
                   <SelectValue placeholder="로그 도구 선택" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ELK">ELK</SelectItem>
-                  <SelectItem value="Splunk">Splunk</SelectItem>
-                  <SelectItem value="CloudWatch">CloudWatch</SelectItem>
+                  <SelectItem value="Grafana">Grafana</SelectItem>
+                  <SelectItem value="서버로그">서버로그</SelectItem>
                 </SelectContent>
               </Select>
             </div>
