@@ -207,7 +207,6 @@ export function UserManagement() {
                 <tr>
                   <th className="text-left px-4 py-3 font-medium">사용자</th>
                   <th className="text-left px-4 py-3 font-medium">부서/직책</th>
-                  <th className="text-left px-4 py-3 font-medium">고객사</th>
                   <th className="text-left px-4 py-3 font-medium">담당 시스템</th>
                   <th className="text-left px-4 py-3 font-medium">권한</th>
                   <th className="text-left px-4 py-3 font-medium">마지막 로그인</th>
@@ -239,7 +238,6 @@ export function UserManagement() {
                       <p className="text-sm">{user.department}</p>
                       <p className="text-xs text-muted-foreground">{user.position}</p>
                     </td>
-                    <td className="px-4 py-3 text-sm">{user.customerCompany}</td>
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-1">
                         {user.systems.slice(0, 2).map((system) => (
