@@ -45,6 +45,7 @@ import { SystemData, mockSystems, systemTypes, SystemType } from "@/data/systems
 export function SystemManagement() {
   const [systems, setSystems] = useState<SystemData[]>(mockSystems);
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeFilter, setActiveFilter] = useState<"all" | "active" | "inactive">("all");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedSystem, setSelectedSystem] = useState<SystemData | null>(null);
@@ -62,12 +63,19 @@ export function SystemManagement() {
     isActive: true,
   });
 
-  const filteredSystems = systems.filter(
-    (system) =>
+  const filteredSystems = systems.filter((system) => {
+    const matchesSearch =
       system.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       system.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      system.manager.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+      system.manager.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesActive =
+      activeFilter === "all" ||
+      (activeFilter === "active" && system.isActive) ||
+      (activeFilter === "inactive" && !system.isActive);
+    
+    return matchesSearch && matchesActive;
+  });
 
   const getStatusBadge = (status: SystemData["status"]) => {
     switch (status) {
@@ -133,14 +141,26 @@ export function SystemManagement() {
     <div className="space-y-6">
       {/* Header Actions */}
       <div className="flex items-center justify-between gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="시스템 검색 (이름, 설명, 담당자)"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
+        <div className="flex items-center gap-3 flex-1">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="시스템 검색 (이름, 설명, 담당자)"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Select value={activeFilter} onValueChange={(value: "all" | "active" | "inactive") => setActiveFilter(value)}>
+            <SelectTrigger className="w-[120px]">
+              <SelectValue placeholder="사용여부" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">전체</SelectItem>
+              <SelectItem value="active">사용</SelectItem>
+              <SelectItem value="inactive">미사용</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
           <Plus className="w-4 h-4" />
