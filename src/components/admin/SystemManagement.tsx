@@ -200,13 +200,166 @@ export function SystemManagement() {
     shortName: "",
     description: "",
     systemType: "WEB" as SystemType,
-    url: "",
-    apiEndpoint: "",
-    namespace: "",
-    mcpServer: "",
     manager: "",
     isActive: true,
   });
+
+  // Create modal 환경별 세부정보 상태
+  const [createEnvDetails, setCreateEnvDetails] = useState<Record<EnvType, EnvDetail>>({
+    PROD: { ...defaultEnvDetail, isEnabled: true },
+    DEV: { ...defaultEnvDetail },
+    STG: { ...defaultEnvDetail },
+    DR: { ...defaultEnvDetail },
+  });
+
+  const [createActiveEnvTab, setCreateActiveEnvTab] = useState<EnvType>("PROD");
+
+  // Create modal URL 추가
+  const addCreateUrl = (env: EnvType) => {
+    const newUrl: UrlInfo = {
+      ...defaultUrlInfo,
+      id: crypto.randomUUID(),
+    };
+    setCreateEnvDetails(prev => ({
+      ...prev,
+      [env]: {
+        ...prev[env],
+        urls: [...prev[env].urls, newUrl],
+      },
+    }));
+  };
+
+  // Create modal URL 삭제
+  const removeCreateUrl = (env: EnvType, urlId: string) => {
+    setCreateEnvDetails(prev => ({
+      ...prev,
+      [env]: {
+        ...prev[env],
+        urls: prev[env].urls.filter(u => u.id !== urlId),
+      },
+    }));
+  };
+
+  // Create modal URL 정보 업데이트
+  const updateCreateUrlInfo = (env: EnvType, urlId: string, field: keyof UrlInfo, value: string | boolean) => {
+    setCreateEnvDetails(prev => ({
+      ...prev,
+      [env]: {
+        ...prev[env],
+        urls: prev[env].urls.map(u => 
+          u.id === urlId ? { ...u, [field]: value } : u
+        ),
+      },
+    }));
+  };
+
+  // Create modal 서버 추가
+  const addCreateServer = (env: EnvType) => {
+    const newServer: ServerInfo = {
+      ...defaultServerInfo,
+      id: crypto.randomUUID(),
+    };
+    setCreateEnvDetails(prev => ({
+      ...prev,
+      [env]: {
+        ...prev[env],
+        servers: [...prev[env].servers, newServer],
+      },
+    }));
+  };
+
+  // Create modal 서버 삭제
+  const removeCreateServer = (env: EnvType, serverId: string) => {
+    setCreateEnvDetails(prev => ({
+      ...prev,
+      [env]: {
+        ...prev[env],
+        servers: prev[env].servers.filter(s => s.id !== serverId),
+      },
+    }));
+  };
+
+  // Create modal 서버 정보 업데이트
+  const updateCreateServerInfo = (env: EnvType, serverId: string, field: keyof ServerInfo, value: string) => {
+    setCreateEnvDetails(prev => ({
+      ...prev,
+      [env]: {
+        ...prev[env],
+        servers: prev[env].servers.map(s => 
+          s.id === serverId ? { ...s, [field]: value } : s
+        ),
+      },
+    }));
+  };
+
+  // Create modal DB 추가
+  const addCreateDatabase = (env: EnvType) => {
+    const newDB: DBInfo = {
+      ...defaultDBInfo,
+      id: crypto.randomUUID(),
+    };
+    setCreateEnvDetails(prev => ({
+      ...prev,
+      [env]: {
+        ...prev[env],
+        databases: [...prev[env].databases, newDB],
+      },
+    }));
+  };
+
+  // Create modal DB 삭제
+  const removeCreateDatabase = (env: EnvType, dbId: string) => {
+    setCreateEnvDetails(prev => ({
+      ...prev,
+      [env]: {
+        ...prev[env],
+        databases: prev[env].databases.filter(d => d.id !== dbId),
+      },
+    }));
+  };
+
+  // Create modal DB 정보 업데이트
+  const updateCreateDatabaseInfo = (env: EnvType, dbId: string, field: keyof DBInfo, value: string) => {
+    setCreateEnvDetails(prev => ({
+      ...prev,
+      [env]: {
+        ...prev[env],
+        databases: prev[env].databases.map(d => 
+          d.id === dbId ? { ...d, [field]: value } : d
+        ),
+      },
+    }));
+  };
+
+  // Create modal 환경 상세 업데이트
+  const updateCreateEnvDetail = (env: EnvType, field: keyof EnvDetail, value: string | boolean) => {
+    setCreateEnvDetails(prev => ({
+      ...prev,
+      [env]: {
+        ...prev[env],
+        [field]: value,
+      },
+    }));
+  };
+
+  // Create modal 초기화
+  const resetCreateForm = () => {
+    setCreateForm({
+      name: "",
+      shortName: "",
+      description: "",
+      systemType: "WEB" as SystemType,
+      manager: "",
+      isActive: true,
+    });
+    setCreateEnvDetails({
+      PROD: { ...defaultEnvDetail, isEnabled: true },
+      DEV: { ...defaultEnvDetail },
+      STG: { ...defaultEnvDetail },
+      DR: { ...defaultEnvDetail },
+    });
+    setCreateActiveEnvTab("PROD");
+  };
 
   // 시스템 선택 시 환경 세부정보 초기화
   const handleSelectSystem = (system: SystemData) => {
@@ -539,10 +692,22 @@ export function SystemManagement() {
   };
 
   const handleCreate = () => {
+    // Get first URL and namespace from PROD environment
+    const prodUrls = createEnvDetails.PROD.urls;
+    const prodServers = createEnvDetails.PROD.servers;
+    const primaryUrl = prodUrls.find(u => u.isPrimary)?.url || prodUrls[0]?.url || "";
+    const apiUrl = prodUrls.find(u => u.description?.toLowerCase().includes("api"))?.url || "";
+    const namespace = prodServers[0]?.namespace || "";
+    const mcpServer = prodServers[0]?.clusterName ? `mcp-${createForm.shortName.toLowerCase()}-01` : "";
+
     const newSystem: SystemData = {
       id: `s${Date.now()}`,
       ...createForm,
-      svc: `${createForm.name.toLowerCase()}-svc`,
+      url: primaryUrl,
+      apiEndpoint: apiUrl,
+      namespace: namespace,
+      mcpServer: mcpServer,
+      svc: `${createForm.shortName.toLowerCase()}-svc`,
       spec: { cpu: "4 vCPU", memory: "16GB", storage: "500GB" },
       status: createForm.isActive ? "active" : "inactive",
       managers: [createForm.manager],
@@ -551,18 +716,7 @@ export function SystemManagement() {
     };
     setSystems([...systems, newSystem]);
     setIsCreateModalOpen(false);
-    setCreateForm({
-      name: "",
-      shortName: "",
-      description: "",
-      systemType: "WEB",
-      url: "",
-      apiEndpoint: "",
-      namespace: "",
-      mcpServer: "",
-      manager: "",
-      isActive: true,
-    });
+    resetCreateForm();
   };
 
   const handleDelete = (id: string) => {
@@ -1586,122 +1740,541 @@ export function SystemManagement() {
       </Dialog>
 
       {/* Create Modal */}
-      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent className="max-w-lg">
+      <Dialog open={isCreateModalOpen} onOpenChange={(open) => {
+        setIsCreateModalOpen(open);
+        if (!open) resetCreateForm();
+      }}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>시스템 추가</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Plus className="w-5 h-5 text-primary" />
+              시스템 추가
+            </DialogTitle>
           </DialogHeader>
+          
+          {/* 기본 정보 섹션 */}
           <div className="space-y-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium mb-1.5 block">시스템약어명</label>
-                <Input
-                  placeholder="약어명 입력 (예: ITS)"
-                  value={createForm.shortName}
-                  onChange={(e) => setCreateForm({ ...createForm, shortName: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-1.5 block">시스템명</label>
-                <Input
-                  placeholder="시스템 전체 이름 입력"
-                  value={createForm.name}
-                  onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium mb-1.5 block">시스템유형</label>
-                <Select
-                  value={createForm.systemType}
-                  onValueChange={(value: SystemType) =>
-                    setCreateForm({ ...createForm, systemType: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {systemTypes.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {type}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-1.5 block">설명</label>
-              <Textarea
-                placeholder="시스템 설명 입력"
-                rows={2}
-                value={createForm.description}
-                onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium mb-1.5 block">담당자</label>
-                <Input
-                  placeholder="담당자 이름"
-                  value={createForm.manager}
-                  onChange={(e) => setCreateForm({ ...createForm, manager: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-1.5 block">사용여부</label>
-                <div className="flex items-center gap-2 mt-2">
-                  <Switch
-                    checked={createForm.isActive}
-                    onCheckedChange={(checked) =>
-                      setCreateForm({ ...createForm, isActive: checked })
-                    }
+            <div className="p-4 rounded-lg bg-secondary/30 border border-border/50 space-y-4">
+              <h3 className="text-sm font-semibold flex items-center gap-2">
+                <Server className="w-4 h-4 text-primary" />
+                기본 정보
+              </h3>
+              <div className="grid grid-cols-4 gap-4">
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1.5 block">시스템약어명</label>
+                  <Input
+                    placeholder="ITS"
+                    value={createForm.shortName}
+                    onChange={(e) => setCreateForm({ ...createForm, shortName: e.target.value })}
+                    className="h-8 text-sm"
                   />
-                  <span className="text-sm text-muted-foreground">
-                    {createForm.isActive ? "사용" : "미사용"}
-                  </span>
+                </div>
+                <div className="col-span-2">
+                  <label className="text-xs text-muted-foreground mb-1.5 block">시스템명</label>
+                  <Input
+                    placeholder="IT서비스관리시스템"
+                    value={createForm.name}
+                    onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1.5 block">시스템유형</label>
+                  <Select
+                    value={createForm.systemType}
+                    onValueChange={(value: SystemType) =>
+                      setCreateForm({ ...createForm, systemType: value })
+                    }
+                  >
+                    <SelectTrigger className="h-8 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover">
+                      {systemTypes.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground mb-1.5 block">설명</label>
+                <Textarea
+                  placeholder="시스템 설명 입력"
+                  rows={2}
+                  value={createForm.description}
+                  onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
+                  className="text-sm"
+                />
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1.5 block">담당자</label>
+                  <Input
+                    placeholder="담당자 이름"
+                    value={createForm.manager}
+                    onChange={(e) => setCreateForm({ ...createForm, manager: e.target.value })}
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1.5 block">사용여부</label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Switch
+                      checked={createForm.isActive}
+                      onCheckedChange={(checked) =>
+                        setCreateForm({ ...createForm, isActive: checked })
+                      }
+                    />
+                    <span className="text-sm text-muted-foreground">
+                      {createForm.isActive ? "사용" : "미사용"}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
-            <div>
-              <label className="text-sm font-medium mb-1.5 block">URL</label>
-              <Input
-                placeholder="https://example.com"
-                value={createForm.url}
-                onChange={(e) => setCreateForm({ ...createForm, url: e.target.value })}
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-1.5 block">API Endpoint</label>
-              <Input
-                placeholder="https://api.example.com/v1"
-                value={createForm.apiEndpoint}
-                onChange={(e) => setCreateForm({ ...createForm, apiEndpoint: e.target.value })}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium mb-1.5 block">Namespace</label>
-                <Input
-                  placeholder="namespace"
-                  value={createForm.namespace}
-                  onChange={(e) => setCreateForm({ ...createForm, namespace: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-1.5 block">MCP Server</label>
-                <Input
-                  placeholder="mcp-server-01"
-                  value={createForm.mcpServer}
-                  onChange={(e) => setCreateForm({ ...createForm, mcpServer: e.target.value })}
-                />
-              </div>
+
+            {/* 환경별 세부정보 섹션 */}
+            <div className="p-4 rounded-lg bg-secondary/30 border border-border/50 space-y-4">
+              <h3 className="text-sm font-semibold flex items-center gap-2">
+                <Globe className="w-4 h-4 text-primary" />
+                환경별 세부정보
+              </h3>
+              <Tabs value={createActiveEnvTab} onValueChange={(v) => setCreateActiveEnvTab(v as EnvType)}>
+                <TabsList className="grid w-full grid-cols-4">
+                  {(["PROD", "DEV", "STG", "DR"] as EnvType[]).map((env) => (
+                    <TabsTrigger key={env} value={env} className="text-xs">
+                      <span className={createEnvDetails[env].isEnabled ? "text-primary font-semibold" : ""}>
+                        {env}
+                      </span>
+                      {createEnvDetails[env].isEnabled && (
+                        <span className="ml-1 w-1.5 h-1.5 rounded-full bg-status-online" />
+                      )}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+                {(["PROD", "DEV", "STG", "DR"] as EnvType[]).map((env) => (
+                  <TabsContent key={env} value={env} className="space-y-4 mt-4">
+                    {/* 환경 활성화 토글 */}
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-background/50 border border-border/30">
+                      <Switch
+                        checked={createEnvDetails[env].isEnabled}
+                        onCheckedChange={(checked) => updateCreateEnvDetail(env, "isEnabled", checked)}
+                      />
+                      <span className="text-sm">{env} 환경 {createEnvDetails[env].isEnabled ? "사용중" : "미사용"}</span>
+                    </div>
+
+                    {createEnvDetails[env].isEnabled && (
+                      <div className="space-y-4">
+                        {/* 접속정보 (URL) */}
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                              <Globe className="w-3.5 h-3.5" />
+                              접속정보 (URL)
+                            </h4>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 text-xs"
+                              onClick={() => addCreateUrl(env)}
+                            >
+                              <Plus className="w-3 h-3 mr-1" />
+                              URL 추가
+                            </Button>
+                          </div>
+                          {createEnvDetails[env].urls.map((url, index) => (
+                            <div key={url.id} className="p-3 rounded-lg bg-background/50 border border-border/50 space-y-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs font-medium text-muted-foreground">#{index + 1}</span>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6 text-destructive hover:text-destructive"
+                                  onClick={() => removeCreateUrl(env, url.id)}
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              </div>
+                              <div className="grid grid-cols-4 gap-2">
+                                <div className="col-span-2">
+                                  <label className="text-xs text-muted-foreground">URL</label>
+                                  <Input
+                                    value={url.url}
+                                    onChange={(e) => updateCreateUrlInfo(env, url.id, "url", e.target.value)}
+                                    placeholder="https://example.com"
+                                    className="h-8 text-xs mt-1"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-xs text-muted-foreground">접속유형</label>
+                                  <Select
+                                    value={url.accessType}
+                                    onValueChange={(value: "internal" | "external") => 
+                                      updateCreateUrlInfo(env, url.id, "accessType", value)
+                                    }
+                                  >
+                                    <SelectTrigger className="h-8 text-xs mt-1">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-popover">
+                                      <SelectItem value="internal">내부</SelectItem>
+                                      <SelectItem value="external">외부</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div>
+                                  <label className="text-xs text-muted-foreground">대표URL</label>
+                                  <div className="flex items-center gap-2 mt-2">
+                                    <Switch
+                                      checked={url.isPrimary}
+                                      onCheckedChange={(checked) => updateCreateUrlInfo(env, url.id, "isPrimary", checked)}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-4 gap-2">
+                                <div>
+                                  <label className="text-xs text-muted-foreground">Hosts 필요</label>
+                                  <div className="flex items-center gap-2 mt-2">
+                                    <Switch
+                                      checked={url.hostsRequired}
+                                      onCheckedChange={(checked) => updateCreateUrlInfo(env, url.id, "hostsRequired", checked)}
+                                    />
+                                  </div>
+                                </div>
+                                {url.hostsRequired && (
+                                  <div>
+                                    <label className="text-xs text-muted-foreground">Hosts IP</label>
+                                    <Input
+                                      value={url.hostsIp}
+                                      onChange={(e) => updateCreateUrlInfo(env, url.id, "hostsIp", e.target.value)}
+                                      placeholder="10.0.0.100"
+                                      className="h-8 text-xs mt-1"
+                                    />
+                                  </div>
+                                )}
+                                <div className="col-span-2">
+                                  <label className="text-xs text-muted-foreground">설명</label>
+                                  <Input
+                                    value={url.description}
+                                    onChange={(e) => updateCreateUrlInfo(env, url.id, "description", e.target.value)}
+                                    placeholder="URL 설명"
+                                    className="h-8 text-xs mt-1"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* 인프라정보 (서버) */}
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                              <Server className="w-3.5 h-3.5" />
+                              인프라정보 (서버)
+                            </h4>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 text-xs"
+                              onClick={() => addCreateServer(env)}
+                            >
+                              <Plus className="w-3 h-3 mr-1" />
+                              서버 추가
+                            </Button>
+                          </div>
+                          {createEnvDetails[env].servers.map((server, index) => (
+                            <div key={server.id} className="p-3 rounded-lg bg-background/50 border border-border/50 space-y-3">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs font-medium text-muted-foreground">#{index + 1}</span>
+                                  <Badge variant={server.infraType === "CLOUD" ? "default" : "secondary"} className="text-xs">
+                                    {server.infraType}
+                                  </Badge>
+                                  <Badge variant="outline" className="text-xs">
+                                    {server.provider}
+                                  </Badge>
+                                  <Badge variant={server.hostType === "K8S" ? "default" : "secondary"} className="text-xs bg-purple-500/20 text-purple-400 border-purple-500/30">
+                                    {server.hostType}
+                                  </Badge>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6 text-destructive hover:text-destructive"
+                                  onClick={() => removeCreateServer(env, server.id)}
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              </div>
+                              
+                              {/* 서버명 */}
+                              <div>
+                                <label className="text-xs text-muted-foreground">서버명</label>
+                                <Input
+                                  value={server.serverName}
+                                  onChange={(e) => updateCreateServerInfo(env, server.id, "serverName", e.target.value)}
+                                  placeholder="서버명 입력"
+                                  className="h-8 text-xs mt-1"
+                                />
+                              </div>
+                              
+                              {/* 기본 정보 */}
+                              <div className="grid grid-cols-3 gap-2">
+                                <div>
+                                  <label className="text-xs text-muted-foreground">유형</label>
+                                  <Select
+                                    value={server.infraType}
+                                    onValueChange={(value: InfraType) => 
+                                      updateCreateServerInfo(env, server.id, "infraType", value)
+                                    }
+                                  >
+                                    <SelectTrigger className="h-8 text-xs mt-1">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-popover">
+                                      <SelectItem value="CLOUD">CLOUD</SelectItem>
+                                      <SelectItem value="ONPREM">ONPREM</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div>
+                                  <label className="text-xs text-muted-foreground">프로바이더</label>
+                                  <Select
+                                    value={server.provider}
+                                    onValueChange={(value: ProviderType) => 
+                                      updateCreateServerInfo(env, server.id, "provider", value)
+                                    }
+                                  >
+                                    <SelectTrigger className="h-8 text-xs mt-1">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-popover">
+                                      <SelectItem value="AWS">AWS</SelectItem>
+                                      <SelectItem value="AZURE">AZURE</SelectItem>
+                                      <SelectItem value="PRIVATE">PRIVATE</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div>
+                                  <label className="text-xs text-muted-foreground">Host 유형</label>
+                                  <Select
+                                    value={server.hostType}
+                                    onValueChange={(value: HostType) => 
+                                      updateCreateServerInfo(env, server.id, "hostType", value)
+                                    }
+                                  >
+                                    <SelectTrigger className="h-8 text-xs mt-1">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-popover">
+                                      <SelectItem value="K8S">K8S</SelectItem>
+                                      <SelectItem value="VM">VM</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+
+                              {/* K8S 전용 필드 */}
+                              {server.hostType === "K8S" && (
+                                <div className="grid grid-cols-4 gap-2 p-2 rounded-lg bg-blue-500/5 border border-blue-500/20">
+                                  <div>
+                                    <label className="text-xs text-muted-foreground">구독정보</label>
+                                    <Input 
+                                      value={server.subscription}
+                                      onChange={(e) => updateCreateServerInfo(env, server.id, "subscription", e.target.value)}
+                                      placeholder="subscription"
+                                      className="h-8 text-xs mt-1" 
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="text-xs text-muted-foreground">클러스터명</label>
+                                    <Input 
+                                      value={server.clusterName}
+                                      onChange={(e) => updateCreateServerInfo(env, server.id, "clusterName", e.target.value)}
+                                      placeholder="cluster-name"
+                                      className="h-8 text-xs mt-1" 
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="text-xs text-muted-foreground">Namespace</label>
+                                    <Input 
+                                      value={server.namespace}
+                                      onChange={(e) => updateCreateServerInfo(env, server.id, "namespace", e.target.value)}
+                                      placeholder="namespace"
+                                      className="h-8 text-xs mt-1" 
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="text-xs text-muted-foreground">인증정보</label>
+                                    <Input 
+                                      value={server.k8sAuth}
+                                      onChange={(e) => updateCreateServerInfo(env, server.id, "k8sAuth", e.target.value)}
+                                      placeholder="kubeconfig"
+                                      className="h-8 text-xs mt-1" 
+                                    />
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* VM 전용 필드 */}
+                              {server.hostType === "VM" && (
+                                <div className="grid grid-cols-3 gap-2 p-2 rounded-lg bg-orange-500/5 border border-orange-500/20">
+                                  <div>
+                                    <label className="text-xs text-muted-foreground">VM IP</label>
+                                    <Input 
+                                      value={server.vmIp}
+                                      onChange={(e) => updateCreateServerInfo(env, server.id, "vmIp", e.target.value)}
+                                      placeholder="10.0.0.1"
+                                      className="h-8 text-xs mt-1" 
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="text-xs text-muted-foreground">VM OS</label>
+                                    <Input 
+                                      value={server.vmOs}
+                                      onChange={(e) => updateCreateServerInfo(env, server.id, "vmOs", e.target.value)}
+                                      placeholder="Ubuntu 22.04"
+                                      className="h-8 text-xs mt-1" 
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="text-xs text-muted-foreground">인증정보</label>
+                                    <Input 
+                                      value={server.vmAuth}
+                                      onChange={(e) => updateCreateServerInfo(env, server.id, "vmAuth", e.target.value)}
+                                      placeholder="SSH Key"
+                                      className="h-8 text-xs mt-1" 
+                                    />
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* 설명 */}
+                              <div>
+                                <label className="text-xs text-muted-foreground">설명</label>
+                                <Input 
+                                  value={server.description}
+                                  onChange={(e) => updateCreateServerInfo(env, server.id, "description", e.target.value)}
+                                  placeholder="서버 설명"
+                                  className="h-8 text-xs mt-1" 
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* DB정보 */}
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                              <Database className="w-3.5 h-3.5" />
+                              DB정보
+                            </h4>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 text-xs"
+                              onClick={() => addCreateDatabase(env)}
+                            >
+                              <Plus className="w-3 h-3 mr-1" />
+                              DB 추가
+                            </Button>
+                          </div>
+                          {createEnvDetails[env].databases.map((db, index) => (
+                            <div key={db.id} className="p-3 rounded-lg bg-background/50 border border-border/50 space-y-2">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs font-medium text-muted-foreground">#{index + 1}</span>
+                                  <Badge variant="outline" className="text-xs">{db.dbType}</Badge>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6 text-destructive hover:text-destructive"
+                                  onClick={() => removeCreateDatabase(env, db.id)}
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              </div>
+                              
+                              {/* DB 기본 정보 */}
+                              <div className="grid grid-cols-5 gap-2">
+                                <div>
+                                  <label className="text-xs text-muted-foreground">DB Type</label>
+                                  <Select
+                                    value={db.dbType}
+                                    onValueChange={(value: DBType) => 
+                                      updateCreateDatabaseInfo(env, db.id, "dbType", value)
+                                    }
+                                  >
+                                    <SelectTrigger className="h-8 text-xs mt-1">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-popover">
+                                      <SelectItem value="Postgres">Postgres</SelectItem>
+                                      <SelectItem value="MSSQL">MSSQL</SelectItem>
+                                      <SelectItem value="MySQL">MySQL</SelectItem>
+                                      <SelectItem value="Oracle">Oracle</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div>
+                                  <label className="text-xs text-muted-foreground">DB IP</label>
+                                  <Input 
+                                    value={db.dbIp}
+                                    onChange={(e) => updateCreateDatabaseInfo(env, db.id, "dbIp", e.target.value)}
+                                    placeholder="10.0.0.10"
+                                    className="h-8 text-xs mt-1" 
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-xs text-muted-foreground">Port</label>
+                                  <Input 
+                                    value={db.dbPort}
+                                    onChange={(e) => updateCreateDatabaseInfo(env, db.id, "dbPort", e.target.value)}
+                                    placeholder="5432"
+                                    className="h-8 text-xs mt-1" 
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-xs text-muted-foreground">DB Name</label>
+                                  <Input 
+                                    value={db.dbName}
+                                    onChange={(e) => updateCreateDatabaseInfo(env, db.id, "dbName", e.target.value)}
+                                    placeholder="database"
+                                    className="h-8 text-xs mt-1" 
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-xs text-muted-foreground">Key Vault Key</label>
+                                  <Input 
+                                    value={db.keyVaultKey}
+                                    onChange={(e) => updateCreateDatabaseInfo(env, db.id, "keyVaultKey", e.target.value)}
+                                    placeholder="kv-db-key"
+                                    className="h-8 text-xs mt-1" 
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </TabsContent>
+                ))}
+              </Tabs>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>
+            <Button variant="outline" onClick={() => {
+              setIsCreateModalOpen(false);
+              resetCreateForm();
+            }}>
               취소
             </Button>
             <Button onClick={handleCreate}>추가</Button>
