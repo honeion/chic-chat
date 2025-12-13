@@ -709,18 +709,6 @@ export function SystemMonitoringManagement() {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader className="bg-primary/10">
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Monitor className="w-5 h-5" />
-              시스템 모니터링 관리
-            </CardTitle>
-            <Button onClick={handleAdd} size="sm">
-              <Plus className="w-4 h-4 mr-1" />
-              체크 추가
-            </Button>
-          </div>
-        </CardHeader>
         <CardContent className="p-4 space-y-4">
           {/* 필터 영역 */}
           <div className="flex flex-wrap gap-3 p-3 rounded-lg bg-muted/30">
@@ -881,6 +869,14 @@ export function SystemMonitoringManagement() {
                 )}
               </TableBody>
             </Table>
+          </div>
+
+          {/* 체크 추가 버튼 */}
+          <div className="flex justify-end pt-2">
+            <Button onClick={handleAdd} size="sm">
+              <Plus className="w-4 h-4 mr-1" />
+              체크 추가
+            </Button>
           </div>
         </CardContent>
       </Card>
