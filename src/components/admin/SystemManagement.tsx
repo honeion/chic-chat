@@ -182,7 +182,7 @@ export function SystemManagement() {
   const [activeEnvTab, setActiveEnvTab] = useState<EnvType>("PROD");
   const [jsonViewSystemId, setJsonViewSystemId] = useState<string | null>(null);
   const [viewFormat, setViewFormat] = useState<"json" | "md">("json");
-  const [showDetailJson, setShowDetailJson] = useState(false);
+  const [detailViewFormat, setDetailViewFormat] = useState<"json" | "md" | null>(null);
 
   // 환경별 세부정보 상태
   const [envDetails, setEnvDetails] = useState<Record<EnvType, EnvDetail>>({
@@ -880,35 +880,29 @@ export function SystemManagement() {
           </DialogHeader>
           {selectedSystem && (
             <div className="space-y-6 py-4">
-              {/* JSON Toggle */}
-              <div className="flex items-center justify-end">
+              {/* JSON/MD 보기 버튼 */}
+              <div className="flex items-center justify-end gap-2">
                 <Button
-                  variant={showDetailJson ? "default" : "outline"}
+                  variant="outline"
                   size="sm"
-                  onClick={() => setShowDetailJson(!showDetailJson)}
+                  onClick={() => setDetailViewFormat("json")}
                   className="h-7 gap-1.5 text-xs"
                 >
-                  {showDetailJson ? <List className="w-3.5 h-3.5" /> : <Code className="w-3.5 h-3.5" />}
-                  {showDetailJson ? "상세정보 보기" : "JSON 보기"}
+                  <Code className="w-3.5 h-3.5" />
+                  JSON 보기
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setDetailViewFormat("md")}
+                  className="h-7 gap-1.5 text-xs"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  MD 보기
                 </Button>
               </div>
 
-              {showDetailJson ? (
-                <div className="relative">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute top-2 right-2 h-7 w-7 z-10"
-                    onClick={() => handleCopy(JSON.stringify({ system: selectedSystem, envDetails }, null, 2))}
-                  >
-                    <Copy className="w-3.5 h-3.5" />
-                  </Button>
-                  <pre className="p-4 rounded-lg bg-secondary/50 text-xs overflow-auto max-h-[60vh] font-mono">
-                    {JSON.stringify({ system: selectedSystem, envDetails }, null, 2)}
-                  </pre>
-                </div>
-              ) : (
-                <>
+              
               {/* Overview Section */}
               <div className="space-y-4">
                 <h3 className="text-sm font-semibold flex items-center gap-2 text-primary">
@@ -1533,8 +1527,6 @@ export function SystemManagement() {
                   ))}
                 </Tabs>
               </div>
-                </>
-              )}
             </div>
           )}
           <DialogFooter>
@@ -1543,6 +1535,39 @@ export function SystemManagement() {
             </Button>
             <Button onClick={() => setIsDetailModalOpen(false)}>저장</Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Detail JSON/MD Popup Modal */}
+      <Dialog open={detailViewFormat !== null} onOpenChange={(open) => !open && setDetailViewFormat(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              {detailViewFormat === "json" ? <Code className="w-5 h-5 text-primary" /> : <FileText className="w-5 h-5 text-primary" />}
+              {selectedSystem?.name} - {detailViewFormat === "json" ? "JSON" : "MD"} 보기
+            </DialogTitle>
+          </DialogHeader>
+          {selectedSystem && detailViewFormat && (() => {
+            const fullData = { system: selectedSystem, envDetails };
+            const content = detailViewFormat === "json" 
+              ? JSON.stringify(fullData, null, 2) 
+              : systemToMarkdown(selectedSystem, envDetails);
+            return (
+              <div className="relative">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-2 right-2 h-7 w-7 z-10"
+                  onClick={() => handleCopy(content)}
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                </Button>
+                <pre className="p-4 rounded-lg bg-secondary/50 text-xs overflow-auto max-h-[60vh] font-mono whitespace-pre-wrap">
+                  {content}
+                </pre>
+              </div>
+            );
+          })()}
         </DialogContent>
       </Dialog>
 
