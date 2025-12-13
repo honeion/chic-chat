@@ -49,6 +49,9 @@ interface UserData {
   lastLogin: string;
 }
 
+// 시스템 목록
+const availableSystems = ["e-총무", "BiOn", "SATIS", "ITS"];
+
 // Mock data
 const mockUsers: UserData[] = [
   {
@@ -113,6 +116,8 @@ export function UserManagement() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
+  const [createSelectedSystems, setCreateSelectedSystems] = useState<string[]>([]);
+  const [editSelectedSystems, setEditSelectedSystems] = useState<string[]>([]);
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
@@ -137,7 +142,24 @@ export function UserManagement() {
 
   const handleEdit = (user: UserData) => {
     setSelectedUser(user);
+    setEditSelectedSystems(user.systems);
     setIsEditModalOpen(true);
+  };
+
+  const toggleCreateSystem = (system: string) => {
+    setCreateSelectedSystems(prev => 
+      prev.includes(system) 
+        ? prev.filter(s => s !== system)
+        : [...prev, system]
+    );
+  };
+
+  const toggleEditSystem = (system: string) => {
+    setEditSelectedSystems(prev => 
+      prev.includes(system) 
+        ? prev.filter(s => s !== system)
+        : [...prev, system]
+    );
   };
 
   return (
@@ -392,7 +414,19 @@ export function UserManagement() {
             </div>
             <div>
               <label className="text-sm font-medium mb-1.5 block">담당 시스템</label>
-              <Input placeholder="시스템 입력 (쉼표로 구분)" />
+              <div className="flex flex-wrap gap-3 p-3 border border-input rounded-md bg-background">
+                {availableSystems.map((system) => (
+                  <label key={system} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={createSelectedSystems.includes(system)}
+                      onChange={() => toggleCreateSystem(system)}
+                      className="rounded border-input"
+                    />
+                    <span className="text-sm">{system}</span>
+                  </label>
+                ))}
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -458,10 +492,19 @@ export function UserManagement() {
             </div>
             <div>
               <label className="text-sm font-medium mb-1.5 block">담당 시스템</label>
-              <Input 
-                placeholder="시스템 입력 (쉼표로 구분)" 
-                defaultValue={selectedUser?.systems.join(", ")} 
-              />
+              <div className="flex flex-wrap gap-3 p-3 border border-input rounded-md bg-background">
+                {availableSystems.map((system) => (
+                  <label key={system} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={editSelectedSystems.includes(system)}
+                      onChange={() => toggleEditSystem(system)}
+                      className="rounded border-input"
+                    />
+                    <span className="text-sm">{system}</span>
+                  </label>
+                ))}
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
