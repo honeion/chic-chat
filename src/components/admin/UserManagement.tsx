@@ -195,10 +195,10 @@ export function UserManagement() {
       </div>
 
       {/* Stats */}
-      <div className="flex gap-3">
+      <div className="grid grid-cols-5 gap-3">
         <Card 
           className={cn(
-            "cursor-pointer transition-all hover:ring-2 hover:ring-primary/50 flex-shrink-0",
+            "cursor-pointer transition-all hover:ring-2 hover:ring-primary/50",
             roleFilter === "all" && "ring-2 ring-primary"
           )}
           onClick={() => setRoleFilter("all")}
@@ -217,7 +217,7 @@ export function UserManagement() {
         </Card>
         <Card 
           className={cn(
-            "cursor-pointer transition-all hover:ring-2 hover:ring-accent/50 flex-shrink-0",
+            "cursor-pointer transition-all hover:ring-2 hover:ring-accent/50",
             roleFilter === "운영자(조회)" && "ring-2 ring-accent"
           )}
           onClick={() => setRoleFilter("운영자(조회)")}
@@ -236,7 +236,7 @@ export function UserManagement() {
         </Card>
         <Card 
           className={cn(
-            "cursor-pointer transition-all hover:ring-2 hover:ring-blue-500/50 flex-shrink-0",
+            "cursor-pointer transition-all hover:ring-2 hover:ring-blue-500/50",
             roleFilter === "운영자(제어)" && "ring-2 ring-blue-500"
           )}
           onClick={() => setRoleFilter("운영자(제어)")}
@@ -255,7 +255,7 @@ export function UserManagement() {
         </Card>
         <Card 
           className={cn(
-            "cursor-pointer transition-all hover:ring-2 hover:ring-muted-foreground/50 flex-shrink-0",
+            "cursor-pointer transition-all hover:ring-2 hover:ring-muted-foreground/50",
             roleFilter === "현업담당자" && "ring-2 ring-muted-foreground"
           )}
           onClick={() => setRoleFilter("현업담당자")}
@@ -276,7 +276,7 @@ export function UserManagement() {
         </Card>
         <Card 
           className={cn(
-            "cursor-pointer transition-all hover:ring-2 hover:ring-status-online/50 flex-shrink-0",
+            "cursor-pointer transition-all hover:ring-2 hover:ring-status-online/50",
             roleFilter === "관리자" && "ring-2 ring-status-online"
           )}
           onClick={() => setRoleFilter("관리자")}
