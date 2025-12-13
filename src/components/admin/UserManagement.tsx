@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { getSystemNames } from "@/data/systems";
+import { SystemMultiSelect } from "./SystemMultiSelect";
 
 type UserRole = "운영자" | "현업담당자" | "관리자";
 
@@ -415,19 +416,12 @@ export function UserManagement() {
             </div>
             <div>
               <label className="text-sm font-medium mb-1.5 block">담당 시스템</label>
-              <div className="flex flex-wrap gap-3 p-3 border border-input rounded-md bg-background">
-                {availableSystems.map((system) => (
-                  <label key={system} className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={createSelectedSystems.includes(system)}
-                      onChange={() => toggleCreateSystem(system)}
-                      className="rounded border-input"
-                    />
-                    <span className="text-sm">{system}</span>
-                  </label>
-                ))}
-              </div>
+              <SystemMultiSelect
+                systems={availableSystems}
+                selectedSystems={createSelectedSystems}
+                onChange={setCreateSelectedSystems}
+                placeholder="담당 시스템 선택"
+              />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -493,19 +487,12 @@ export function UserManagement() {
             </div>
             <div>
               <label className="text-sm font-medium mb-1.5 block">담당 시스템</label>
-              <div className="flex flex-wrap gap-3 p-3 border border-input rounded-md bg-background">
-                {availableSystems.map((system) => (
-                  <label key={system} className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={editSelectedSystems.includes(system)}
-                      onChange={() => toggleEditSystem(system)}
-                      className="rounded border-input"
-                    />
-                    <span className="text-sm">{system}</span>
-                  </label>
-                ))}
-              </div>
+              <SystemMultiSelect
+                systems={availableSystems}
+                selectedSystems={editSelectedSystems}
+                onChange={setEditSelectedSystems}
+                placeholder="담당 시스템 선택"
+              />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
