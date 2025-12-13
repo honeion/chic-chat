@@ -149,6 +149,40 @@ const SYSTEM_DATABASES: Record<string, { id: string; dbName: string; dbType: str
   ],
 };
 
+// 시스템별 서버 목록 (시스템 관리와 연동)
+const SYSTEM_SERVERS: Record<string, { id: string; serverName: string; hostType: string; vmIp?: string; namespace?: string }[]> = {
+  s1: [
+    { id: "srv1-s1", serverName: "echongmu-web-01", hostType: "VM", vmIp: "10.0.1.10" },
+    { id: "srv2-s1", serverName: "echongmu-web-02", hostType: "VM", vmIp: "10.0.1.11" },
+    { id: "srv3-s1", serverName: "echongmu-app-k8s", hostType: "K8S", namespace: "chongmu-prod" },
+  ],
+  s2: [
+    { id: "srv1-s2", serverName: "bion-main-01", hostType: "VM", vmIp: "10.0.2.10" },
+    { id: "srv2-s2", serverName: "bion-k8s-cluster", hostType: "K8S", namespace: "bion-prod" },
+  ],
+  s3: [
+    { id: "srv1-s3", serverName: "satis-api-01", hostType: "VM", vmIp: "10.0.3.10" },
+    { id: "srv2-s3", serverName: "satis-api-02", hostType: "VM", vmIp: "10.0.3.11" },
+  ],
+  s4: [
+    { id: "srv1-s4", serverName: "its-web-k8s", hostType: "K8S", namespace: "its-prod" },
+  ],
+  s5: [
+    { id: "srv1-s5", serverName: "erp-main-01", hostType: "VM", vmIp: "10.0.5.10" },
+    { id: "srv2-s5", serverName: "erp-main-02", hostType: "VM", vmIp: "10.0.5.11" },
+    { id: "srv3-s5", serverName: "erp-batch-01", hostType: "VM", vmIp: "10.0.5.20" },
+  ],
+  s6: [
+    { id: "srv1-s6", serverName: "hrm-web-k8s", hostType: "K8S", namespace: "hr-prod" },
+  ],
+  s7: [
+    { id: "srv1-s7", serverName: "logistics-api-k8s", hostType: "K8S", namespace: "logistics-prod" },
+  ],
+  s8: [
+    { id: "srv1-s8", serverName: "payment-if-01", hostType: "VM", vmIp: "10.0.8.10" },
+  ],
+};
+
 // 모니터링 체크 인터페이스
 interface MonitoringCheck {
   id: string;
@@ -932,6 +966,7 @@ export function SystemMonitoringManagement() {
 
       case "LOG_PATTERN_COUNT_ZERO":
       case "LOG_ERROR_CHECK":
+        const serverListLog = SYSTEM_SERVERS[formData.systemId] || [];
         return (
           <div className="space-y-3">
             <div>
@@ -942,7 +977,7 @@ export function SystemMonitoringManagement() {
                   setFormData({
                     ...formData,
                     target: value,
-                    config: { ...formData.config, logTool: value },
+                    config: { ...formData.config, logTool: value, server: "" },
                   })
                 }
               >
@@ -955,6 +990,38 @@ export function SystemMonitoringManagement() {
                 </SelectContent>
               </Select>
             </div>
+            {formData.config.logTool === "서버로그" && (
+              <div>
+                <Label className="text-xs">서버 선택</Label>
+                {serverListLog.length === 0 ? (
+                  <p className="text-xs text-muted-foreground py-2">선택한 시스템에 등록된 서버가 없습니다.</p>
+                ) : (
+                  <Select
+                    value={formData.config.server || ""}
+                    onValueChange={(value) =>
+                      setFormData({
+                        ...formData,
+                        config: { ...formData.config, server: value },
+                      })
+                    }
+                  >
+                    <SelectTrigger className="text-sm">
+                      <SelectValue placeholder="서버 선택" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {serverListLog.map((server) => (
+                        <SelectItem key={server.id} value={server.serverName}>
+                          <span className="font-medium">{server.serverName}</span>
+                          <span className="text-xs text-muted-foreground ml-2">
+                            ({server.hostType}{server.vmIp ? ` - ${server.vmIp}` : server.namespace ? ` - ${server.namespace}` : ""})
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+            )}
             <div>
               <Label className="text-xs">패턴</Label>
               <Input
