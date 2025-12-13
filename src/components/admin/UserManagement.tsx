@@ -108,16 +108,24 @@ const mockUsers: UserData[] = [
 export function UserManagement() {
   const [users, setUsers] = useState<UserData[]>(mockUsers);
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeFilter, setActiveFilter] = useState<"all" | "active" | "inactive">("all");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
 
-  const filteredUsers = users.filter(
-    (user) =>
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch =
       user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.employeeId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+      user.email.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesActive =
+      activeFilter === "all" ||
+      (activeFilter === "active" && user.isActive) ||
+      (activeFilter === "inactive" && !user.isActive);
+    
+    return matchesSearch && matchesActive;
+  });
 
   const handleDelete = (userId: string) => {
     setUsers(users.filter((u) => u.id !== userId));
@@ -132,14 +140,25 @@ export function UserManagement() {
     <div className="space-y-6">
       {/* Header Actions */}
       <div className="flex items-center justify-between gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="사용자 검색 (이름, 사번, 이메일)"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
+        <div className="flex items-center gap-3 flex-1">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="사용자 검색 (이름, 사번, 이메일)"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <select
+            className="h-10 px-3 rounded-md border border-input bg-background text-sm min-w-[120px]"
+            value={activeFilter}
+            onChange={(e) => setActiveFilter(e.target.value as "all" | "active" | "inactive")}
+          >
+            <option value="all">전체</option>
+            <option value="active">사용</option>
+            <option value="inactive">미사용</option>
+          </select>
         </div>
         <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
           <Plus className="w-4 h-4" />
