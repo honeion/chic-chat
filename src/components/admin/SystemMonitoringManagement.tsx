@@ -788,6 +788,11 @@ export function SystemMonitoringManagement() {
                 className="pl-8 text-sm"
               />
             </div>
+
+            <Button onClick={handleAdd} size="sm">
+              <Plus className="w-4 h-4 mr-1" />
+              체크 추가
+            </Button>
           </div>
 
           {/* 목록 테이블 */}
@@ -871,13 +876,6 @@ export function SystemMonitoringManagement() {
             </Table>
           </div>
 
-          {/* 체크 추가 버튼 */}
-          <div className="flex justify-end pt-2">
-            <Button onClick={handleAdd} size="sm">
-              <Plus className="w-4 h-4 mr-1" />
-              체크 추가
-            </Button>
-          </div>
         </CardContent>
       </Card>
 
