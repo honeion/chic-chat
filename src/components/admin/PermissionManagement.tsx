@@ -284,57 +284,64 @@ export function PermissionManagement() {
               권한 그룹별 Tool 접근 권한
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-4">
-            <Accordion type="multiple" defaultValue={rolePermissions.map((r) => r.roleId)}>
-              {rolePermissions.map((role) => (
-                <AccordionItem key={role.roleId} value={role.roleId}>
-                  <AccordionTrigger className="hover:no-underline">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
-                        {role.icon}
-                      </div>
-                      <div className="text-left">
-                        <p className="font-medium text-sm">{role.roleName}</p>
-                        <p className="text-xs text-muted-foreground">{role.description}</p>
-                      </div>
-                      <Badge variant="secondary" className="ml-4">
-                        {countEnabled(role.toolPermissions)}/{tools.length} Tool
-                      </Badge>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="pl-11 pt-2 space-y-4">
-                      {Object.entries(toolsByCategory).map(([category, categoryTools]) => (
-                        <div key={category}>
-                          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                            {category}
-                          </h4>
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                            {categoryTools.map((tool) => (
-                              <div
-                                key={tool.id}
-                                className={cn(
-                                  "flex items-center justify-between p-2 rounded-lg border transition-colors",
-                                  role.toolPermissions[tool.id]
-                                    ? "bg-primary/10 border-primary/30"
-                                    : "bg-secondary/30 border-border"
-                                )}
-                              >
-                                <span className="text-sm">{tool.name}</span>
-                                <Switch
-                                  checked={role.toolPermissions[tool.id] || false}
-                                  onCheckedChange={() => toggleToolPermission(role.roleId, tool.id)}
-                                />
-                              </div>
-                            ))}
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-secondary/50 text-sm">
+                  <tr>
+                    <th className="text-left px-4 py-3 font-medium min-w-[180px]">권한 그룹</th>
+                    {Object.entries(toolsByCategory).map(([category, categoryTools]) => (
+                      <th key={category} colSpan={categoryTools.length} className="text-center px-2 py-2 font-medium text-xs border-l border-border">
+                        <div className="text-muted-foreground mb-1">{category}</div>
+                        <div className="flex justify-center gap-1">
+                          {categoryTools.map((tool) => (
+                            <span key={tool.id} className="text-[10px] px-1 min-w-[60px]">{tool.name}</span>
+                          ))}
+                        </div>
+                      </th>
+                    ))}
+                    <th className="text-center px-4 py-3 font-medium border-l border-border">활성</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {rolePermissions.map((role) => (
+                    <tr 
+                      key={role.roleId} 
+                      className={cn(
+                        "hover:bg-secondary/30 transition-colors",
+                        selectedRole === role.roleId && "bg-primary/5"
+                      )}
+                    >
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
+                            {role.icon}
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm">{role.roleName}</p>
                           </div>
                         </div>
+                      </td>
+                      {Object.entries(toolsByCategory).map(([category, categoryTools]) => (
+                        categoryTools.map((tool, idx) => (
+                          <td key={tool.id} className={cn("text-center px-2 py-3", idx === 0 && "border-l border-border")}>
+                            <Switch
+                              checked={role.toolPermissions[tool.id] || false}
+                              onCheckedChange={() => toggleToolPermission(role.roleId, tool.id)}
+                            />
+                          </td>
+                        ))
                       ))}
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
+                      <td className="text-center px-4 py-3 border-l border-border">
+                        <Badge variant="secondary">
+                          {countEnabled(role.toolPermissions)}/{tools.length}
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </CardContent>
         </Card>
       )}
