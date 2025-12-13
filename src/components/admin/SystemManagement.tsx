@@ -316,7 +316,6 @@ export function SystemManagement() {
                 <th className="text-left px-4 py-3 font-medium">시스템유형</th>
                 <th className="text-left px-4 py-3 font-medium">설명</th>
                 <th className="text-left px-4 py-3 font-medium">담당자</th>
-                <th className="text-left px-4 py-3 font-medium">상태</th>
                 <th className="text-left px-4 py-3 font-medium">사용여부</th>
                 <th className="text-right px-4 py-3 font-medium">액션</th>
               </tr>
@@ -351,7 +350,6 @@ export function SystemManagement() {
                     </p>
                   </td>
                   <td className="px-4 py-3 text-sm">{system.manager}</td>
-                  <td className="px-4 py-3">{getStatusBadge(system.status)}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1">
                       {system.isActive ? (
