@@ -119,17 +119,39 @@ const defaultServerInfo: ServerInfo = {
   vmAuth: "",
 };
 
+// DB 정보 타입
+type DBType = "Postgres" | "MSSQL" | "MySQL" | "Oracle";
+
+interface DBInfo {
+  id: string;
+  dbType: DBType; // DB Type
+  dbIp: string; // DB IP
+  dbPort: string; // Port
+  dbName: string; // DB Name
+  dbUser: string; // DB User (key vault)
+  dbPassword: string; // DB Passwd (Key vault)
+  keyVaultKey: string; // Key Vault Key
+}
+
+const defaultDBInfo: DBInfo = {
+  id: "",
+  dbType: "Postgres",
+  dbIp: "",
+  dbPort: "",
+  dbName: "",
+  dbUser: "",
+  dbPassword: "",
+  keyVaultKey: "",
+};
+
 interface EnvDetail {
   isEnabled: boolean;
   // 접속정보 (URL 목록)
   urls: UrlInfo[];
   // 인프라정보 (서버 목록)
   servers: ServerInfo[];
-  // DB 정보
-  dbHost: string;
-  dbPort: string;
-  dbName: string;
-  dbUser: string;
+  // DB 정보 (DB 목록)
+  databases: DBInfo[];
   // 모니터링 정보
   monitoringUrl: string;
   logPath: string;
@@ -140,10 +162,7 @@ const defaultEnvDetail: EnvDetail = {
   isEnabled: false,
   urls: [],
   servers: [],
-  dbHost: "",
-  dbPort: "",
-  dbName: "",
-  dbUser: "",
+  databases: [],
   monitoringUrl: "",
   logPath: "",
   alertEmail: "",
@@ -222,15 +241,24 @@ export function SystemManagement() {
         vmAuth: "",
       },
     ];
+    const initialDatabases: DBInfo[] = [
+      {
+        id: crypto.randomUUID(),
+        dbType: "Postgres",
+        dbIp: "db-prod.example.com",
+        dbPort: "5432",
+        dbName: system.shortName.toLowerCase() + "_db",
+        dbUser: system.shortName.toLowerCase() + "_user",
+        dbPassword: "",
+        keyVaultKey: "kv-" + system.shortName.toLowerCase() + "-db",
+      },
+    ];
     setEnvDetails({
       PROD: {
         isEnabled: true,
         urls: initialUrls,
         servers: initialServers,
-        dbHost: "db-prod.example.com",
-        dbPort: "5432",
-        dbName: system.shortName.toLowerCase() + "_db",
-        dbUser: system.shortName.toLowerCase() + "_user",
+        databases: initialDatabases,
         monitoringUrl: "https://monitor.example.com/" + system.shortName.toLowerCase(),
         logPath: "/var/log/" + system.shortName.toLowerCase(),
         alertEmail: system.manager + "@example.com",
@@ -315,6 +343,45 @@ export function SystemManagement() {
         ...prev[env],
         servers: prev[env].servers.map(s => 
           s.id === serverId ? { ...s, [field]: value } : s
+        ),
+      },
+    }));
+  };
+
+  // DB 추가
+  const addDatabase = (env: EnvType) => {
+    const newDB: DBInfo = {
+      ...defaultDBInfo,
+      id: crypto.randomUUID(),
+    };
+    setEnvDetails(prev => ({
+      ...prev,
+      [env]: {
+        ...prev[env],
+        databases: [...prev[env].databases, newDB],
+      },
+    }));
+  };
+
+  // DB 삭제
+  const removeDatabase = (env: EnvType, dbId: string) => {
+    setEnvDetails(prev => ({
+      ...prev,
+      [env]: {
+        ...prev[env],
+        databases: prev[env].databases.filter(d => d.id !== dbId),
+      },
+    }));
+  };
+
+  // DB 정보 업데이트
+  const updateDatabaseInfo = (env: EnvType, dbId: string, field: keyof DBInfo, value: string) => {
+    setEnvDetails(prev => ({
+      ...prev,
+      [env]: {
+        ...prev[env],
+        databases: prev[env].databases.map(d => 
+          d.id === dbId ? { ...d, [field]: value } : d
         ),
       },
     }));
@@ -1145,48 +1212,138 @@ export function SystemManagement() {
 
                         {/* DB 정보 */}
                         <div className="p-4 rounded-lg bg-secondary/30 space-y-3">
-                          <h4 className="font-medium text-sm flex items-center gap-2">
-                            <Database className="w-4 h-4" />
-                            DB 정보
-                          </h4>
-                          <div className="grid grid-cols-2 gap-3">
-                            <div>
-                              <label className="text-xs text-muted-foreground">DB Host</label>
-                              <Input 
-                                value={envDetails[env].dbHost}
-                                onChange={(e) => updateEnvDetail(env, "dbHost", e.target.value)}
-                                placeholder="db.example.com"
-                                className="mt-1" 
-                              />
-                            </div>
-                            <div>
-                              <label className="text-xs text-muted-foreground">Port</label>
-                              <Input 
-                                value={envDetails[env].dbPort}
-                                onChange={(e) => updateEnvDetail(env, "dbPort", e.target.value)}
-                                placeholder="5432"
-                                className="mt-1" 
-                              />
-                            </div>
-                            <div>
-                              <label className="text-xs text-muted-foreground">Database Name</label>
-                              <Input 
-                                value={envDetails[env].dbName}
-                                onChange={(e) => updateEnvDetail(env, "dbName", e.target.value)}
-                                placeholder="database_name"
-                                className="mt-1" 
-                              />
-                            </div>
-                            <div>
-                              <label className="text-xs text-muted-foreground">DB User</label>
-                              <Input 
-                                value={envDetails[env].dbUser}
-                                onChange={(e) => updateEnvDetail(env, "dbUser", e.target.value)}
-                                placeholder="db_user"
-                                className="mt-1" 
-                              />
-                            </div>
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-medium text-sm flex items-center gap-2">
+                              <Database className="w-4 h-4" />
+                              DB 정보
+                            </h4>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => addDatabase(env)}
+                              className="h-7 text-xs"
+                            >
+                              <Plus className="w-3 h-3 mr-1" />
+                              DB 추가
+                            </Button>
                           </div>
+                          
+                          {envDetails[env].databases.length === 0 ? (
+                            <div className="text-center py-4 text-muted-foreground text-sm">
+                              등록된 DB가 없습니다. DB를 추가해주세요.
+                            </div>
+                          ) : (
+                            <div className="space-y-3">
+                              {envDetails[env].databases.map((db, index) => (
+                                <div key={db.id} className="p-3 rounded-lg bg-background/50 border border-border/50 space-y-3">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs font-medium text-muted-foreground">#{index + 1}</span>
+                                      <Badge variant="outline" className={cn(
+                                        "text-xs",
+                                        db.dbType === "Postgres" && "bg-blue-500/20 text-blue-400 border-blue-500/30",
+                                        db.dbType === "MSSQL" && "bg-red-500/20 text-red-400 border-red-500/30",
+                                        db.dbType === "MySQL" && "bg-orange-500/20 text-orange-400 border-orange-500/30",
+                                        db.dbType === "Oracle" && "bg-purple-500/20 text-purple-400 border-purple-500/30",
+                                      )}>
+                                        {db.dbType}
+                                      </Badge>
+                                    </div>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-6 w-6 text-destructive hover:text-destructive"
+                                      onClick={() => removeDatabase(env, db.id)}
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                    </Button>
+                                  </div>
+                                  
+                                  {/* DB 기본 정보 */}
+                                  <div className="grid grid-cols-4 gap-2">
+                                    <div>
+                                      <label className="text-xs text-muted-foreground">DB Type</label>
+                                      <Select
+                                        value={db.dbType}
+                                        onValueChange={(value: DBType) => 
+                                          updateDatabaseInfo(env, db.id, "dbType", value)
+                                        }
+                                      >
+                                        <SelectTrigger className="h-8 text-xs mt-1">
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent className="bg-popover">
+                                          <SelectItem value="Postgres">Postgres</SelectItem>
+                                          <SelectItem value="MSSQL">MSSQL</SelectItem>
+                                          <SelectItem value="MySQL">MySQL</SelectItem>
+                                          <SelectItem value="Oracle">Oracle</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                    <div>
+                                      <label className="text-xs text-muted-foreground">DB IP</label>
+                                      <Input 
+                                        value={db.dbIp}
+                                        onChange={(e) => updateDatabaseInfo(env, db.id, "dbIp", e.target.value)}
+                                        placeholder="192.168.1.100"
+                                        className="h-8 text-xs mt-1" 
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="text-xs text-muted-foreground">Port</label>
+                                      <Input 
+                                        value={db.dbPort}
+                                        onChange={(e) => updateDatabaseInfo(env, db.id, "dbPort", e.target.value)}
+                                        placeholder="5432"
+                                        className="h-8 text-xs mt-1" 
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="text-xs text-muted-foreground">DB Name</label>
+                                      <Input 
+                                        value={db.dbName}
+                                        onChange={(e) => updateDatabaseInfo(env, db.id, "dbName", e.target.value)}
+                                        placeholder="database_name"
+                                        className="h-8 text-xs mt-1" 
+                                      />
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Key Vault 정보 */}
+                                  <div className="grid grid-cols-3 gap-2 p-2 rounded-lg bg-amber-500/5 border border-amber-500/20">
+                                    <div>
+                                      <label className="text-xs text-muted-foreground">DB User (Key Vault)</label>
+                                      <Input 
+                                        value={db.dbUser}
+                                        onChange={(e) => updateDatabaseInfo(env, db.id, "dbUser", e.target.value)}
+                                        placeholder="db_user"
+                                        className="h-8 text-xs mt-1" 
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="text-xs text-muted-foreground">DB Password (Key Vault)</label>
+                                      <Input 
+                                        type="password"
+                                        value={db.dbPassword}
+                                        onChange={(e) => updateDatabaseInfo(env, db.id, "dbPassword", e.target.value)}
+                                        placeholder="••••••••"
+                                        className="h-8 text-xs mt-1" 
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="text-xs text-muted-foreground">Key Vault Key</label>
+                                      <Input 
+                                        value={db.keyVaultKey}
+                                        onChange={(e) => updateDatabaseInfo(env, db.id, "keyVaultKey", e.target.value)}
+                                        placeholder="kv-db-secret-key"
+                                        className="h-8 text-xs mt-1" 
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
 
                         {/* 모니터링 정보 */}
