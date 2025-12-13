@@ -331,6 +331,8 @@ export function InstructionManagement() {
   const [editSelectedKnowledge, setEditSelectedKnowledge] = useState<string[]>([]);
   const [showMarkdownPreview, setShowMarkdownPreview] = useState(false);
   const [editContent, setEditContent] = useState("");
+  const [showCreateMarkdownPreview, setShowCreateMarkdownPreview] = useState(false);
+  const [createContent, setCreateContent] = useState("");
 
   // 공용지침 필터링
   const filteredPublicInstructions = publicInstructions.filter((inst) => {
@@ -1025,11 +1027,28 @@ export function InstructionManagement() {
                 <label className="text-sm font-medium text-muted-foreground">
                   지침 내용 (Markdown)
                 </label>
+                <Button
+                  variant={showCreateMarkdownPreview ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setShowCreateMarkdownPreview(!showCreateMarkdownPreview)}
+                  className="gap-2"
+                >
+                  <Eye className="w-4 h-4" />
+                  {showCreateMarkdownPreview ? "편집" : "MD 보기"}
+                </Button>
               </div>
-              <Textarea
-                placeholder="지침 내용을 Markdown 형식으로 입력하세요..."
-                className="flex-1 font-mono text-sm resize-none"
-              />
+              {showCreateMarkdownPreview ? (
+                <div className="flex-1 p-4 bg-secondary/30 rounded-lg overflow-y-auto prose prose-sm dark:prose-invert max-w-none">
+                  <ReactMarkdown>{createContent}</ReactMarkdown>
+                </div>
+              ) : (
+                <Textarea
+                  value={createContent}
+                  onChange={(e) => setCreateContent(e.target.value)}
+                  placeholder="지침 내용을 Markdown 형식으로 입력하세요..."
+                  className="flex-1 font-mono text-sm resize-none"
+                />
+              )}
             </div>
           </div>
 
