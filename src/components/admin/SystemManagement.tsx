@@ -1346,51 +1346,6 @@ export function SystemManagement() {
                           )}
                         </div>
 
-                        {/* 모니터링 정보 */}
-                        <div className="p-4 rounded-lg bg-secondary/30 space-y-3">
-                          <h4 className="font-medium text-sm flex items-center gap-2">
-                            <Activity className="w-4 h-4" />
-                            모니터링 정보
-                          </h4>
-                          <div className="grid grid-cols-1 gap-3">
-                            <div>
-                              <label className="text-xs text-muted-foreground">모니터링 URL</label>
-                              <div className="flex items-center gap-2 mt-1">
-                                <Input 
-                                  value={envDetails[env].monitoringUrl}
-                                  onChange={(e) => updateEnvDetail(env, "monitoringUrl", e.target.value)}
-                                  placeholder="https://monitor.example.com"
-                                  className="flex-1" 
-                                />
-                                <Button variant="outline" size="icon" asChild>
-                                  <a href={envDetails[env].monitoringUrl} target="_blank" rel="noopener noreferrer">
-                                    <ExternalLink className="w-4 h-4" />
-                                  </a>
-                                </Button>
-                              </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                              <div>
-                                <label className="text-xs text-muted-foreground">Log Path</label>
-                                <Input 
-                                  value={envDetails[env].logPath}
-                                  onChange={(e) => updateEnvDetail(env, "logPath", e.target.value)}
-                                  placeholder="/var/log/app"
-                                  className="mt-1" 
-                                />
-                              </div>
-                              <div>
-                                <label className="text-xs text-muted-foreground">Alert Email</label>
-                                <Input 
-                                  value={envDetails[env].alertEmail}
-                                  onChange={(e) => updateEnvDetail(env, "alertEmail", e.target.value)}
-                                  placeholder="alert@example.com"
-                                  className="mt-1" 
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
                       </div>
                     </TabsContent>
                   ))}
