@@ -1875,26 +1875,7 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-5">
-                  <div className="space-y-2">
-                    <Label className="text-sm">실행 주기</Label>
-                    <Select
-                      value={formData.interval}
-                      onValueChange={(value) => setFormData({ ...formData, interval: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {INTERVAL_OPTIONS.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
+                <div className="grid grid-cols-2 gap-5">
                   <div className="space-y-2">
                     <Label className="text-sm">중요도</Label>
                     <Select
