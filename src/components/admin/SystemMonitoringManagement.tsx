@@ -1231,6 +1231,110 @@ export function SystemMonitoringManagement() {
           </div>
         );
 
+      case "SYS_RESOURCE_CHECK":
+        const serverListRes = SYSTEM_SERVERS[formData.systemId] || [];
+        return (
+          <div className="space-y-3">
+            <div>
+              <Label className="text-xs">서버 선택</Label>
+              {serverListRes.length === 0 ? (
+                <p className="text-xs text-muted-foreground py-2">선택한 시스템에 등록된 서버가 없습니다.</p>
+              ) : (
+                <Select
+                  value={formData.config.server || ""}
+                  onValueChange={(value) => {
+                    const selectedServer = serverListRes.find(s => s.serverName === value);
+                    setFormData({
+                      ...formData,
+                      target: value,
+                      config: { 
+                        ...formData.config, 
+                        server: value,
+                        serverHostType: selectedServer?.hostType || "",
+                      },
+                    });
+                  }}
+                >
+                  <SelectTrigger className="text-sm">
+                    <SelectValue placeholder="서버 선택" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {serverListRes.map((server) => (
+                      <SelectItem key={server.id} value={server.serverName}>
+                        <span className="font-medium">{server.serverName}</span>
+                        <span className="text-xs text-muted-foreground ml-2">
+                          ({server.hostType}{server.vmIp ? ` - ${server.vmIp}` : server.namespace ? ` - ${server.namespace}` : ""})
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+            {formData.config.serverHostType === "K8S" && (
+              <div>
+                <Label className="text-xs">Deployment 명 (,로 여러개 입력 가능)</Label>
+                <Input
+                  value={formData.config.deploymentName || ""}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      config: { ...formData.config, deploymentName: e.target.value },
+                    })
+                  }
+                  placeholder="예: my-app-deployment, api-deployment"
+                  className="text-sm"
+                />
+                <p className="text-xs text-muted-foreground mt-1">해당 Deployment의 POD 리소스를 조회합니다.</p>
+              </div>
+            )}
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <Label className="text-xs">CPU 임계치 (%)</Label>
+                <Input
+                  value={formData.config.cpuThreshold || ""}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      config: { ...formData.config, cpuThreshold: e.target.value },
+                    })
+                  }
+                  placeholder="80"
+                  className="text-sm"
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Memory 임계치 (%)</Label>
+                <Input
+                  value={formData.config.memoryThreshold || ""}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      config: { ...formData.config, memoryThreshold: e.target.value },
+                    })
+                  }
+                  placeholder="85"
+                  className="text-sm"
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Disk 임계치 (%)</Label>
+                <Input
+                  value={formData.config.diskThreshold || ""}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      config: { ...formData.config, diskThreshold: e.target.value },
+                    })
+                  }
+                  placeholder="90"
+                  className="text-sm"
+                />
+              </div>
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="text-sm text-muted-foreground">
