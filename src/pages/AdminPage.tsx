@@ -14,6 +14,7 @@ import {
   ArrowLeft,
   Settings,
   Crown,
+  Monitor,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LanguageSelector } from "@/components/LanguageSelector";
@@ -26,11 +27,13 @@ import { AgentManagement } from "@/components/admin/AgentManagement";
 import { KnowledgeRAGManagement } from "@/components/admin/KnowledgeRAGManagement";
 import { KnowledgeGraphManagement } from "@/components/admin/KnowledgeGraphManagement";
 import { AdminMonitoring } from "@/components/admin/AdminMonitoring";
+import { SystemMonitoringManagement } from "@/components/admin/SystemMonitoringManagement";
 
 type AdminSection =
   | "users"
   | "systems"
   | "permissions"
+  | "system-monitoring"
   | "instructions"
   | "agents"
   | "knowledge-rag"
@@ -41,6 +44,7 @@ const adminSections = [
   { id: "users" as AdminSection, icon: Users, label: "사용자관리" },
   { id: "systems" as AdminSection, icon: Server, label: "시스템관리" },
   { id: "permissions" as AdminSection, icon: Shield, label: "권한관리" },
+  { id: "system-monitoring" as AdminSection, icon: Monitor, label: "시스템 모니터링 관리" },
   { id: "instructions" as AdminSection, icon: FileText, label: "지침관리" },
   { id: "agents" as AdminSection, icon: Bot, label: "Agent 관리" },
   { id: "knowledge-rag" as AdminSection, icon: Database, label: "지식 RAG 관리" },
@@ -74,8 +78,9 @@ const AdminPage = () => {
       case "systems":
         return <SystemManagement />;
       case "permissions":
-      case "permissions":
         return <PermissionManagement />;
+      case "system-monitoring":
+        return <SystemMonitoringManagement />;
       case "instructions":
         return <InstructionManagement />;
       case "agents":
