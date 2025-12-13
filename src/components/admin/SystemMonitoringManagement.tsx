@@ -1641,7 +1641,7 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50">
-              {!fixedSystemId && <TableHead className="w-24">시스템명</TableHead>}
+              {!fixedSystemId && filterSystem === "all" && <TableHead className="w-24">시스템명</TableHead>}
               <TableHead className="w-12">사용</TableHead>
               <TableHead>체크 이름</TableHead>
               <TableHead className="w-16">환경</TableHead>
@@ -1656,7 +1656,7 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
           <TableBody>
             {filteredChecks.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={fixedSystemId ? 9 : 10} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={(fixedSystemId || filterSystem !== "all") ? 9 : 10} className="text-center py-8 text-muted-foreground">
                   등록된 모니터링 체크가 없습니다.
                 </TableCell>
               </TableRow>
@@ -1667,7 +1667,7 @@ export function SystemMonitoringManagement({ filterBySystemName, isEmbedded = fa
                   className="cursor-pointer hover:bg-muted/50"
                   onClick={() => handleEdit(check)}
                 >
-                  {!fixedSystemId && (
+                  {!fixedSystemId && filterSystem === "all" && (
                     <TableCell className="text-sm">
                       {getSystemName(check.systemId)}
                     </TableCell>
