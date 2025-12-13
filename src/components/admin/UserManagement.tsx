@@ -312,7 +312,11 @@ export function UserManagement() {
               </thead>
               <tbody className="divide-y divide-border">
                 {filteredUsers.map((user) => (
-                  <tr key={user.id} className="hover:bg-secondary/30 transition-colors">
+                  <tr 
+                    key={user.id} 
+                    className="hover:bg-secondary/30 transition-colors cursor-pointer"
+                    onClick={() => handleEdit(user)}
+                  >
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center">
@@ -365,14 +369,14 @@ export function UserManagement() {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-sm text-muted-foreground">{user.lastLogin}</td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon">
                             <MoreHorizontal className="w-4 h-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
+                        <DropdownMenuContent align="end" className="bg-popover">
                           <DropdownMenuItem onClick={() => handleEdit(user)}>
                             <Edit className="w-4 h-4 mr-2" />
                             수정
