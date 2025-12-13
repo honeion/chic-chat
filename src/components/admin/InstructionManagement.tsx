@@ -15,6 +15,9 @@ import {
   MoreHorizontal,
   Check,
   X,
+  Wrench,
+  Database,
+  BookOpen,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -43,12 +46,26 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface InstructionVersion {
   version: string;
   content: string;
   updatedAt: string;
   updatedBy: string;
+}
+
+interface Tool {
+  id: string;
+  name: string;
+  description: string;
+}
+
+interface Knowledge {
+  id: string;
+  name: string;
+  type: "RAG" | "Graph";
+  systemName?: string;
 }
 
 interface InstructionData {
@@ -65,7 +82,31 @@ interface InstructionData {
   currentVersion: string;
   versions: InstructionVersion[];
   isPublic: boolean; // 공용지침 여부
+  selectedTools?: string[];
+  selectedKnowledge?: string[];
 }
+
+// Mock Tools
+const mockTools: Tool[] = [
+  { id: "t1", name: "Health Check", description: "시스템 헬스 체크 도구" },
+  { id: "t2", name: "DB Connect", description: "데이터베이스 연결 도구" },
+  { id: "t3", name: "Log Analyzer", description: "로그 분석 도구" },
+  { id: "t4", name: "Alert Send", description: "알림 발송 도구" },
+  { id: "t5", name: "Report Gen", description: "보고서 생성 도구" },
+  { id: "t6", name: "API Request", description: "API 요청 도구" },
+  { id: "t7", name: "File Manager", description: "파일 관리 도구" },
+  { id: "t8", name: "Email Sender", description: "이메일 발송 도구" },
+];
+
+// Mock Knowledge
+const mockKnowledge: Knowledge[] = [
+  { id: "k1", name: "e-총무 장애 지식", type: "RAG", systemName: "e-총무" },
+  { id: "k2", name: "e-총무 운영 매뉴얼", type: "RAG", systemName: "e-총무" },
+  { id: "k3", name: "BiOn 시스템 구조", type: "Graph", systemName: "BiOn" },
+  { id: "k4", name: "SATIS 데이터 모델", type: "Graph", systemName: "SATIS" },
+  { id: "k5", name: "공통 보안 가이드", type: "RAG" },
+  { id: "k6", name: "인프라 토폴로지", type: "Graph" },
+];
 
 // 공용지침 mock 데이터
 const mockPublicInstructions: InstructionData[] = [
@@ -281,10 +322,12 @@ export function InstructionManagement() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedInstruction, setSelectedInstruction] = useState<InstructionData | null>(null);
-  const [isEditMode, setIsEditMode] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(true); // 기본값 수정모드
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [activeTab, setActiveTab] = useState<"public" | "system">("public");
   const [createType, setCreateType] = useState<"public" | "system">("public");
+  const [editSelectedTools, setEditSelectedTools] = useState<string[]>([]);
+  const [editSelectedKnowledge, setEditSelectedKnowledge] = useState<string[]>([]);
 
   // 공용지침 필터링
   const filteredPublicInstructions = publicInstructions.filter((inst) => {
@@ -447,8 +490,10 @@ export function InstructionManagement() {
                       className="cursor-pointer hover:bg-secondary/50"
                       onClick={() => {
                         setSelectedInstruction(inst);
+                        setEditSelectedTools(inst.selectedTools || []);
+                        setEditSelectedKnowledge(inst.selectedKnowledge || []);
                         setIsDetailModalOpen(true);
-                        setIsEditMode(false);
+                        setIsEditMode(true);
                       }}
                     >
                       <TableCell>
@@ -481,6 +526,8 @@ export function InstructionManagement() {
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setSelectedInstruction(inst);
+                                setEditSelectedTools(inst.selectedTools || []);
+                                setEditSelectedKnowledge(inst.selectedKnowledge || []);
                                 setIsDetailModalOpen(true);
                                 setIsEditMode(true);
                               }}
@@ -571,8 +618,10 @@ export function InstructionManagement() {
                       className="cursor-pointer hover:bg-secondary/50"
                       onClick={() => {
                         setSelectedInstruction(inst);
+                        setEditSelectedTools(inst.selectedTools || []);
+                        setEditSelectedKnowledge(inst.selectedKnowledge || []);
                         setIsDetailModalOpen(true);
-                        setIsEditMode(false);
+                        setIsEditMode(true);
                       }}
                     >
                       <TableCell>
@@ -613,6 +662,8 @@ export function InstructionManagement() {
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setSelectedInstruction(inst);
+                                setEditSelectedTools(inst.selectedTools || []);
+                                setEditSelectedKnowledge(inst.selectedKnowledge || []);
                                 setIsDetailModalOpen(true);
                                 setIsEditMode(true);
                               }}
@@ -762,7 +813,7 @@ export function InstructionManagement() {
                 {isEditMode ? (
                   <Textarea
                     defaultValue={selectedInstruction.content}
-                    rows={15}
+                    rows={10}
                     className="font-mono text-sm"
                   />
                 ) : (
@@ -770,6 +821,97 @@ export function InstructionManagement() {
                     <pre className="whitespace-pre-wrap text-sm">{selectedInstruction.content}</pre>
                   </div>
                 )}
+              </div>
+
+              {/* Tool 선택 */}
+              <div>
+                <label className="text-sm font-medium mb-2 block text-muted-foreground flex items-center gap-2">
+                  <Wrench className="w-4 h-4" />
+                  Tool 선택
+                </label>
+                <div className="p-3 rounded-lg border border-border bg-secondary/20 max-h-40 overflow-y-auto">
+                  <div className="grid grid-cols-2 gap-2">
+                    {mockTools.map((tool) => (
+                      <label
+                        key={tool.id}
+                        className={cn(
+                          "flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors",
+                          editSelectedTools.includes(tool.id)
+                            ? "bg-primary/10 border border-primary/30"
+                            : "bg-background hover:bg-secondary/50"
+                        )}
+                      >
+                        <Checkbox
+                          checked={editSelectedTools.includes(tool.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setEditSelectedTools([...editSelectedTools, tool.id]);
+                            } else {
+                              setEditSelectedTools(editSelectedTools.filter((id) => id !== tool.id));
+                            }
+                          }}
+                        />
+                        <div>
+                          <p className="text-sm font-medium">{tool.name}</p>
+                          <p className="text-xs text-muted-foreground">{tool.description}</p>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  선택된 Tool: {editSelectedTools.length}개
+                </p>
+              </div>
+
+              {/* 지식 선택 */}
+              <div>
+                <label className="text-sm font-medium mb-2 block text-muted-foreground flex items-center gap-2">
+                  <BookOpen className="w-4 h-4" />
+                  지식 선택
+                </label>
+                <div className="p-3 rounded-lg border border-border bg-secondary/20 max-h-40 overflow-y-auto">
+                  <div className="grid grid-cols-2 gap-2">
+                    {mockKnowledge.map((knowledge) => (
+                      <label
+                        key={knowledge.id}
+                        className={cn(
+                          "flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors",
+                          editSelectedKnowledge.includes(knowledge.id)
+                            ? "bg-primary/10 border border-primary/30"
+                            : "bg-background hover:bg-secondary/50"
+                        )}
+                      >
+                        <Checkbox
+                          checked={editSelectedKnowledge.includes(knowledge.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setEditSelectedKnowledge([...editSelectedKnowledge, knowledge.id]);
+                            } else {
+                              setEditSelectedKnowledge(editSelectedKnowledge.filter((id) => id !== knowledge.id));
+                            }
+                          }}
+                        />
+                        <div>
+                          <div className="flex items-center gap-1">
+                            {knowledge.type === "RAG" ? (
+                              <Database className="w-3 h-3 text-blue-500" />
+                            ) : (
+                              <BookOpen className="w-3 h-3 text-green-500" />
+                            )}
+                            <p className="text-sm font-medium">{knowledge.name}</p>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {knowledge.type} {knowledge.systemName && `• ${knowledge.systemName}`}
+                          </p>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  선택된 지식: {editSelectedKnowledge.length}개
+                </p>
               </div>
             </div>
           )}
