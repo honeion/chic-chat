@@ -1047,7 +1047,7 @@ export function SystemMonitoringManagement() {
               />
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label className="text-xs">중요도 *</Label>
                 <Select
@@ -1061,24 +1061,6 @@ export function SystemMonitoringManagement() {
                     {SEVERITY_OPTIONS.map((sev) => (
                       <SelectItem key={sev.value} value={sev.value}>
                         {sev.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-xs">실행 주기 *</Label>
-                <Select
-                  value={formData.interval}
-                  onValueChange={(value) => setFormData({ ...formData, interval: value })}
-                >
-                  <SelectTrigger className="text-sm">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {INTERVAL_OPTIONS.map((int) => (
-                      <SelectItem key={int.value} value={int.value}>
-                        {int.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
