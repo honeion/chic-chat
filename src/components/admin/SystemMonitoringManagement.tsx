@@ -1037,7 +1037,7 @@ export function SystemMonitoringManagement() {
 
       {/* 추가/수정 모달 */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader className="pb-4">
             <DialogTitle className="text-lg">
               {editingCheck ? "모니터링 체크 수정" : "모니터링 체크 추가"}
