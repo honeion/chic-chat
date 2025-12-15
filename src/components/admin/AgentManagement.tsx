@@ -19,6 +19,7 @@ import {
   Server,
   Store,
   User,
+  ChevronsUpDown,
 } from "lucide-react";
 import { mockSystems } from "@/data/systems";
 import ReactMarkdown from "react-markdown";
@@ -39,6 +40,19 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -283,6 +297,10 @@ export function AgentManagement() {
   const [myAgentEditSelectedTools, setMyAgentEditSelectedTools] = useState<string[]>([]);
   const [myAgentEditSelectedKnowledgeBases, setMyAgentEditSelectedKnowledgeBases] = useState<string[]>([]);
   const [myAgentEditInstructionMode, setMyAgentEditInstructionMode] = useState<"edit" | "preview">("edit");
+  const [myAgentEditSystemId, setMyAgentEditSystemId] = useState("");
+  const [myAgentEditSystemName, setMyAgentEditSystemName] = useState("");
+  const [isSystemSelectOpen, setIsSystemSelectOpen] = useState(false);
+  const [systemSearchQuery, setSystemSearchQuery] = useState("");
   
   // Instruction preview modal state
   const [isInstructionPreviewOpen, setIsInstructionPreviewOpen] = useState(false);
@@ -379,7 +397,10 @@ export function AgentManagement() {
     setMyAgentEditSelectedInstructionIds(agent.selectedInstructionIds || []);
     setMyAgentEditSelectedTools(agent.tools);
     setMyAgentEditSelectedKnowledgeBases(agent.knowledgeBases);
+    setMyAgentEditSystemId(agent.systemId);
+    setMyAgentEditSystemName(agent.systemName);
     setMyAgentEditInstructionMode("edit");
+    setSystemSearchQuery("");
     setIsMyAgentDetailModalOpen(true);
   };
 
@@ -413,12 +434,21 @@ export function AgentManagement() {
             selectedInstructionIds: myAgentEditSelectedInstructionIds,
             tools: myAgentEditSelectedTools,
             knowledgeBases: myAgentEditSelectedKnowledgeBases,
+            systemId: myAgentEditSystemId,
+            systemName: myAgentEditSystemName,
             updatedAt: new Date().toISOString().split('T')[0],
           }
         : a
     ));
     setIsMyAgentDetailModalOpen(false);
   };
+
+  // 활성 시스템 목록
+  const activeSystemsList = mockSystems.filter(s => s.isActive);
+  const filteredSystemsList = activeSystemsList.filter(s => 
+    s.name.toLowerCase().includes(systemSearchQuery.toLowerCase()) ||
+    s.shortName.toLowerCase().includes(systemSearchQuery.toLowerCase())
+  );
 
   const openCreateModal = () => {
     setCreateName("");
@@ -1446,11 +1476,60 @@ export function AgentManagement() {
                     <Badge variant="outline" className="mt-1 block w-fit">{selectedMyAgent.sourceAgentName}</Badge>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">매핑 시스템</label>
-                    <Badge className="bg-primary/20 text-primary mt-1 block w-fit">
-                      <Server className="w-3 h-3 mr-1 inline" />
-                      {selectedMyAgent.systemName}
-                    </Badge>
+                    <label className="text-sm font-medium mb-1.5 block text-muted-foreground">매핑 시스템</label>
+                    <Popover open={isSystemSelectOpen} onOpenChange={setIsSystemSelectOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={isSystemSelectOpen}
+                          className="w-full justify-between"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Server className="w-4 h-4 text-primary" />
+                            <span>{myAgentEditSystemName || "시스템 선택"}</span>
+                          </div>
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[280px] p-0 bg-popover border z-50" align="start">
+                        <Command>
+                          <CommandInput 
+                            placeholder="시스템 검색..." 
+                            value={systemSearchQuery}
+                            onValueChange={setSystemSearchQuery}
+                          />
+                          <CommandList>
+                            <CommandEmpty>검색 결과가 없습니다.</CommandEmpty>
+                            <CommandGroup>
+                              {filteredSystemsList.map((system) => (
+                                <CommandItem
+                                  key={system.id}
+                                  value={system.name}
+                                  onSelect={() => {
+                                    setMyAgentEditSystemId(system.id);
+                                    setMyAgentEditSystemName(system.shortName);
+                                    setIsSystemSelectOpen(false);
+                                    setSystemSearchQuery("");
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      myAgentEditSystemId === system.id ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  <div className="flex flex-col">
+                                    <span className="font-medium">{system.shortName}</span>
+                                    <span className="text-xs text-muted-foreground">{system.name}</span>
+                                  </div>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   </div>
                 </div>
 
