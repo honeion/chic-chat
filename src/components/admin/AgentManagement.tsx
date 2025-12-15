@@ -293,28 +293,14 @@ export function AgentManagement() {
     <div className="space-y-6">
       {/* Header Actions */}
       <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4 flex-1">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Agent 검색"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <div className="flex items-center gap-2 border rounded-lg p-1">
-            {(["all", "published", "draft"] as const).map((filter) => (
-              <Button
-                key={filter}
-                variant={filterPublished === filter ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setFilterPublished(filter)}
-              >
-                {filter === "all" ? "전체" : filter === "published" ? "게시됨" : "초안"}
-              </Button>
-            ))}
-          </div>
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Agent 검색"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
         </div>
         <Button onClick={openCreateModal} className="gap-2">
           <Plus className="w-4 h-4" />
@@ -322,9 +308,15 @@ export function AgentManagement() {
         </Button>
       </div>
 
-      {/* Stats */}
+      {/* Stats with Filter */}
       <div className="grid grid-cols-3 gap-4">
-        <Card>
+        <Card 
+          className={cn(
+            "cursor-pointer transition-all hover:border-primary/50",
+            filterPublished === "all" && "ring-2 ring-primary border-primary"
+          )}
+          onClick={() => setFilterPublished("all")}
+        >
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -337,7 +329,13 @@ export function AgentManagement() {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card 
+          className={cn(
+            "cursor-pointer transition-all hover:border-primary/50",
+            filterPublished === "published" && "ring-2 ring-primary border-primary"
+          )}
+          onClick={() => setFilterPublished("published")}
+        >
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-status-online/20 flex items-center justify-center">
@@ -350,7 +348,13 @@ export function AgentManagement() {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card 
+          className={cn(
+            "cursor-pointer transition-all hover:border-primary/50",
+            filterPublished === "draft" && "ring-2 ring-primary border-primary"
+          )}
+          onClick={() => setFilterPublished("draft")}
+        >
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
