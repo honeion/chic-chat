@@ -439,18 +439,76 @@ export function AgentManagement() {
             </CardHeader>
             <CardContent className="pt-4 space-y-3">
               <p className="text-sm text-muted-foreground line-clamp-2">{agent.description}</p>
-              <div className="flex flex-wrap gap-1">
-                {agent.steps.slice(0, 3).map((step) => (
-                  <Badge key={step} variant="secondary" className="text-xs">
-                    {step}
-                  </Badge>
-                ))}
-                {agent.steps.length > 3 && (
-                  <Badge variant="outline" className="text-xs">
-                    +{agent.steps.length - 3}
-                  </Badge>
-                )}
+              
+              {/* Instruction Selection */}
+              <div className="space-y-1">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <FileText className="w-3 h-3" />
+                  <span>지침 ({agent.selectedInstructionIds?.length || 0})</span>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {(agent.selectedInstructionIds || []).slice(0, 2).map((instId) => {
+                    const inst = mockInstructions.find(i => i.id === instId);
+                    return inst ? (
+                      <Badge key={instId} variant="outline" className="text-xs">
+                        {inst.name}
+                      </Badge>
+                    ) : null;
+                  })}
+                  {(agent.selectedInstructionIds?.length || 0) > 2 && (
+                    <Badge variant="outline" className="text-xs">
+                      +{agent.selectedInstructionIds.length - 2}
+                    </Badge>
+                  )}
+                </div>
               </div>
+
+              {/* Tools */}
+              <div className="space-y-1">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Wrench className="w-3 h-3" />
+                  <span>도구 ({agent.tools?.length || 0})</span>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {(agent.tools || []).slice(0, 3).map((toolId) => {
+                    const tool = mockTools.find(t => t.id === toolId);
+                    return tool ? (
+                      <Badge key={toolId} variant="secondary" className="text-xs">
+                        {tool.name}
+                      </Badge>
+                    ) : null;
+                  })}
+                  {(agent.tools?.length || 0) > 3 && (
+                    <Badge variant="outline" className="text-xs">
+                      +{agent.tools.length - 3}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
+              {/* Knowledge Bases */}
+              <div className="space-y-1">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <BookOpen className="w-3 h-3" />
+                  <span>지식 ({agent.knowledgeBases?.length || 0})</span>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {(agent.knowledgeBases || []).slice(0, 2).map((kbId) => {
+                    const kb = mockKnowledgeBases.find(k => k.id === kbId);
+                    return kb ? (
+                      <Badge key={kbId} variant="secondary" className="text-xs bg-primary/10">
+                        {kb.name}
+                      </Badge>
+                    ) : null;
+                  })}
+                  {(agent.knowledgeBases?.length || 0) > 2 && (
+                    <Badge variant="outline" className="text-xs">
+                      +{agent.knowledgeBases.length - 2}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
               <div className="flex items-center justify-between pt-2 border-t border-border text-xs text-muted-foreground">
                 <span>생성: {agent.createdBy}</span>
                 <span>{agent.versions.length}개 버전</span>
