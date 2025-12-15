@@ -15,7 +15,9 @@ import {
   BookOpen,
   FileText,
   Check,
+  Info,
 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -175,6 +177,16 @@ export function AgentManagement() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState<AgentData | null>(null);
   const [showVersionHistory, setShowVersionHistory] = useState(false);
+  
+  // Instruction preview modal state
+  const [isInstructionPreviewOpen, setIsInstructionPreviewOpen] = useState(false);
+  const [previewInstruction, setPreviewInstruction] = useState<Instruction | null>(null);
+
+  const openInstructionPreview = (instruction: Instruction, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setPreviewInstruction(instruction);
+    setIsInstructionPreviewOpen(true);
+  };
 
   // Detail modal state
   const [editName, setEditName] = useState("");
@@ -543,16 +555,26 @@ export function AgentManagement() {
                         <div
                           key={instruction.id}
                           className={cn(
-                            "flex items-center gap-2 p-2 rounded-lg cursor-pointer hover:bg-secondary/50 transition-colors",
+                            "flex items-center justify-between p-2 rounded-lg cursor-pointer hover:bg-secondary/50 transition-colors",
                             editSelectedInstructionIds.includes(instruction.id) && "bg-primary/10"
                           )}
                           onClick={() => toggleInstruction(instruction.id, false)}
                         >
-                          <Checkbox
-                            checked={editSelectedInstructionIds.includes(instruction.id)}
-                            className="pointer-events-none"
-                          />
-                          <span className="text-sm">{instruction.name}</span>
+                          <div className="flex items-center gap-2">
+                            <Checkbox
+                              checked={editSelectedInstructionIds.includes(instruction.id)}
+                              className="pointer-events-none"
+                            />
+                            <span className="text-sm">{instruction.name}</span>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 shrink-0"
+                            onClick={(e) => openInstructionPreview(instruction, e)}
+                          >
+                            <Info className="w-3.5 h-3.5 text-muted-foreground" />
+                          </Button>
                         </div>
                       ))}
                     </div>
@@ -722,16 +744,26 @@ export function AgentManagement() {
                       <div
                         key={instruction.id}
                         className={cn(
-                          "flex items-center gap-2 p-2 rounded-lg cursor-pointer hover:bg-secondary/50 transition-colors",
+                          "flex items-center justify-between p-2 rounded-lg cursor-pointer hover:bg-secondary/50 transition-colors",
                           createSelectedInstructionIds.includes(instruction.id) && "bg-primary/10"
                         )}
                         onClick={() => toggleInstruction(instruction.id, true)}
                       >
-                        <Checkbox
-                          checked={createSelectedInstructionIds.includes(instruction.id)}
-                          className="pointer-events-none"
-                        />
-                        <span className="text-sm">{instruction.name}</span>
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            checked={createSelectedInstructionIds.includes(instruction.id)}
+                            className="pointer-events-none"
+                          />
+                          <span className="text-sm">{instruction.name}</span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 shrink-0"
+                          onClick={(e) => openInstructionPreview(instruction, e)}
+                        >
+                          <Info className="w-3.5 h-3.5 text-muted-foreground" />
+                        </Button>
                       </div>
                     ))}
                   </div>
@@ -859,6 +891,28 @@ export function AgentManagement() {
               취소
             </Button>
             <Button onClick={() => setIsCreateModalOpen(false)}>추가</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Instruction Preview Modal */}
+      <Dialog open={isInstructionPreviewOpen} onOpenChange={setIsInstructionPreviewOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5 text-primary" />
+              {previewInstruction?.name || "지침 내용"}
+            </DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="h-[60vh] border rounded-lg p-4">
+            <div className="prose prose-sm dark:prose-invert max-w-none">
+              <ReactMarkdown>{previewInstruction?.content || ""}</ReactMarkdown>
+            </div>
+          </ScrollArea>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsInstructionPreviewOpen(false)}>
+              닫기
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
