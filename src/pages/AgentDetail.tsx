@@ -2203,6 +2203,7 @@ ${conversationSummary || "(내용 없음)"}
         agentId={agentType}
         agentName={agentName}
         systems={workerSystems}
+        hideSystemSettings={agentType === "biz-support"}
       />
 
       {/* Agent Info Modal */}
