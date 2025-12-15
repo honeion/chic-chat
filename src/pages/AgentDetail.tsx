@@ -12,6 +12,7 @@ import { ChangeManagementAgentDashboard } from "@/components/agent/ChangeManagem
 import { ReportAgentDashboard, type GeneratedReport } from "@/components/agent/ReportAgentDashboard";
 import { InfraAgentDashboard } from "@/components/agent/InfraAgentDashboard";
 import { InfraSettingsModal } from "@/components/agent/InfraSettingsModal";
+import { WorkerInstructionModal } from "@/components/agent/WorkerInstructionModal";
 import { AgentChatPanel } from "@/components/agent/AgentChatPanel";
 
 interface ProcessingStep { id: string; step: string; status: "pending" | "running" | "completed"; detail?: string; }
@@ -366,6 +367,16 @@ export function AgentDetail({ agentId, agentName, onNavigateToAgent }: AgentDeta
   // 인프라 설정 모달 상태
   const [infraSettingsModalOpen, setInfraSettingsModalOpen] = useState(false);
   const [infraSettingsSystem, setInfraSettingsSystem] = useState<{ id: string; name: string } | null>(null);
+  
+  // Worker 지침 모달 상태
+  const [workerInstructionModalOpen, setWorkerInstructionModalOpen] = useState(false);
+  
+  // Worker 담당 시스템 목록
+  const workerSystems = [
+    { id: "e-총무", name: "e-총무" },
+    { id: "BiOn", name: "BiOn" },
+    { id: "SATIS", name: "SATIS" },
+  ];
   
   // 현재 활성 세션의 메시지
   const activeSession = chatSessions.find(s => s.id === activeSessionId);
@@ -1889,7 +1900,12 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
                   </div>
                   <div className="flex gap-2">
                     <button className="px-4 py-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors flex items-center gap-2 text-sm"><Info className="w-4 h-4" />{t("common.info")}</button>
-                    <button className="px-4 py-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors flex items-center gap-2 text-sm"><Settings className="w-4 h-4" />{t("common.settings")}</button>
+                    <button 
+                      onClick={() => setWorkerInstructionModalOpen(true)}
+                      className="px-4 py-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors flex items-center gap-2 text-sm"
+                    >
+                      <Settings className="w-4 h-4" />{t("common.settings")}
+                    </button>
                   </div>
                 </div>
                 {renderDashboard()}
@@ -2003,6 +2019,15 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
           systemId={infraSettingsSystem.id}
         />
       )}
+
+      {/* Worker Instruction Modal */}
+      <WorkerInstructionModal
+        isOpen={workerInstructionModalOpen}
+        onClose={() => setWorkerInstructionModalOpen(false)}
+        agentId={agentType}
+        agentName={agentName}
+        systems={workerSystems}
+      />
     </div>
   );
 }
