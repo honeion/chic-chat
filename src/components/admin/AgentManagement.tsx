@@ -97,7 +97,7 @@ interface AgentData {
   description: string;
   steps: string[];
   instructions: string;
-  selectedInstructionId: string;
+  selectedInstructionIds: string[];
   tools: string[];
   knowledgeBases: string[];
   isPublished: boolean;
@@ -115,7 +115,7 @@ const mockAgents: AgentData[] = [
     description: "매일 아침 자동 실행되는 시스템 점검 루틴",
     steps: ["Health Check", "DB Connect", "Report Gen"],
     instructions: "# 일일 점검 지침\n\n## 목적\n매일 아침 시스템 상태를 점검하고 보고서를 생성합니다.\n\n## 절차\n1. Health Check 실행\n2. DB 연결 확인\n3. 보고서 생성\n\n## 주의사항\n- 이상 발견 시 즉시 담당자에게 알림",
-    selectedInstructionId: "i1",
+    selectedInstructionIds: ["i1"],
     tools: ["t1", "t2", "t4"],
     knowledgeBases: ["kb1", "kb2"],
     isPublished: true,
@@ -135,7 +135,7 @@ const mockAgents: AgentData[] = [
     description: "장애 감지 시 자동으로 대응하는 플로우",
     steps: ["Alert Detect", "Log Analyzer", "Notify", "Escalate"],
     instructions: "# 장애 대응 지침\n\n## 목적\n장애 발생 시 신속하게 대응합니다.\n\n## 절차\n1. 장애 감지 및 분류\n2. 로그 분석\n3. 담당자 알림\n4. 에스컬레이션",
-    selectedInstructionId: "i2",
+    selectedInstructionIds: ["i2"],
     tools: ["t5", "t3", "t6", "t7"],
     knowledgeBases: ["kb3", "kb4"],
     isPublished: true,
@@ -153,7 +153,7 @@ const mockAgents: AgentData[] = [
     description: "데이터베이스 백업 및 검증 자동화",
     steps: ["DB Connect", "Backup Create", "Verify", "Notify"],
     instructions: "# 백업 지침\n\n## 목적\n데이터베이스를 안전하게 백업합니다.\n\n## 절차\n1. DB 연결\n2. 백업 생성\n3. 무결성 검증\n4. 완료 알림",
-    selectedInstructionId: "i3",
+    selectedInstructionIds: ["i3"],
     tools: ["t2", "t8", "t9"],
     knowledgeBases: ["kb5"],
     isPublished: false,
@@ -180,7 +180,7 @@ export function AgentManagement() {
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editInstructions, setEditInstructions] = useState("");
-  const [editSelectedInstructionId, setEditSelectedInstructionId] = useState("");
+  const [editSelectedInstructionIds, setEditSelectedInstructionIds] = useState<string[]>([]);
   const [editSelectedTools, setEditSelectedTools] = useState<string[]>([]);
   const [editSelectedKnowledgeBases, setEditSelectedKnowledgeBases] = useState<string[]>([]);
   const [editInstructionMode, setEditInstructionMode] = useState<"edit" | "preview">("edit");
@@ -189,7 +189,7 @@ export function AgentManagement() {
   const [createName, setCreateName] = useState("");
   const [createDescription, setCreateDescription] = useState("");
   const [createInstructions, setCreateInstructions] = useState("");
-  const [createSelectedInstructionId, setCreateSelectedInstructionId] = useState("");
+  const [createSelectedInstructionIds, setCreateSelectedInstructionIds] = useState<string[]>([]);
   const [createSelectedTools, setCreateSelectedTools] = useState<string[]>([]);
   const [createSelectedKnowledgeBases, setCreateSelectedKnowledgeBases] = useState<string[]>([]);
   const [createInstructionMode, setCreateInstructionMode] = useState<"edit" | "preview">("edit");
@@ -221,7 +221,7 @@ export function AgentManagement() {
     setEditName(agent.name);
     setEditDescription(agent.description);
     setEditInstructions(agent.instructions);
-    setEditSelectedInstructionId(agent.selectedInstructionId);
+    setEditSelectedInstructionIds(agent.selectedInstructionIds || []);
     setEditSelectedTools(agent.tools);
     setEditSelectedKnowledgeBases(agent.knowledgeBases);
     setEditInstructionMode("edit");
@@ -233,7 +233,7 @@ export function AgentManagement() {
     setCreateName("");
     setCreateDescription("");
     setCreateInstructions("");
-    setCreateSelectedInstructionId("");
+    setCreateSelectedInstructionIds([]);
     setCreateSelectedTools([]);
     setCreateSelectedKnowledgeBases([]);
     setCreateInstructionMode("edit");
@@ -241,16 +241,15 @@ export function AgentManagement() {
     setIsCreateModalOpen(true);
   };
 
-  const handleInstructionSelect = (instructionId: string, isCreate: boolean) => {
-    const instruction = mockInstructions.find(i => i.id === instructionId);
-    if (instruction) {
-      if (isCreate) {
-        setCreateSelectedInstructionId(instructionId);
-        setCreateInstructions(instruction.content);
-      } else {
-        setEditSelectedInstructionId(instructionId);
-        setEditInstructions(instruction.content);
-      }
+  const toggleInstruction = (instructionId: string, isCreate: boolean) => {
+    if (isCreate) {
+      setCreateSelectedInstructionIds(prev =>
+        prev.includes(instructionId) ? prev.filter(i => i !== instructionId) : [...prev, instructionId]
+      );
+    } else {
+      setEditSelectedInstructionIds(prev =>
+        prev.includes(instructionId) ? prev.filter(i => i !== instructionId) : [...prev, instructionId]
+      );
     }
   };
 
@@ -536,7 +535,7 @@ export function AgentManagement() {
                 <div>
                   <label className="text-sm font-medium mb-1.5 block text-muted-foreground flex items-center gap-2">
                     <FileText className="w-4 h-4" />
-                    지침 선택
+                    지침 선택 ({editSelectedInstructionIds.length}개 선택)
                   </label>
                   <ScrollArea className="h-32 border rounded-lg p-2">
                     <div className="space-y-1">
@@ -545,18 +544,14 @@ export function AgentManagement() {
                           key={instruction.id}
                           className={cn(
                             "flex items-center gap-2 p-2 rounded-lg cursor-pointer hover:bg-secondary/50 transition-colors",
-                            editSelectedInstructionId === instruction.id && "bg-primary/10 border border-primary/30"
+                            editSelectedInstructionIds.includes(instruction.id) && "bg-primary/10"
                           )}
-                          onClick={() => handleInstructionSelect(instruction.id, false)}
+                          onClick={() => toggleInstruction(instruction.id, false)}
                         >
-                          <div className={cn(
-                            "w-4 h-4 rounded-full border flex items-center justify-center",
-                            editSelectedInstructionId === instruction.id ? "border-primary bg-primary" : "border-muted-foreground"
-                          )}>
-                            {editSelectedInstructionId === instruction.id && (
-                              <Check className="w-3 h-3 text-primary-foreground" />
-                            )}
-                          </div>
+                          <Checkbox
+                            checked={editSelectedInstructionIds.includes(instruction.id)}
+                            className="pointer-events-none"
+                          />
                           <span className="text-sm">{instruction.name}</span>
                         </div>
                       ))}
@@ -631,7 +626,7 @@ export function AgentManagement() {
               <div className="w-1/2 flex flex-col border-l pl-6">
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-sm font-medium text-muted-foreground">
-                    Agent 지침 (Markdown)
+                    Agent 프롬프트 (Markdown)
                   </label>
                   <div className="flex gap-1">
                     <Button
@@ -656,7 +651,7 @@ export function AgentManagement() {
                       value={editInstructions}
                       onChange={(e) => setEditInstructions(e.target.value)}
                       className="w-full h-full min-h-full resize-none border-0 font-mono text-sm"
-                      placeholder="Markdown 형식으로 Agent 지침을 입력하세요..."
+                      placeholder="Markdown 형식으로 Agent 프롬프트를 입력하세요..."
                     />
                   ) : (
                     <ScrollArea className="h-full p-4">
@@ -719,7 +714,7 @@ export function AgentManagement() {
               <div>
                 <label className="text-sm font-medium mb-1.5 block text-muted-foreground flex items-center gap-2">
                   <FileText className="w-4 h-4" />
-                  지침 선택
+                  지침 선택 ({createSelectedInstructionIds.length}개 선택)
                 </label>
                 <ScrollArea className="h-32 border rounded-lg p-2">
                   <div className="space-y-1">
@@ -728,18 +723,14 @@ export function AgentManagement() {
                         key={instruction.id}
                         className={cn(
                           "flex items-center gap-2 p-2 rounded-lg cursor-pointer hover:bg-secondary/50 transition-colors",
-                          createSelectedInstructionId === instruction.id && "bg-primary/10 border border-primary/30"
+                          createSelectedInstructionIds.includes(instruction.id) && "bg-primary/10"
                         )}
-                        onClick={() => handleInstructionSelect(instruction.id, true)}
+                        onClick={() => toggleInstruction(instruction.id, true)}
                       >
-                        <div className={cn(
-                          "w-4 h-4 rounded-full border flex items-center justify-center",
-                          createSelectedInstructionId === instruction.id ? "border-primary bg-primary" : "border-muted-foreground"
-                        )}>
-                          {createSelectedInstructionId === instruction.id && (
-                            <Check className="w-3 h-3 text-primary-foreground" />
-                          )}
-                        </div>
+                        <Checkbox
+                          checked={createSelectedInstructionIds.includes(instruction.id)}
+                          className="pointer-events-none"
+                        />
                         <span className="text-sm">{instruction.name}</span>
                       </div>
                     ))}
@@ -825,7 +816,7 @@ export function AgentManagement() {
             <div className="w-1/2 flex flex-col border-l pl-6">
               <div className="flex items-center justify-between mb-2">
                 <label className="text-sm font-medium text-muted-foreground">
-                  Agent 지침 (Markdown)
+                  Agent 프롬프트 (Markdown)
                 </label>
                 <div className="flex gap-1">
                   <Button
@@ -850,7 +841,7 @@ export function AgentManagement() {
                     value={createInstructions}
                     onChange={(e) => setCreateInstructions(e.target.value)}
                     className="w-full h-full min-h-full resize-none border-0 font-mono text-sm"
-                    placeholder="Markdown 형식으로 Agent 지침을 입력하세요..."
+                    placeholder="Markdown 형식으로 Agent 프롬프트를 입력하세요..."
                   />
                 ) : (
                   <ScrollArea className="h-full p-4">
