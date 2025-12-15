@@ -439,7 +439,7 @@ export function InstructionManagement() {
   const [selectedInstruction, setSelectedInstruction] = useState<InstructionData | null>(null);
   const [isEditMode, setIsEditMode] = useState(true); // 기본값 수정모드
   const [showVersionHistory, setShowVersionHistory] = useState(false);
-  const [activeTab, setActiveTab] = useState<"public" | "system" | "worker">("public");
+  const [activeTab, setActiveTab] = useState<"public" | "system" | "worker">("worker");
   const [createType, setCreateType] = useState<"public" | "system" | "worker">("public");
   const [editSelectedTools, setEditSelectedTools] = useState<string[]>([]);
   const [editSelectedKnowledge, setEditSelectedKnowledge] = useState<string[]>([]);
@@ -589,6 +589,25 @@ export function InstructionManagement() {
         <Card 
           className={cn(
             "cursor-pointer transition-all hover:border-primary/50",
+            activeTab === "worker" && "ring-2 ring-primary border-primary"
+          )}
+          onClick={() => setActiveTab("worker")}
+        >
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                <Wrench className="w-5 h-5 text-orange-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{workerInstructions.length}</p>
+                <p className="text-xs text-muted-foreground">Worker 지침</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card 
+          className={cn(
+            "cursor-pointer transition-all hover:border-primary/50",
             activeTab === "public" && "ring-2 ring-primary border-primary"
           )}
           onClick={() => setActiveTab("public")}
@@ -620,25 +639,6 @@ export function InstructionManagement() {
               <div>
                 <p className="text-2xl font-bold">{systemInstructions.length}</p>
                 <p className="text-xs text-muted-foreground">시스템별 지침</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card 
-          className={cn(
-            "cursor-pointer transition-all hover:border-primary/50",
-            activeTab === "worker" && "ring-2 ring-primary border-primary"
-          )}
-          onClick={() => setActiveTab("worker")}
-        >
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
-                <Wrench className="w-5 h-5 text-orange-500" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{workerInstructions.length}</p>
-                <p className="text-xs text-muted-foreground">Worker 지침</p>
               </div>
             </div>
           </CardContent>
