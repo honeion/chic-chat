@@ -1323,11 +1323,45 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
     ));
   };
 
-  // Biz.Support → ITS 요청 유형 선택 후 미리보기 핸들러
+  // Biz.Support → ITS 요청 유형 선택 후 미리보기 메시지 생성 핸들러
   const handleSelectITSType = (sessionId: string, requestType: RequestType) => {
+    const session = chatSessions.find(s => s.id === sessionId);
+    if (!session) return;
+
+    // 대화 내용 요약 생성
+    const userMessages = session.messages.filter(m => m.role === "user").map(m => m.content);
+    const conversationSummary = userMessages.join("\n");
+    const requestTitle = session.request.title !== "새 문의" 
+      ? session.request.title 
+      : (userMessages[0]?.slice(0, 30) || "시스템 문의") + (userMessages[0]?.length > 30 ? "..." : "");
+    const typeLabel = requestTypeLabels[requestType];
+
+    // 미리보기 메시지 생성
+    const previewMessage = `📋 **ITS 요청 등록 내용 확인**
+
+**요청 유형:** ${typeLabel}
+**요청 제목:** ${requestTitle}
+
+---
+
+**요청 내용:**
+${conversationSummary || "(대화 내용 없음)"}
+
+---
+
+위 내용으로 ITS 요청을 등록하시겠습니까?`;
+
     setChatSessions(prev => prev.map(s => 
       s.id === sessionId 
-        ? { ...s, status: "pending-its-confirm" as const, pendingITSType: requestType }
+        ? { 
+            ...s, 
+            messages: [
+              ...s.messages,
+              { role: "agent" as const, content: previewMessage }
+            ],
+            status: "pending-its-confirm" as const, 
+            pendingITSType: requestType 
+          }
         : s
     ));
   };
@@ -2086,8 +2120,6 @@ ${conversationSummary || "(내용 없음)"}
           isBizSupportSession={activeSession?.request.requestNo.startsWith("BIZ-") && (activeSession?.status === "in-progress" || activeSession?.status === "pending-its-type-selection" || activeSession?.status === "pending-its-confirm")}
           isPendingITSTypeSelection={activeSession?.status === "pending-its-type-selection"}
           isPendingITSConfirm={activeSession?.status === "pending-its-confirm"}
-          pendingITSType={activeSession?.pendingITSType}
-          itsPreviewContent={activeSession ? activeSession.messages.filter(m => m.role === "user").map(m => m.content).join("\n") : ""}
           onStartITSRegistration={() => activeSessionId && handleStartITSRegistration(activeSessionId)}
           onSelectITSType={(type) => activeSessionId && handleSelectITSType(activeSessionId, type)}
           onConfirmITSRequest={() => activeSessionId && handleConfirmITSRequest(activeSessionId)}
@@ -2144,8 +2176,6 @@ ${conversationSummary || "(내용 없음)"}
             isBizSupportSession={activeSession?.request.requestNo.startsWith("BIZ-") && (activeSession?.status === "in-progress" || activeSession?.status === "pending-its-type-selection" || activeSession?.status === "pending-its-confirm")}
             isPendingITSTypeSelection={activeSession?.status === "pending-its-type-selection"}
             isPendingITSConfirm={activeSession?.status === "pending-its-confirm"}
-            pendingITSType={activeSession?.pendingITSType}
-            itsPreviewContent={activeSession ? activeSession.messages.filter(m => m.role === "user").map(m => m.content).join("\n") : ""}
             onStartITSRegistration={() => activeSessionId && handleStartITSRegistration(activeSessionId)}
             onSelectITSType={(type) => activeSessionId && handleSelectITSType(activeSessionId, type)}
             onConfirmITSRequest={() => activeSessionId && handleConfirmITSRequest(activeSessionId)}

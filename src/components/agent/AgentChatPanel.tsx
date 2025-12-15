@@ -87,8 +87,6 @@ interface AgentChatPanelProps {
   isBizSupportSession?: boolean;
   isPendingITSTypeSelection?: boolean;
   isPendingITSConfirm?: boolean;
-  pendingITSType?: "I" | "C" | "D" | "A" | "S";
-  itsPreviewContent?: string;
   onStartITSRegistration?: () => void;
   onSelectITSType?: (type: "I" | "C" | "D" | "A" | "S") => void;
   onConfirmITSRequest?: () => void;
@@ -150,8 +148,6 @@ export function AgentChatPanel({
   isBizSupportSession,
   isPendingITSTypeSelection,
   isPendingITSConfirm,
-  pendingITSType,
-  itsPreviewContent,
   onStartITSRegistration,
   onSelectITSType,
   onConfirmITSRequest,
@@ -602,33 +598,9 @@ export function AgentChatPanel({
         </div>
       )}
 
-      {/* Biz.Support Agent ITS 요청 미리보기 및 확인 */}
-      {isPendingITSConfirm && pendingITSType && (
+      {/* Biz.Support Agent ITS 요청 등록 확인 버튼 */}
+      {isPendingITSConfirm && (
         <div className="p-3 border-t border-border bg-blue-500/5">
-          <p className="text-xs font-medium text-foreground mb-2 text-center">
-            📋 ITS 요청 내용 확인
-          </p>
-          <div className="p-3 rounded-lg bg-background border border-border text-xs mb-3 max-h-40 overflow-y-auto">
-            <div className="mb-2">
-              <span className="text-muted-foreground">요청 유형: </span>
-              <span className="font-medium">
-                {pendingITSType === "I" && "인시던트"}
-                {pendingITSType === "C" && "개선 요청"}
-                {pendingITSType === "D" && "데이터 요청"}
-                {pendingITSType === "A" && "계정/권한"}
-                {pendingITSType === "S" && "단순 요청"}
-              </span>
-            </div>
-            {itsPreviewContent && (
-              <div>
-                <span className="text-muted-foreground">요청 내용:</span>
-                <p className="mt-1 whitespace-pre-wrap text-foreground">{itsPreviewContent}</p>
-              </div>
-            )}
-          </div>
-          <p className="text-xs text-muted-foreground mb-3 text-center">
-            위 내용으로 ITS 요청을 등록하시겠습니까?
-          </p>
           <div className="flex gap-2">
             <button
               onClick={onConfirmITSRequest}
