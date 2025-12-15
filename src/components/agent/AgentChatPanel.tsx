@@ -85,7 +85,10 @@ interface AgentChatPanelProps {
   onSkipITSComplete?: () => void;
   // Biz.Support Agent → ITS 요청 등록 상태
   isBizSupportSession?: boolean;
-  onRegisterITSRequest?: () => void;
+  isPendingITSTypeSelection?: boolean;
+  onStartITSRegistration?: () => void;
+  onSelectITSType?: (type: "I" | "C" | "D" | "A" | "S") => void;
+  onCancelITSRegistration?: () => void;
   // Chat panel expansion
   isExpanded?: boolean;
   onToggleExpand?: () => void;
@@ -141,7 +144,10 @@ export function AgentChatPanel({
   onCompleteITS,
   onSkipITSComplete,
   isBizSupportSession,
-  onRegisterITSRequest,
+  isPendingITSTypeSelection,
+  onStartITSRegistration,
+  onSelectITSType,
+  onCancelITSRegistration,
   isExpanded,
   onToggleExpand
 }: AgentChatPanelProps) {
@@ -536,11 +542,63 @@ export function AgentChatPanel({
         </div>
       )}
 
+      {/* Biz.Support Agent ITS 요청 유형 선택 */}
+      {isPendingITSTypeSelection && (
+        <div className="p-3 border-t border-border bg-blue-500/5">
+          <p className="text-xs text-muted-foreground mb-3 text-center">
+            ITS 요청 유형을 선택해 주세요
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => onSelectITSType?.("I")}
+              className="px-3 py-2 rounded-lg bg-destructive/10 text-destructive text-xs font-medium hover:bg-destructive/20 transition-colors flex items-center gap-1.5 border border-destructive/20"
+            >
+              <AlertTriangle className="w-3.5 h-3.5" />
+              인시던트
+            </button>
+            <button
+              onClick={() => onSelectITSType?.("C")}
+              className="px-3 py-2 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-medium hover:bg-amber-500/20 transition-colors flex items-center gap-1.5 border border-amber-500/20"
+            >
+              <Wrench className="w-3.5 h-3.5" />
+              개선 요청
+            </button>
+            <button
+              onClick={() => onSelectITSType?.("D")}
+              className="px-3 py-2 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-medium hover:bg-emerald-500/20 transition-colors flex items-center gap-1.5 border border-emerald-500/20"
+            >
+              <Database className="w-3.5 h-3.5" />
+              데이터 요청
+            </button>
+            <button
+              onClick={() => onSelectITSType?.("A")}
+              className="px-3 py-2 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-medium hover:bg-blue-500/20 transition-colors flex items-center gap-1.5 border border-blue-500/20"
+            >
+              <User className="w-3.5 h-3.5" />
+              계정/권한
+            </button>
+          </div>
+          <button
+            onClick={() => onSelectITSType?.("S")}
+            className="w-full mt-2 px-3 py-2 rounded-lg bg-muted text-muted-foreground text-xs font-medium hover:bg-muted/80 transition-colors flex items-center justify-center gap-1.5 border border-border"
+          >
+            <FileText className="w-3.5 h-3.5" />
+            단순 요청
+          </button>
+          <button
+            onClick={onCancelITSRegistration}
+            className="w-full mt-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            취소
+          </button>
+        </div>
+      )}
+
       {/* Biz.Support Agent ITS 요청 등록 버튼 */}
-      {isBizSupportSession && onRegisterITSRequest && (
+      {isBizSupportSession && !isPendingITSTypeSelection && onStartITSRegistration && (
         <div className="px-4 py-2 border-t border-border bg-blue-500/5">
           <button
-            onClick={onRegisterITSRequest}
+            onClick={onStartITSRegistration}
             className="w-full px-4 py-2 rounded-lg bg-blue-500/20 text-blue-600 dark:text-blue-400 text-sm font-medium hover:bg-blue-500/30 transition-colors flex items-center justify-center gap-2 border border-blue-500/30"
           >
             <ExternalLink className="w-4 h-4" />

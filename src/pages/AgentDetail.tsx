@@ -49,7 +49,7 @@ export interface ChatSession {
   id: string;
   request: ActiveRequest;
   messages: Message[];
-  status: "pending-approval" | "pending-process-start" | "in-progress" | "completed" | "rejected" | "pending-report-confirm" | "pending-report-start" | "pending-report-review" | "pending-knowledge-save" | "pending-its-navigate" | "pending-its-complete";
+  status: "pending-approval" | "pending-process-start" | "in-progress" | "completed" | "rejected" | "pending-report-confirm" | "pending-report-start" | "pending-report-review" | "pending-knowledge-save" | "pending-its-navigate" | "pending-its-complete" | "pending-its-type-selection";
   createdAt: string;
   sourceIncidentSession?: string; // Report Agent에서 원본 인시던트 세션 ID 저장
   originalITSRequestNo?: string; // 원본 ITS 요청번호 저장
@@ -1304,8 +1304,26 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
     setActiveSessionId(newSessionId);
   };
 
-  // Biz.Support → ITS 요청 등록 핸들러
-  const handleBizRegisterITSRequest = (sessionId: string) => {
+  // Biz.Support → ITS 요청 등록 시작 핸들러
+  const handleStartITSRegistration = (sessionId: string) => {
+    setChatSessions(prev => prev.map(s => 
+      s.id === sessionId 
+        ? { ...s, status: "pending-its-type-selection" as const }
+        : s
+    ));
+  };
+
+  // Biz.Support → ITS 요청 유형 선택 취소 핸들러
+  const handleCancelITSRegistration = (sessionId: string) => {
+    setChatSessions(prev => prev.map(s => 
+      s.id === sessionId 
+        ? { ...s, status: "in-progress" as const }
+        : s
+    ));
+  };
+
+  // Biz.Support → ITS 요청 등록 핸들러 (요청 유형 포함)
+  const handleBizRegisterITSRequest = (sessionId: string, requestType: RequestType) => {
     const session = chatSessions.find(s => s.id === sessionId);
     if (!session) return;
 
@@ -1318,11 +1336,13 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
 
     // ITS 요청 번호 생성
     const itsRequestNo = `ITS-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 9000) + 1000)}`;
+    const typeLabel = requestTypeLabels[requestType];
 
     // Biz 세션에 ITS 요청 등록 안내 메시지 추가
     const itsRegistrationMessage = `📋 **ITS 요청 등록 완료**
 
 **요청 번호:** ${itsRequestNo}
+**요청 유형:** ${typeLabel}
 **요청 제목:** ${requestTitle}
 **등록 일시:** ${new Date().toLocaleString('ko-KR')}
 
@@ -1338,7 +1358,7 @@ ITS Agent에서 해당 요청을 확인하고 처리할 수 있습니다.`;
             ...s, 
             messages: [
               ...s.messages, 
-              { role: "user" as const, content: "ITS 요청 등록하기" },
+              { role: "user" as const, content: `ITS 요청 등록 (${typeLabel})` },
               { role: "agent" as const, content: itsRegistrationMessage, link: { label: "ITS Agent로 이동", agentId: "a1" } }
             ],
             status: "completed" as const
@@ -1353,7 +1373,7 @@ ITS Agent에서 해당 요청을 확인하고 처리할 수 있습니다.`;
       request: {
         id: `its-${Date.now()}`,
         requestNo: itsRequestNo,
-        type: "S" as const, // 단순 요청으로 기본 설정
+        type: requestType,
         title: requestTitle,
         date: new Date().toISOString().split('T')[0],
         system: "e-총무" // 기본 시스템
@@ -1364,6 +1384,7 @@ ITS Agent에서 해당 요청을 확인하고 처리할 수 있습니다.`;
           content: `📥 **Biz.Support Agent에서 접수된 요청**
 
 **요청 번호:** ${itsRequestNo}
+**요청 유형:** ${typeLabel}
 **요청 제목:** ${requestTitle}
 **접수 일시:** ${new Date().toLocaleString('ko-KR')}
 **접수 경로:** Biz.Support Agent
@@ -2045,8 +2066,11 @@ ${conversationSummary || "(내용 없음)"}
           isPendingITSComplete={activeSession?.status === "pending-its-complete"}
           onCompleteITS={() => activeSessionId && handleCompleteITS(activeSessionId)}
           onSkipITSComplete={() => activeSessionId && handleSkipITSComplete(activeSessionId)}
-          isBizSupportSession={activeSession?.request.requestNo.startsWith("BIZ-") && activeSession?.status === "in-progress"}
-          onRegisterITSRequest={() => activeSessionId && handleBizRegisterITSRequest(activeSessionId)}
+          isBizSupportSession={activeSession?.request.requestNo.startsWith("BIZ-") && (activeSession?.status === "in-progress" || activeSession?.status === "pending-its-type-selection")}
+          isPendingITSTypeSelection={activeSession?.status === "pending-its-type-selection"}
+          onStartITSRegistration={() => activeSessionId && handleStartITSRegistration(activeSessionId)}
+          onSelectITSType={(type) => activeSessionId && handleBizRegisterITSRequest(activeSessionId, type)}
+          onCancelITSRegistration={() => activeSessionId && handleCancelITSRegistration(activeSessionId)}
                 isExpanded={isChatExpanded}
                 onToggleExpand={() => setIsChatExpanded(!isChatExpanded)}
               />
@@ -2096,8 +2120,11 @@ ${conversationSummary || "(내용 없음)"}
             isPendingITSComplete={activeSession?.status === "pending-its-complete"}
             onCompleteITS={() => activeSessionId && handleCompleteITS(activeSessionId)}
             onSkipITSComplete={() => activeSessionId && handleSkipITSComplete(activeSessionId)}
-            isBizSupportSession={activeSession?.request.requestNo.startsWith("BIZ-") && activeSession?.status === "in-progress"}
-            onRegisterITSRequest={() => activeSessionId && handleBizRegisterITSRequest(activeSessionId)}
+            isBizSupportSession={activeSession?.request.requestNo.startsWith("BIZ-") && (activeSession?.status === "in-progress" || activeSession?.status === "pending-its-type-selection")}
+            isPendingITSTypeSelection={activeSession?.status === "pending-its-type-selection"}
+            onStartITSRegistration={() => activeSessionId && handleStartITSRegistration(activeSessionId)}
+            onSelectITSType={(type) => activeSessionId && handleBizRegisterITSRequest(activeSessionId, type)}
+            onCancelITSRegistration={() => activeSessionId && handleCancelITSRegistration(activeSessionId)}
             isExpanded={isChatExpanded}
             onToggleExpand={() => setIsChatExpanded(!isChatExpanded)}
           />
