@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { 
   Server, 
   Plus, 
@@ -13,8 +13,23 @@ import {
   Shield,
   Building2,
   Users,
-  Info
+  Info,
+  Search,
+  ChevronDown
 } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -185,6 +200,25 @@ export const MCPManagement = () => {
 
   // Permission tab states
   const [selectedServerId, setSelectedServerId] = useState<string>("");
+  
+  // Search states
+  const [serverSearchQuery, setServerSearchQuery] = useState("");
+  const [isServerSelectOpen, setIsServerSelectOpen] = useState(false);
+
+  // Filtered servers based on search
+  const filteredServers = useMemo(() => {
+    if (!serverSearchQuery) return servers;
+    const query = serverSearchQuery.toLowerCase();
+    return servers.filter(s => 
+      s.name.toLowerCase().includes(query) || 
+      s.description.toLowerCase().includes(query) ||
+      s.connectionType.toLowerCase().includes(query)
+    );
+  }, [servers, serverSearchQuery]);
+
+  const activeFilteredServers = useMemo(() => {
+    return filteredServers.filter(s => s.isActive);
+  }, [filteredServers]);
 
   const resetForm = () => {
     setFormData({
@@ -353,9 +387,20 @@ export const MCPManagement = () => {
 
         {/* MCP Servers Tab */}
         <TabsContent value="servers" className="space-y-4">
-          <div className="flex justify-between items-center">
-            <div className="text-sm text-muted-foreground">
-              총 {servers.length}개의 MCP 서버
+          <div className="flex justify-between items-center gap-4">
+            <div className="flex items-center gap-4 flex-1">
+              <div className="relative flex-1 max-w-sm">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="서버명, 설명, 연결방식으로 검색..."
+                  value={serverSearchQuery}
+                  onChange={(e) => setServerSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <div className="text-sm text-muted-foreground">
+                {serverSearchQuery ? `${filteredServers.length}개 검색됨 / ` : ""}총 {servers.length}개의 MCP 서버
+              </div>
             </div>
             <Button onClick={openCreateModal} className="gap-2">
               <Plus className="w-4 h-4" />
@@ -376,7 +421,7 @@ export const MCPManagement = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {servers.map((server) => (
+                {filteredServers.map((server) => (
                   <TableRow key={server.id} className="hover:bg-muted/30">
                     <TableCell>
                       <div className="font-medium">{server.name}</div>
@@ -439,7 +484,7 @@ export const MCPManagement = () => {
               <Wrench className="w-5 h-5" />
               MCP Tool 목록
             </h3>
-            {servers.map((server) => (
+            {filteredServers.map((server) => (
               server.tools.length > 0 && (
                 <div key={server.id} className="rounded-lg border border-border p-4 space-y-3">
                   <div className="flex items-center justify-between">
@@ -503,16 +548,66 @@ export const MCPManagement = () => {
         <TabsContent value="system-permissions" className="space-y-4">
           <div className="flex items-center gap-4 mb-4">
             <Label>MCP 서버 선택:</Label>
-            <select
-              className="px-3 py-2 rounded-lg border border-border bg-background text-sm"
-              value={selectedServerId}
-              onChange={(e) => setSelectedServerId(e.target.value)}
-            >
-              <option value="">서버를 선택하세요</option>
-              {servers.filter(s => s.isActive).map((server) => (
-                <option key={server.id} value={server.id}>{server.name}</option>
-              ))}
-            </select>
+            <Popover open={isServerSelectOpen} onOpenChange={setIsServerSelectOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={isServerSelectOpen}
+                  className="w-[300px] justify-between"
+                >
+                  {selectedServerId
+                    ? servers.find(s => s.id === selectedServerId)?.name || "서버를 선택하세요"
+                    : "서버를 선택하세요"}
+                  <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[300px] p-0 z-50 bg-popover" align="start">
+                <Command>
+                  <CommandInput placeholder="서버 검색..." />
+                  <CommandList>
+                    <CommandEmpty>검색 결과가 없습니다.</CommandEmpty>
+                    <CommandGroup>
+                      {servers.filter(s => s.isActive).map((server) => (
+                        <CommandItem
+                          key={server.id}
+                          value={server.name}
+                          onSelect={() => {
+                            setSelectedServerId(server.id);
+                            setIsServerSelectOpen(false);
+                          }}
+                        >
+                          <div className="flex items-center gap-2 flex-1">
+                            <Server className="w-4 h-4 text-muted-foreground" />
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-sm">{server.name}</div>
+                              <div className="text-xs text-muted-foreground truncate">{server.description}</div>
+                            </div>
+                            <Badge variant="outline" className={`text-xs ${getConnectionTypeBadge(server.connectionType)}`}>
+                              {server.connectionType.toUpperCase()}
+                            </Badge>
+                          </div>
+                          {selectedServerId === server.id && (
+                            <Check className="ml-2 h-4 w-4 text-primary" />
+                          )}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+            {selectedServerId && (
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setSelectedServerId("")}
+                className="text-muted-foreground"
+              >
+                <X className="w-4 h-4 mr-1" />
+                선택 해제
+              </Button>
+            )}
           </div>
 
           {selectedServerId && (
@@ -563,16 +658,64 @@ export const MCPManagement = () => {
         <TabsContent value="role-permissions" className="space-y-4">
           <div className="flex items-center gap-4 mb-4">
             <Label>MCP 서버 선택:</Label>
-            <select
-              className="px-3 py-2 rounded-lg border border-border bg-background text-sm"
-              value={selectedServerId}
-              onChange={(e) => setSelectedServerId(e.target.value)}
-            >
-              <option value="">서버를 선택하세요</option>
-              {servers.filter(s => s.isActive).map((server) => (
-                <option key={server.id} value={server.id}>{server.name}</option>
-              ))}
-            </select>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  className="w-[300px] justify-between"
+                >
+                  {selectedServerId
+                    ? servers.find(s => s.id === selectedServerId)?.name || "서버를 선택하세요"
+                    : "서버를 선택하세요"}
+                  <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[300px] p-0 z-50 bg-popover" align="start">
+                <Command>
+                  <CommandInput placeholder="서버 검색..." />
+                  <CommandList>
+                    <CommandEmpty>검색 결과가 없습니다.</CommandEmpty>
+                    <CommandGroup>
+                      {servers.filter(s => s.isActive).map((server) => (
+                        <CommandItem
+                          key={server.id}
+                          value={server.name}
+                          onSelect={() => {
+                            setSelectedServerId(server.id);
+                          }}
+                        >
+                          <div className="flex items-center gap-2 flex-1">
+                            <Server className="w-4 h-4 text-muted-foreground" />
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-sm">{server.name}</div>
+                              <div className="text-xs text-muted-foreground truncate">{server.description}</div>
+                            </div>
+                            <Badge variant="outline" className={`text-xs ${getConnectionTypeBadge(server.connectionType)}`}>
+                              {server.connectionType.toUpperCase()}
+                            </Badge>
+                          </div>
+                          {selectedServerId === server.id && (
+                            <Check className="ml-2 h-4 w-4 text-primary" />
+                          )}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+            {selectedServerId && (
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setSelectedServerId("")}
+                className="text-muted-foreground"
+              >
+                <X className="w-4 h-4 mr-1" />
+                선택 해제
+              </Button>
+            )}
           </div>
 
           {selectedServerId && (
