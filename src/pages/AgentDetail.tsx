@@ -13,6 +13,7 @@ import { ReportAgentDashboard, type GeneratedReport } from "@/components/agent/R
 import { InfraAgentDashboard } from "@/components/agent/InfraAgentDashboard";
 import { InfraSettingsModal } from "@/components/agent/InfraSettingsModal";
 import { WorkerInstructionModal } from "@/components/agent/WorkerInstructionModal";
+import { AgentInfoModal } from "@/components/agent/AgentInfoModal";
 import { AgentChatPanel } from "@/components/agent/AgentChatPanel";
 
 interface ProcessingStep { id: string; step: string; status: "pending" | "running" | "completed"; detail?: string; }
@@ -371,6 +372,8 @@ export function AgentDetail({ agentId, agentName, onNavigateToAgent }: AgentDeta
   // Worker 지침 모달 상태
   const [workerInstructionModalOpen, setWorkerInstructionModalOpen] = useState(false);
   
+  // Agent 정보 모달 상태
+  const [agentInfoModalOpen, setAgentInfoModalOpen] = useState(false);
   // Worker 담당 시스템 목록
   const workerSystems = [
     { id: "e-총무", name: "e-총무" },
@@ -1899,7 +1902,12 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
                     <div><h1 className="text-2xl font-bold">{agentName}</h1><p className="text-sm text-muted-foreground">Agent ID: {agentId}</p></div>
                   </div>
                   <div className="flex gap-2">
-                    <button className="px-4 py-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors flex items-center gap-2 text-sm"><Info className="w-4 h-4" />{t("common.info")}</button>
+                    <button 
+                      onClick={() => setAgentInfoModalOpen(true)}
+                      className="px-4 py-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors flex items-center gap-2 text-sm"
+                    >
+                      <Info className="w-4 h-4" />{t("common.info")}
+                    </button>
                     <button 
                       onClick={() => setWorkerInstructionModalOpen(true)}
                       className="px-4 py-2 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors flex items-center gap-2 text-sm"
@@ -2027,6 +2035,14 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
         agentId={agentType}
         agentName={agentName}
         systems={workerSystems}
+      />
+
+      {/* Agent Info Modal */}
+      <AgentInfoModal
+        isOpen={agentInfoModalOpen}
+        onClose={() => setAgentInfoModalOpen(false)}
+        agentId={agentType}
+        agentName={agentName}
       />
     </div>
   );
