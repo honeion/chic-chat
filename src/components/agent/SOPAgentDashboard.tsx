@@ -173,8 +173,6 @@ export function SOPAgentDashboard({
   const filteredChatSessions = filterSessionsBySystem(chatSessions);
 
   const handlePlayClick = (incident: Incident) => {
-    console.log("SOPAgentDashboard handlePlayClick called:", incident);
-    console.log("onStartChat exists:", !!onStartChat);
     if (onStartChat) {
       onStartChat(incident);
     }
