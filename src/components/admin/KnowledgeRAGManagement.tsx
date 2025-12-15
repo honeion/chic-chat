@@ -12,8 +12,14 @@ import {
   Trash2,
   Eye,
   Download,
+  Edit,
+  MoreHorizontal,
+  Check,
+  ChevronsUpDown,
+  Upload,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { mockSystems } from "@/data/systems";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,8 +30,35 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface KnowledgeRAGItem {
   id: string;
@@ -112,8 +145,8 @@ const mockKnowledgeRAG: KnowledgeRAGItem[] = [
   {
     id: "kr5",
     name: "ITS 티켓 템플릿",
-    systemId: "s4",
-    systemName: "ITS",
+    systemId: "s1",
+    systemName: "e-총무",
     description: "ITS 티켓 유형별 처리 템플릿 및 가이드",
     documentCount: 35,
     vectorCount: 9800,
@@ -125,59 +158,208 @@ const mockKnowledgeRAG: KnowledgeRAGItem[] = [
     updatedAt: "2024-12-08",
     status: "active",
   },
-];
-
-const systems = [
-  { id: "s1", name: "e-총무" },
-  { id: "s2", name: "BiOn" },
-  { id: "s3", name: "SATIS" },
-  { id: "s4", name: "ITS" },
+  {
+    id: "kr6",
+    name: "BiOn 운영 매뉴얼",
+    systemId: "s2",
+    systemName: "BiOn",
+    description: "BiOn 시스템 운영자 매뉴얼",
+    documentCount: 55,
+    vectorCount: 15000,
+    storageSize: "280MB",
+    usageCount: 780,
+    lastUsed: "2024-12-08 14:30",
+    createdBy: "김철수",
+    createdAt: "2024-06-01",
+    updatedAt: "2024-11-15",
+    status: "active",
+  },
 ];
 
 export function KnowledgeRAGManagement() {
   const [knowledgeItems, setKnowledgeItems] = useState<KnowledgeRAGItem[]>(mockKnowledgeRAG);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSystem, setSelectedSystem] = useState<string>("all");
+  const [selectedSystemId, setSelectedSystemId] = useState<string>("");
+  const [isSystemSelectOpen, setIsSystemSelectOpen] = useState(false);
+  const [systemSearchQuery, setSystemSearchQuery] = useState("");
+  
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<KnowledgeRAGItem | null>(null);
+  
+  // Create modal state
+  const [createName, setCreateName] = useState("");
+  const [createDescription, setCreateDescription] = useState("");
+  const [isCreateSystemSelectOpen, setIsCreateSystemSelectOpen] = useState(false);
+  const [createSystemId, setCreateSystemId] = useState("");
+  const [createSystemName, setCreateSystemName] = useState("");
+  const [createSystemSearchQuery, setCreateSystemSearchQuery] = useState("");
+
+  const activeSystemsList = mockSystems.filter(s => s.isActive);
+  const filteredSystemsList = activeSystemsList.filter(s =>
+    s.name.toLowerCase().includes(systemSearchQuery.toLowerCase()) ||
+    s.shortName.toLowerCase().includes(systemSearchQuery.toLowerCase())
+  );
+  const filteredCreateSystemsList = activeSystemsList.filter(s =>
+    s.name.toLowerCase().includes(createSystemSearchQuery.toLowerCase()) ||
+    s.shortName.toLowerCase().includes(createSystemSearchQuery.toLowerCase())
+  );
+
+  const selectedSystem = activeSystemsList.find(s => s.id === selectedSystemId);
 
   const filteredItems = knowledgeItems.filter((item) => {
     const matchesSearch =
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesSystem = selectedSystem === "all" || item.systemId === selectedSystem;
+    const matchesSystem = !selectedSystemId || item.systemId === selectedSystemId;
     return matchesSearch && matchesSystem;
   });
-
-  // Group by system
-  const itemsBySystem = systems.reduce((acc, system) => {
-    acc[system.id] = filteredItems.filter((i) => i.systemId === system.id);
-    return acc;
-  }, {} as Record<string, KnowledgeRAGItem[]>);
 
   const getStatusBadge = (status: KnowledgeRAGItem["status"]) => {
     switch (status) {
       case "active":
-        return <Badge className="bg-status-online text-white">활성</Badge>;
+        return <Badge className="bg-status-online text-white text-xs">활성</Badge>;
       case "indexing":
-        return <Badge className="bg-status-busy text-white">인덱싱중</Badge>;
+        return <Badge className="bg-status-busy text-white text-xs">인덱싱중</Badge>;
       case "error":
-        return <Badge variant="destructive">오류</Badge>;
+        return <Badge variant="destructive" className="text-xs">오류</Badge>;
     }
   };
 
-  const totalStats = {
-    documents: knowledgeItems.reduce((sum, i) => sum + i.documentCount, 0),
-    vectors: knowledgeItems.reduce((sum, i) => sum + i.vectorCount, 0),
-    usage: knowledgeItems.reduce((sum, i) => sum + i.usageCount, 0),
+  const handleDelete = (id: string) => {
+    setKnowledgeItems(knowledgeItems.filter((i) => i.id !== id));
+  };
+
+  const openDetailModal = (item: KnowledgeRAGItem) => {
+    setSelectedItem(item);
+    setIsDetailModalOpen(true);
+  };
+
+  const openCreateModal = () => {
+    setCreateName("");
+    setCreateDescription("");
+    setCreateSystemId(selectedSystemId);
+    setCreateSystemName(selectedSystem?.shortName || "");
+    setCreateSystemSearchQuery("");
+    setIsCreateModalOpen(true);
+  };
+
+  const handleCreate = () => {
+    if (!createName.trim() || !createSystemId) return;
+    
+    const newItem: KnowledgeRAGItem = {
+      id: `kr${Date.now()}`,
+      name: createName.trim(),
+      systemId: createSystemId,
+      systemName: createSystemName,
+      description: createDescription.trim(),
+      documentCount: 0,
+      vectorCount: 0,
+      storageSize: "0MB",
+      usageCount: 0,
+      lastUsed: "-",
+      createdBy: "현재 사용자",
+      createdAt: new Date().toISOString().split('T')[0],
+      updatedAt: new Date().toISOString().split('T')[0],
+      status: "active",
+    };
+    
+    setKnowledgeItems([...knowledgeItems, newItem]);
+    setIsCreateModalOpen(false);
+  };
+
+  // Get system stats
+  const getSystemStats = (systemId: string) => {
+    const systemItems = knowledgeItems.filter(i => i.systemId === systemId);
+    return {
+      count: systemItems.length,
+      documents: systemItems.reduce((sum, i) => sum + i.documentCount, 0),
+      vectors: systemItems.reduce((sum, i) => sum + i.vectorCount, 0),
+    };
   };
 
   return (
     <div className="space-y-6">
-      {/* Header Actions */}
+      {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-4 flex-1">
+          {/* System Selector */}
+          <Popover open={isSystemSelectOpen} onOpenChange={setIsSystemSelectOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={isSystemSelectOpen}
+                className="w-[240px] justify-between"
+              >
+                <div className="flex items-center gap-2">
+                  <Server className="w-4 h-4 text-primary" />
+                  <span>{selectedSystem?.shortName || "시스템 선택"}</span>
+                </div>
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[280px] p-0 bg-popover border z-50" align="start">
+              <Command>
+                <CommandInput 
+                  placeholder="시스템 검색..." 
+                  value={systemSearchQuery}
+                  onValueChange={setSystemSearchQuery}
+                />
+                <CommandList>
+                  <CommandEmpty>검색 결과가 없습니다.</CommandEmpty>
+                  <CommandGroup>
+                    <CommandItem
+                      value="all"
+                      onSelect={() => {
+                        setSelectedSystemId("");
+                        setIsSystemSelectOpen(false);
+                        setSystemSearchQuery("");
+                      }}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          !selectedSystemId ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      <span>전체 시스템</span>
+                    </CommandItem>
+                    {filteredSystemsList.map((system) => {
+                      const stats = getSystemStats(system.id);
+                      return (
+                        <CommandItem
+                          key={system.id}
+                          value={system.name}
+                          onSelect={() => {
+                            setSelectedSystemId(system.id);
+                            setIsSystemSelectOpen(false);
+                            setSystemSearchQuery("");
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              selectedSystemId === system.id ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          <div className="flex flex-col flex-1">
+                            <span className="font-medium">{system.shortName}</span>
+                            <span className="text-xs text-muted-foreground">{system.name}</span>
+                          </div>
+                          <Badge variant="secondary" className="text-xs">
+                            {stats.count}개
+                          </Badge>
+                        </CommandItem>
+                      );
+                    })}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+
+          {/* Search */}
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
@@ -187,162 +369,152 @@ export function KnowledgeRAGManagement() {
               className="pl-10"
             />
           </div>
-          <select
-            value={selectedSystem}
-            onChange={(e) => setSelectedSystem(e.target.value)}
-            className="px-3 py-2 rounded-lg border border-border bg-background text-sm min-w-[120px]"
-          >
-            <option value="all">전체 시스템</option>
-            {systems.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
         </div>
-        <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
+        
+        <Button onClick={openCreateModal} className="gap-2">
           <Plus className="w-4 h-4" />
           지식 추가
         </Button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-4 gap-4">
+      {/* System Info Card (when system selected) */}
+      {selectedSystem && (
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Database className="w-5 h-5 text-primary" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Server className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">{selectedSystem.shortName}</h3>
+                  <p className="text-sm text-muted-foreground">{selectedSystem.name}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-2xl font-bold">{knowledgeItems.length}</p>
-                <p className="text-xs text-muted-foreground">지식 베이스</p>
+              <div className="flex items-center gap-6">
+                <div className="text-center">
+                  <p className="text-2xl font-bold">{getSystemStats(selectedSystemId).count}</p>
+                  <p className="text-xs text-muted-foreground">지식 베이스</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold">{getSystemStats(selectedSystemId).documents}</p>
+                  <p className="text-xs text-muted-foreground">문서 수</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold">{(getSystemStats(selectedSystemId).vectors / 1000).toFixed(1)}K</p>
+                  <p className="text-xs text-muted-foreground">벡터 수</p>
+                </div>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center">
-                <FileText className="w-5 h-5 text-accent" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{totalStats.documents}</p>
-                <p className="text-xs text-muted-foreground">총 문서</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
-                <Database className="w-5 h-5 text-muted-foreground" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{(totalStats.vectors / 1000).toFixed(1)}K</p>
-                <p className="text-xs text-muted-foreground">벡터 수</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-status-online/20 flex items-center justify-center">
-                <BarChart3 className="w-5 h-5 text-status-online" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{(totalStats.usage / 1000).toFixed(1)}K</p>
-                <p className="text-xs text-muted-foreground">총 사용횟수</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      )}
 
-      {/* Knowledge List by System */}
-      <div className="space-y-4">
-        {systems
-          .filter((s) => selectedSystem === "all" || s.id === selectedSystem)
-          .map((system) => {
-            const systemItems = itemsBySystem[system.id] || [];
-            if (systemItems.length === 0) return null;
-
-            return (
-              <Card key={system.id}>
-                <CardHeader className="bg-primary/10 pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <Server className="w-5 h-5" />
-                      {system.name}
-                    </CardTitle>
-                    <Badge variant="secondary">{systemItems.length}개 지식베이스</Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div className="divide-y divide-border">
-                    {systemItems.map((item) => (
-                      <div
-                        key={item.id}
-                        className="p-4 hover:bg-secondary/30 transition-colors cursor-pointer"
-                        onClick={() => {
-                          setSelectedItem(item);
-                          setIsDetailModalOpen(true);
-                        }}
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h4 className="font-medium">{item.name}</h4>
-                              {getStatusBadge(item.status)}
-                            </div>
-                            <p className="text-sm text-muted-foreground mb-3">{item.description}</p>
-                            <div className="grid grid-cols-4 gap-4 text-xs">
-                              <div className="flex items-center gap-2">
-                                <FileText className="w-3.5 h-3.5 text-muted-foreground" />
-                                <span>{item.documentCount}개 문서</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <Database className="w-3.5 h-3.5 text-muted-foreground" />
-                                <span>{(item.vectorCount / 1000).toFixed(1)}K 벡터</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <BarChart3 className="w-3.5 h-3.5 text-muted-foreground" />
-                                <span>{item.usageCount}회 사용</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <User className="w-3.5 h-3.5 text-muted-foreground" />
-                                <span>{item.createdBy}</span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-destructive"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setKnowledgeItems(knowledgeItems.filter((i) => i.id !== item.id));
-                              }}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
+      {/* Knowledge List Table */}
+      {!selectedSystemId ? (
+        <p className="text-center py-8 text-muted-foreground">
+          시스템을 선택하면 해당 시스템의 지식 RAG 목록이 표시됩니다.
+        </p>
+      ) : (
+        <Card>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[200px]">지식명</TableHead>
+                <TableHead>설명</TableHead>
+                <TableHead className="w-[80px]">문서</TableHead>
+                <TableHead className="w-[80px]">벡터</TableHead>
+                <TableHead className="w-[80px]">용량</TableHead>
+                <TableHead className="w-[80px]">사용횟수</TableHead>
+                <TableHead className="w-[80px]">상태</TableHead>
+                <TableHead className="w-[100px]">수정일</TableHead>
+                <TableHead className="w-[80px] text-center">관리</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredItems.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                    등록된 지식 RAG가 없습니다.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredItems.map((item) => (
+                  <TableRow
+                    key={item.id}
+                    className="cursor-pointer hover:bg-secondary/50"
+                    onClick={() => openDetailModal(item)}
+                  >
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <Database className="w-4 h-4 text-primary" />
                         </div>
+                        <span className="font-medium">{item.name}</span>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-      </div>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm truncate max-w-[200px]">
+                      {item.description}
+                    </TableCell>
+                    <TableCell className="text-sm">{item.documentCount}개</TableCell>
+                    <TableCell className="text-sm">{(item.vectorCount / 1000).toFixed(1)}K</TableCell>
+                    <TableCell className="text-sm">{item.storageSize}</TableCell>
+                    <TableCell className="text-sm">{item.usageCount}회</TableCell>
+                    <TableCell>{getStatusBadge(item.status)}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{item.updatedAt}</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreHorizontal className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-popover border">
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openDetailModal(item);
+                            }}
+                          >
+                            <Eye className="w-4 h-4 mr-2" />
+                            상세보기
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                            }}
+                          >
+                            <Upload className="w-4 h-4 mr-2" />
+                            문서 업로드
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                            }}
+                          >
+                            <Download className="w-4 h-4 mr-2" />
+                            내보내기
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(item.id);
+                            }}
+                            className="text-destructive"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            삭제
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </Card>
+      )}
 
       {/* Detail Modal */}
       <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
@@ -358,7 +530,10 @@ export function KnowledgeRAGManagement() {
             <div className="space-y-4 py-4">
               <div className="flex items-center gap-2 mb-4">
                 {getStatusBadge(selectedItem.status)}
-                <Badge variant="outline">{selectedItem.systemName}</Badge>
+                <Badge variant="outline">
+                  <Server className="w-3 h-3 mr-1" />
+                  {selectedItem.systemName}
+                </Badge>
               </div>
 
               <div>
@@ -430,6 +605,10 @@ export function KnowledgeRAGManagement() {
               닫기
             </Button>
             <Button variant="outline" className="gap-2">
+              <Upload className="w-4 h-4" />
+              문서 업로드
+            </Button>
+            <Button variant="outline" className="gap-2">
               <Download className="w-4 h-4" />
               내보내기
             </Button>
@@ -445,42 +624,93 @@ export function KnowledgeRAGManagement() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <label className="text-sm font-medium mb-1.5 block">이름</label>
-              <Input placeholder="지식베이스 이름 입력" />
+              <label className="text-sm font-medium mb-1.5 block">
+                시스템 <span className="text-destructive">*</span>
+              </label>
+              <Popover open={isCreateSystemSelectOpen} onOpenChange={setIsCreateSystemSelectOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={isCreateSystemSelectOpen}
+                    className="w-full justify-between"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Server className="w-4 h-4 text-primary" />
+                      <span>{createSystemName || "시스템 선택"}</span>
+                    </div>
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0 bg-popover border z-50" align="start">
+                  <Command>
+                    <CommandInput 
+                      placeholder="시스템 검색..." 
+                      value={createSystemSearchQuery}
+                      onValueChange={setCreateSystemSearchQuery}
+                    />
+                    <CommandList>
+                      <CommandEmpty>검색 결과가 없습니다.</CommandEmpty>
+                      <CommandGroup>
+                        {filteredCreateSystemsList.map((system) => (
+                          <CommandItem
+                            key={system.id}
+                            value={system.name}
+                            onSelect={() => {
+                              setCreateSystemId(system.id);
+                              setCreateSystemName(system.shortName);
+                              setIsCreateSystemSelectOpen(false);
+                              setCreateSystemSearchQuery("");
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                createSystemId === system.id ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            <div className="flex flex-col">
+                              <span className="font-medium">{system.shortName}</span>
+                              <span className="text-xs text-muted-foreground">{system.name}</span>
+                            </div>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
             <div>
-              <label className="text-sm font-medium mb-1.5 block">시스템</label>
-              <select className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm">
-                <option value="">시스템 선택</option>
-                {systems.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
+              <label className="text-sm font-medium mb-1.5 block">
+                이름 <span className="text-destructive">*</span>
+              </label>
+              <Input 
+                placeholder="지식베이스 이름 입력" 
+                value={createName}
+                onChange={(e) => setCreateName(e.target.value)}
+              />
             </div>
             <div>
               <label className="text-sm font-medium mb-1.5 block">설명</label>
-              <Textarea placeholder="지식베이스 설명 입력" rows={3} />
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-1.5 block">문서 업로드</label>
-              <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
-                <FileText className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">
-                  파일을 드래그하거나 클릭하여 업로드
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  PDF, DOCX, TXT, MD 파일 지원
-                </p>
-              </div>
+              <Textarea 
+                placeholder="지식베이스 설명 입력" 
+                rows={3}
+                value={createDescription}
+                onChange={(e) => setCreateDescription(e.target.value)}
+              />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>
               취소
             </Button>
-            <Button onClick={() => setIsCreateModalOpen(false)}>추가</Button>
+            <Button 
+              onClick={handleCreate}
+              disabled={!createName.trim() || !createSystemId}
+            >
+              추가
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
