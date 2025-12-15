@@ -46,7 +46,7 @@ type AdminSection =
 const adminSections = [
   { id: "users" as AdminSection, icon: Users, label: "사용자관리" },
   { id: "systems" as AdminSection, icon: Server, label: "시스템관리" },
-  { id: "permissions" as AdminSection, icon: Shield, label: "권한관리" },
+  { id: "permissions" as AdminSection, icon: Shield, label: "Agent 권한관리" },
   { id: "system-monitoring" as AdminSection, icon: Monitor, label: "시스템 모니터링 관리" },
   { id: "mcp" as AdminSection, icon: Plug, label: "MCP 서버/Tool 관리" },
   { id: "instructions" as AdminSection, icon: FileText, label: "지침관리" },

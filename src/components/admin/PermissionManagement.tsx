@@ -1,16 +1,9 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { Shield, Bot, Wrench, Users, Server, Briefcase, Crown } from "lucide-react";
+import { Shield, Bot, Users, Server, Briefcase, Crown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 
 type UserRole = "관리자" | "운영자(조회)" | "운영자(제어)" | "현업담당자";
 
@@ -21,7 +14,6 @@ interface RolePermission {
   icon: React.ReactNode;
   controlPermission: boolean;
   agentPermissions: Record<string, boolean>;
-  toolPermissions: Record<string, boolean>;
 }
 
 const agents = [
@@ -35,17 +27,6 @@ const agents = [
   { id: "infra", name: "인프라 Agent" },
 ];
 
-const tools = [
-  { id: "t1", name: "Health Check", category: "모니터링" },
-  { id: "t2", name: "Log Analyzer", category: "모니터링" },
-  { id: "t3", name: "DB Connect", category: "데이터" },
-  { id: "t4", name: "Report Gen", category: "보고서" },
-  { id: "t5", name: "Alert Send", category: "알림" },
-  { id: "t6", name: "Ticket Parser", category: "티켓" },
-  { id: "t7", name: "Deploy", category: "배포" },
-  { id: "t8", name: "Backup", category: "백업" },
-];
-
 const initialRolePermissions: RolePermission[] = [
   {
     roleId: "관리자",
@@ -56,7 +37,6 @@ const initialRolePermissions: RolePermission[] = [
     agentPermissions: {
       its: true, sop: true, change: true, db: true, monitoring: true, report: true, biz: true, infra: true,
     },
-    toolPermissions: { t1: true, t2: true, t3: true, t4: true, t5: true, t6: true, t7: true, t8: true },
   },
   {
     roleId: "운영자(제어)",
@@ -67,7 +47,6 @@ const initialRolePermissions: RolePermission[] = [
     agentPermissions: {
       its: true, sop: true, change: true, db: true, monitoring: true, report: true, biz: true, infra: true,
     },
-    toolPermissions: { t1: true, t2: true, t3: true, t4: true, t5: true, t6: true, t7: true, t8: true },
   },
   {
     roleId: "운영자(조회)",
@@ -78,7 +57,6 @@ const initialRolePermissions: RolePermission[] = [
     agentPermissions: {
       its: true, sop: true, change: true, db: true, monitoring: true, report: true, biz: true, infra: true,
     },
-    toolPermissions: { t1: true, t2: true, t3: true, t4: true, t5: false, t6: true, t7: false, t8: false },
   },
   {
     roleId: "현업담당자",
@@ -89,13 +67,11 @@ const initialRolePermissions: RolePermission[] = [
     agentPermissions: {
       its: false, sop: false, change: false, db: false, monitoring: false, report: false, biz: true, infra: false,
     },
-    toolPermissions: { t1: false, t2: false, t3: false, t4: true, t5: false, t6: true, t7: false, t8: false },
   },
 ];
 
 export function PermissionManagement() {
   const [rolePermissions, setRolePermissions] = useState<RolePermission[]>(initialRolePermissions);
-  const [viewMode, setViewMode] = useState<"agent" | "tool">("agent");
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
 
   const toggleControlPermission = (roleId: UserRole) => {
@@ -124,60 +100,11 @@ export function PermissionManagement() {
     );
   };
 
-  const toggleToolPermission = (roleId: UserRole, toolId: string) => {
-    setRolePermissions(
-      rolePermissions.map((r) =>
-        r.roleId === roleId
-          ? {
-              ...r,
-              toolPermissions: {
-                ...r.toolPermissions,
-                [toolId]: !r.toolPermissions[toolId],
-              },
-            }
-          : r
-      )
-    );
-  };
-
   const countEnabled = (perms: Record<string, boolean>) =>
     Object.values(perms).filter(Boolean).length;
 
-  // Group tools by category
-  const toolsByCategory = tools.reduce((acc, tool) => {
-    if (!acc[tool.category]) acc[tool.category] = [];
-    acc[tool.category].push(tool);
-    return acc;
-  }, {} as Record<string, typeof tools>);
-
   return (
     <div className="space-y-6">
-      {/* Header Actions */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 border rounded-lg p-1">
-            <Button
-              variant={viewMode === "agent" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setViewMode("agent")}
-              className="gap-2"
-            >
-              <Bot className="w-4 h-4" />
-              Agent 권한
-            </Button>
-            <Button
-              variant={viewMode === "tool" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setViewMode("tool")}
-              className="gap-2"
-            >
-              <Wrench className="w-4 h-4" />
-              Tool 권한
-            </Button>
-          </div>
-        </div>
-      </div>
-
       {/* Role Cards */}
       <div className="grid grid-cols-4 gap-4">
         {rolePermissions.map((role) => (
@@ -197,7 +124,7 @@ export function PermissionManagement() {
                 <div>
                   <p className="font-medium text-sm">{role.roleName}</p>
                   <p className="text-xs text-muted-foreground">
-                    Agent {countEnabled(role.agentPermissions)}/{agents.length} · Tool {countEnabled(role.toolPermissions)}/{tools.length}
+                    Agent {countEnabled(role.agentPermissions)}/{agents.length}
                   </p>
                 </div>
               </div>
@@ -207,126 +134,74 @@ export function PermissionManagement() {
         ))}
       </div>
 
-      {/* Permission Matrix */}
-      {viewMode === "agent" ? (
-        <Card>
-          <CardHeader className="bg-primary/10">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Bot className="w-5 h-5" />
-              권한 그룹별 Agent 사용 권한
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-secondary/50 text-sm">
-                  <tr>
-                    <th className="text-left px-4 py-3 font-medium min-w-[180px]">권한 그룹</th>
-                    <th className="text-center px-3 py-3 font-medium text-xs bg-primary/10">제어</th>
-                    {agents.map((agent) => (
-                      <th key={agent.id} className="text-center px-3 py-3 font-medium text-xs">
-                        {agent.name}
-                      </th>
-                    ))}
-                    <th className="text-center px-4 py-3 font-medium">활성</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {rolePermissions.map((role) => (
-                    <tr 
-                      key={role.roleId} 
-                      className={cn(
-                        "hover:bg-secondary/30 transition-colors",
-                        selectedRole === role.roleId && "bg-primary/5"
-                      )}
-                    >
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
-                            {role.icon}
-                          </div>
-                          <div>
-                            <p className="font-medium text-sm">{role.roleName}</p>
-                          </div>
+      {/* Agent Permission Matrix */}
+      <Card>
+        <CardHeader className="bg-primary/10">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Bot className="w-5 h-5" />
+            권한 그룹별 Agent 사용 권한
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-secondary/50 text-sm">
+                <tr>
+                  <th className="text-left px-4 py-3 font-medium min-w-[180px]">권한 그룹</th>
+                  <th className="text-center px-3 py-3 font-medium text-xs bg-primary/10">제어</th>
+                  {agents.map((agent) => (
+                    <th key={agent.id} className="text-center px-3 py-3 font-medium text-xs">
+                      {agent.name}
+                    </th>
+                  ))}
+                  <th className="text-center px-4 py-3 font-medium">활성</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {rolePermissions.map((role) => (
+                  <tr 
+                    key={role.roleId} 
+                    className={cn(
+                      "hover:bg-secondary/30 transition-colors",
+                      selectedRole === role.roleId && "bg-primary/5"
+                    )}
+                  >
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
+                          {role.icon}
                         </div>
-                      </td>
-                      <td className="text-center px-3 py-3 bg-primary/5">
+                        <div>
+                          <p className="font-medium text-sm">{role.roleName}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="text-center px-3 py-3 bg-primary/5">
+                      <Switch
+                        checked={role.controlPermission}
+                        onCheckedChange={() => toggleControlPermission(role.roleId)}
+                      />
+                    </td>
+                    {agents.map((agent) => (
+                      <td key={agent.id} className="text-center px-3 py-3">
                         <Switch
-                          checked={role.controlPermission}
-                          onCheckedChange={() => toggleControlPermission(role.roleId)}
+                          checked={role.agentPermissions[agent.id] || false}
+                          onCheckedChange={() => toggleAgentPermission(role.roleId, agent.id)}
                         />
                       </td>
-                      {agents.map((agent) => (
-                        <td key={agent.id} className="text-center px-3 py-3">
-                          <Switch
-                            checked={role.agentPermissions[agent.id] || false}
-                            onCheckedChange={() => toggleAgentPermission(role.roleId, agent.id)}
-                          />
-                        </td>
-                      ))}
-                      <td className="text-center px-4 py-3">
-                        <Badge variant="secondary">
-                          {countEnabled(role.agentPermissions)}/{agents.length}
-                        </Badge>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
-        <Card>
-          <CardHeader className="bg-primary/10 py-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Wrench className="w-5 h-5" />
-              {selectedRole ? `${rolePermissions.find(r => r.roleId === selectedRole)?.roleName} Tool 접근 권한` : 'Tool 접근 권한'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4">
-            {selectedRole ? (
-              <div className="space-y-6">
-                {Object.entries(toolsByCategory).map(([category, categoryTools]) => {
-                  const role = rolePermissions.find(r => r.roleId === selectedRole)!;
-                  return (
-                    <div key={category}>
-                      <h4 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-primary" />
-                        {category}
-                      </h4>
-                      <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
-                        {categoryTools.map((tool) => (
-                          <div
-                            key={tool.id}
-                            className={cn(
-                              "flex items-center justify-between px-2 py-1.5 rounded border transition-all",
-                              role.toolPermissions[tool.id]
-                                ? "bg-primary/10 border-primary/30"
-                                : "bg-secondary/30 border-border"
-                            )}
-                          >
-                            <span className="text-xs font-medium truncate mr-1">{tool.name}</span>
-                            <Switch
-                              className="scale-75"
-                              checked={role.toolPermissions[tool.id] || false}
-                              onCheckedChange={() => toggleToolPermission(role.roleId, tool.id)}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="flex items-center justify-center h-40 text-muted-foreground">
-                <p>상단에서 권한 그룹을 선택하세요</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
+                    ))}
+                    <td className="text-center px-4 py-3">
+                      <Badge variant="secondary">
+                        {countEnabled(role.agentPermissions)}/{agents.length}
+                      </Badge>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Legend */}
       <div className="flex items-center gap-6 text-sm text-muted-foreground">
@@ -339,7 +214,7 @@ export function PermissionManagement() {
           <span>권한 없음</span>
         </div>
         <p className="text-xs">
-          * 권한 그룹별로 Agent 및 Tool 사용 권한을 설정합니다. 사용자의 권한은 사용자관리에서 권한 그룹을 지정하여 적용됩니다.
+          * 권한 그룹별로 Agent 사용 권한을 설정합니다. Tool 권한은 MCP 서버/Tool 관리에서 설정합니다.
         </p>
       </div>
     </div>
