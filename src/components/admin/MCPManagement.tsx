@@ -212,6 +212,7 @@ export const MCPManagement = () => {
 
   // Permission tab states
   const [selectedServerId, setSelectedServerId] = useState<string>("");
+  const [selectedSystemForPermission, setSelectedSystemForPermission] = useState<string>("");
   
   // Search states
   const [serverSearchQuery, setServerSearchQuery] = useState("");
@@ -718,112 +719,177 @@ export const MCPManagement = () => {
 
         {/* System Permissions Tab */}
         <TabsContent value="system-permissions" className="space-y-4">
-          <div className="flex items-center gap-4 mb-4">
-            <Label>MCP 서버 선택:</Label>
-            <Popover open={isServerSelectOpen} onOpenChange={setIsServerSelectOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={isServerSelectOpen}
-                  className="w-[300px] justify-between"
-                >
-                  {selectedServerId
-                    ? servers.find(s => s.id === selectedServerId)?.name || "서버를 선택하세요"
-                    : "서버를 선택하세요"}
-                  <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[300px] p-0 z-50 bg-popover" align="start">
-                <Command>
-                  <CommandInput placeholder="서버 검색..." />
-                  <CommandList>
-                    <CommandEmpty>검색 결과가 없습니다.</CommandEmpty>
-                    <CommandGroup>
-                      {servers.filter(s => s.isActive).map((server) => (
-                        <CommandItem
-                          key={server.id}
-                          value={server.name}
-                          onSelect={() => {
-                            setSelectedServerId(server.id);
-                            setIsServerSelectOpen(false);
-                          }}
-                        >
-                          <div className="flex items-center gap-2 flex-1">
-                            <Server className="w-4 h-4 text-muted-foreground" />
-                            <div className="flex-1 min-w-0">
-                              <div className="font-medium text-sm">{server.name}</div>
-                              <div className="text-xs text-muted-foreground truncate">{server.description}</div>
-                            </div>
-                            <Badge variant="outline" className={`text-xs ${getConnectionTypeBadge(server.connectionType)}`}>
-                              {server.connectionType.toUpperCase()}
-                            </Badge>
-                          </div>
-                          {selectedServerId === server.id && (
-                            <Check className="ml-2 h-4 w-4 text-primary" />
-                          )}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-            {selectedServerId && (
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => setSelectedServerId("")}
-                className="text-muted-foreground"
-              >
-                <X className="w-4 h-4 mr-1" />
-                선택 해제
-              </Button>
-            )}
-          </div>
-
-          {selectedServerId && (
-            <div className="rounded-lg border border-border overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/50">
-                    <TableHead className="w-[200px]">시스템</TableHead>
-                    {servers.find(s => s.id === selectedServerId)?.tools.map((tool) => (
-                      <TableHead key={tool.id} className="text-center min-w-[120px]">
-                        <div className="flex flex-col items-center gap-1">
-                          <span className="text-xs">{tool.name}</span>
-                        </div>
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {mockSystems.filter(s => s.isActive).map((system) => (
-                    <TableRow key={system.id}>
-                      <TableCell>
-                        <div className="font-medium">{system.shortName}</div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left: System Selection */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">시스템 선택</Label>
+              <div className="border border-border rounded-lg overflow-hidden">
+                <ScrollArea className="h-[400px]">
+                  <div className="p-2 space-y-1">
+                    {mockSystems.filter(s => s.isActive).map((system) => (
+                      <div
+                        key={system.id}
+                        onClick={() => setSelectedSystemForPermission(system.id)}
+                        className={`p-3 rounded-md cursor-pointer transition-colors ${
+                          selectedSystemForPermission === system.id
+                            ? "bg-primary/10 border border-primary/50"
+                            : "hover:bg-muted/50 border border-transparent"
+                        }`}
+                      >
+                        <div className="font-medium text-sm">{system.shortName}</div>
                         <div className="text-xs text-muted-foreground">{system.name}</div>
-                      </TableCell>
-                      {servers.find(s => s.id === selectedServerId)?.tools.map((tool) => (
-                        <TableCell key={tool.id} className="text-center">
-                          <Checkbox
-                            checked={getSystemPermission(system.id, selectedServerId).includes(tool.id)}
-                            onCheckedChange={() => toggleSystemToolPermission(system.id, selectedServerId, tool.id)}
-                          />
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
             </div>
-          )}
 
-          {!selectedServerId && (
-            <div className="text-center py-12 text-muted-foreground">
-              MCP 서버를 선택하면 시스템별 Tool 권한을 설정할 수 있습니다.
+            {/* Middle: MCP Server Selection */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">MCP 서버 선택</Label>
+              <div className="border border-border rounded-lg overflow-hidden">
+                <ScrollArea className="h-[400px]">
+                  <div className="p-2 space-y-1">
+                    {servers.filter(s => s.isActive).map((server) => (
+                      <div
+                        key={server.id}
+                        onClick={() => setSelectedServerId(server.id)}
+                        className={`p-3 rounded-md cursor-pointer transition-colors ${
+                          selectedServerId === server.id
+                            ? "bg-primary/10 border border-primary/50"
+                            : "hover:bg-muted/50 border border-transparent"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="font-medium text-sm">{server.name}</div>
+                          <Badge variant="outline" className={`text-xs ${getConnectionTypeBadge(server.connectionType)}`}>
+                            {server.connectionType.toUpperCase()}
+                          </Badge>
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">{server.description}</div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          Tool: {server.tools.length}개
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
             </div>
-          )}
+
+            {/* Right: Tool Permission Configuration */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium">Tool 권한 설정</Label>
+                {selectedSystemForPermission && selectedServerId && (
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const server = servers.find(s => s.id === selectedServerId);
+                        if (server) {
+                          server.tools.forEach(tool => {
+                            if (!getSystemPermission(selectedSystemForPermission, selectedServerId).includes(tool.id)) {
+                              toggleSystemToolPermission(selectedSystemForPermission, selectedServerId, tool.id);
+                            }
+                          });
+                        }
+                      }}
+                    >
+                      전체 선택
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const server = servers.find(s => s.id === selectedServerId);
+                        if (server) {
+                          server.tools.forEach(tool => {
+                            if (getSystemPermission(selectedSystemForPermission, selectedServerId).includes(tool.id)) {
+                              toggleSystemToolPermission(selectedSystemForPermission, selectedServerId, tool.id);
+                            }
+                          });
+                        }
+                      }}
+                    >
+                      전체 해제
+                    </Button>
+                  </div>
+                )}
+              </div>
+              <div className="border border-border rounded-lg overflow-hidden">
+                <ScrollArea className="h-[400px]">
+                  {!selectedSystemForPermission && !selectedServerId ? (
+                    <div className="p-8 text-center text-muted-foreground">
+                      <Settings className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                      <p className="text-sm">시스템과 MCP 서버를 선택하세요</p>
+                    </div>
+                  ) : !selectedSystemForPermission ? (
+                    <div className="p-8 text-center text-muted-foreground">
+                      <Server className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                      <p className="text-sm">시스템을 선택하세요</p>
+                    </div>
+                  ) : !selectedServerId ? (
+                    <div className="p-8 text-center text-muted-foreground">
+                      <Server className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                      <p className="text-sm">MCP 서버를 선택하세요</p>
+                    </div>
+                  ) : (
+                    <div className="p-2 space-y-1">
+                      {servers.find(s => s.id === selectedServerId)?.tools.length === 0 ? (
+                        <div className="p-8 text-center text-muted-foreground">
+                          <Wrench className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                          <p className="text-sm">등록된 Tool이 없습니다</p>
+                        </div>
+                      ) : (
+                        servers.find(s => s.id === selectedServerId)?.tools.map((tool) => {
+                          const isEnabled = getSystemPermission(selectedSystemForPermission, selectedServerId).includes(tool.id);
+                          return (
+                            <div
+                              key={tool.id}
+                              className={`p-3 rounded-md border transition-colors ${
+                                isEnabled
+                                  ? "bg-primary/5 border-primary/30"
+                                  : "bg-background border-border hover:bg-muted/30"
+                              }`}
+                            >
+                              <div className="flex items-start gap-3">
+                                <Checkbox
+                                  checked={isEnabled}
+                                  onCheckedChange={() => toggleSystemToolPermission(selectedSystemForPermission, selectedServerId, tool.id)}
+                                  className="mt-0.5"
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-medium text-sm">{tool.name}</span>
+                                    {tool.isEnabled && (
+                                      <Badge variant="outline" className="text-xs bg-status-online/10 text-status-online border-status-online/30">
+                                        활성
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                    {tool.description}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  )}
+                </ScrollArea>
+              </div>
+              {selectedSystemForPermission && selectedServerId && (
+                <div className="text-xs text-muted-foreground text-right">
+                  선택됨: {getSystemPermission(selectedSystemForPermission, selectedServerId).length} / {servers.find(s => s.id === selectedServerId)?.tools.length || 0}개
+                </div>
+              )}
+            </div>
+          </div>
         </TabsContent>
 
         {/* Role Permissions Tab */}
