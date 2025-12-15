@@ -816,6 +816,30 @@ export function SystemManagement() {
           lines.push("");
         });
       }
+      
+      // CI/CD 연결정보
+      if (envDetail.cicds.length > 0) {
+        lines.push("### CI/CD 연결정보");
+        lines.push("");
+        envDetail.cicds.forEach((cicd, idx) => {
+          lines.push(`**CI/CD ${idx + 1}**`);
+          lines.push("");
+          lines.push("**소스 Repo 정보**");
+          lines.push(`- Repo Type: ${cicd.repoType || "-"}`);
+          lines.push(`- Repo URL: ${cicd.repoUrl || "-"}`);
+          lines.push(`- Branch: ${cicd.repoBranch || "-"}`);
+          lines.push(`- 인증 Key Name: ${cicd.repoAuth || "-"}`);
+          lines.push("");
+          lines.push("**DevOps Pipeline 정보**");
+          lines.push(`- Pipeline Type: ${cicd.pipelineType || "-"}`);
+          lines.push(`- Pipeline Name: ${cicd.pipelineName || "-"}`);
+          lines.push(`- Pipeline URL: ${cicd.pipelineUrl || "-"}`);
+          lines.push(`- 인증 Key Name: ${cicd.pipelineAuth || "-"}`);
+          lines.push("");
+          lines.push(`- 설명: ${cicd.description || "-"}`);
+          lines.push("");
+        });
+      }
     });
 
     return lines.join("\n");
