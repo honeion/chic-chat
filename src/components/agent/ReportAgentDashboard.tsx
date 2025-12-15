@@ -6,6 +6,7 @@ import {
   ChevronDown, ChevronUp, Calendar, Database
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 import type { ChatSession } from "@/pages/AgentDetail";
 
 // 보고서 타입 정의
@@ -102,6 +103,7 @@ export function ReportAgentDashboard({
   generatedReports: externalReports
 }: ReportAgentDashboardProps) {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const [isReportsExpanded, setIsReportsExpanded] = useState(true);
   
   const generatedReports = externalReports || mockGeneratedReports;
@@ -121,9 +123,10 @@ export function ReportAgentDashboard({
   };
 
   const handleDownload = (report: GeneratedReport) => {
-    // 실제 다운로드 로직 (현재는 시뮬레이션)
-    console.log("Downloading report:", report.title);
-    alert(`"${report.title}" 다운로드가 시작됩니다.`);
+    toast({
+      title: "다운로드 시작",
+      description: `"${report.title}" 다운로드가 시작됩니다.`,
+    });
   };
 
   return (

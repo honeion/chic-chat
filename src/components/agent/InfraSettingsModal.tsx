@@ -5,6 +5,7 @@ import {
   Plus, Trash2, Save, ChevronDown, ChevronUp
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 interface InfraSettingsModalProps {
   isOpen: boolean;
@@ -103,6 +104,7 @@ export function InfraSettingsModal({
   systemId 
 }: InfraSettingsModalProps) {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const [categories, setCategories] = useState<InfraCategory[]>(initialCategories);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set(initialCategories.map(c => c.id))
@@ -185,8 +187,10 @@ export function InfraSettingsModal({
   };
 
   const handleSave = () => {
-    console.log("Saving infra settings for", systemId, categories);
-    alert(`${systemName} 인프라 설정이 저장되었습니다.`);
+    toast({
+      title: "저장 완료",
+      description: `${systemName} 인프라 설정이 저장되었습니다.`,
+    });
     onClose();
   };
 

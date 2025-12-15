@@ -5,6 +5,7 @@ import {
   Plus, Trash2, Save, ChevronDown, ChevronUp
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 interface MonitoringSettingsModalProps {
   isOpen: boolean;
@@ -114,6 +115,7 @@ export function MonitoringSettingsModal({
   systemId 
 }: MonitoringSettingsModalProps) {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const [categories, setCategories] = useState<MonitoringCategory[]>(initialCategories);
   // 모든 카테고리를 기본적으로 펼친 상태로 시작
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
@@ -196,9 +198,10 @@ export function MonitoringSettingsModal({
   };
 
   const handleSave = () => {
-    // 실제 저장 로직 (현재는 시뮬레이션)
-    console.log("Saving monitoring settings for", systemId, categories);
-    alert(`${systemName} 모니터링 설정이 저장되었습니다.`);
+    toast({
+      title: "저장 완료",
+      description: `${systemName} 모니터링 설정이 저장되었습니다.`,
+    });
     onClose();
   };
 
