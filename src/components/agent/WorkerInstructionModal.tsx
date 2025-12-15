@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
-import { FileText, Save, X, Eye, Edit, CheckCircle2, Settings } from "lucide-react";
+import { FileText, Save, X, Eye, Edit, CheckCircle2, Settings, Server } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { SystemDetailSettings } from "./SystemDetailSettings";
 
 interface WorkerInstructionModalProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ interface WorkerInstructionModalProps {
   agentId: string;
   agentName: string;
   systems: { id: string; name: string }[];
+  hideSystemSettings?: boolean; // Biz.Support Agent용
 }
 
 interface WorkerInstruction {
@@ -49,8 +51,10 @@ export function WorkerInstructionModal({
   agentId,
   agentName,
   systems,
+  hideSystemSettings = false,
 }: WorkerInstructionModalProps) {
   const { toast } = useToast();
+  const [mainTab, setMainTab] = useState<string>("system-settings");
   const [activeSystemId, setActiveSystemId] = useState<string>(systems[0]?.id || "");
   const [instructions, setInstructions] = useState<WorkerInstruction[]>([]);
   const [editContent, setEditContent] = useState<string>("");
@@ -71,8 +75,10 @@ export function WorkerInstructionModal({
       }
       setHasChanges(false);
       setIsPreviewMode(false);
+      // hideSystemSettings인 경우 worker-instruction 탭으로 시작
+      setMainTab(hideSystemSettings ? "worker-instruction" : "system-settings");
     }
-  }, [isOpen, agentId, systems]);
+  }, [isOpen, agentId, systems, hideSystemSettings]);
 
   // 시스템 변경 시 지침 로드
   const handleSystemChange = (systemId: string) => {
@@ -141,14 +147,48 @@ export function WorkerInstructionModal({
         </DialogHeader>
 
         <div className="flex-1 overflow-hidden flex flex-col gap-4 py-4">
-          {/* 메인 설정 탭 - Worker 지침 설정 탭으로 시작, 추후 다른 탭 추가 가능 */}
-          <Tabs defaultValue="worker-instruction" className="flex-1 flex flex-col overflow-hidden">
+          {/* 메인 설정 탭 */}
+          <Tabs value={mainTab} onValueChange={setMainTab} className="flex-1 flex flex-col overflow-hidden">
             <TabsList className="w-fit">
+              {!hideSystemSettings && (
+                <TabsTrigger value="system-settings" className="gap-2">
+                  <Server className="w-4 h-4" />
+                  시스템 설정
+                </TabsTrigger>
+              )}
               <TabsTrigger value="worker-instruction" className="gap-2">
                 <FileText className="w-4 h-4" />
                 Worker 지침 설정
               </TabsTrigger>
             </TabsList>
+
+            {/* 시스템 설정 탭 */}
+            {!hideSystemSettings && (
+              <TabsContent value="system-settings" className="flex-1 overflow-auto mt-4">
+                {/* 시스템 선택 버튼 */}
+                <div className="flex gap-2 mb-4">
+                  {systems.map((system) => (
+                    <Button
+                      key={system.id}
+                      variant={activeSystemId === system.id ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setActiveSystemId(system.id)}
+                      className="gap-1.5"
+                    >
+                      {system.name}
+                    </Button>
+                  ))}
+                </div>
+                
+                {/* 시스템 상세 설정 */}
+                <div className="border rounded-lg p-4 overflow-auto max-h-[calc(85vh-280px)]">
+                  <SystemDetailSettings 
+                    systemId={activeSystemId} 
+                    systemName={systems.find(s => s.id === activeSystemId)?.name || ""} 
+                  />
+                </div>
+              </TabsContent>
+            )}
 
             <TabsContent value="worker-instruction" className="flex-1 overflow-hidden flex flex-col mt-4">
               {/* 시스템 선택 버튼 */}
@@ -238,7 +278,7 @@ export function WorkerInstructionModal({
             <X className="w-4 h-4 mr-2" />
             닫기
           </Button>
-          <Button onClick={handleSave} disabled={!hasChanges}>
+          <Button onClick={handleSave} disabled={!hasChanges || mainTab !== "worker-instruction"}>
             <Save className="w-4 h-4 mr-2" />
             저장
           </Button>
