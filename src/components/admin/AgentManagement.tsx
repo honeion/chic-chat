@@ -424,7 +424,7 @@ export function AgentManagement() {
       <div className="grid grid-cols-2 gap-4">
         <Card 
           className={cn(
-            "cursor-pointer transition-all hover:border-primary/50",
+            "cursor-pointer transition-all border-transparent hover:border-primary/50",
             activeTab === "market" && "ring-2 ring-primary border-primary"
           )}
           onClick={() => setActiveTab("market")}
@@ -443,7 +443,7 @@ export function AgentManagement() {
         </Card>
         <Card 
           className={cn(
-            "cursor-pointer transition-all hover:border-primary/50",
+            "cursor-pointer transition-all border-transparent hover:border-primary/50",
             activeTab === "myagent" && "ring-2 ring-primary border-primary"
           )}
           onClick={() => setActiveTab("myagent")}
@@ -497,7 +497,7 @@ export function AgentManagement() {
           <div className="grid grid-cols-3 gap-4">
         <Card 
           className={cn(
-            "cursor-pointer transition-all hover:border-primary/50",
+            "cursor-pointer transition-all border-transparent hover:border-primary/50",
             filterPublished === "all" && "ring-2 ring-primary border-primary"
           )}
           onClick={() => setFilterPublished("all")}
@@ -516,7 +516,7 @@ export function AgentManagement() {
         </Card>
         <Card 
           className={cn(
-            "cursor-pointer transition-all hover:border-primary/50",
+            "cursor-pointer transition-all border-transparent hover:border-primary/50",
             filterPublished === "published" && "ring-2 ring-primary border-primary"
           )}
           onClick={() => setFilterPublished("published")}
@@ -535,7 +535,7 @@ export function AgentManagement() {
         </Card>
         <Card 
           className={cn(
-            "cursor-pointer transition-all hover:border-primary/50",
+            "cursor-pointer transition-all border-transparent hover:border-primary/50",
             filterPublished === "draft" && "ring-2 ring-primary border-primary"
           )}
           onClick={() => setFilterPublished("draft")}
@@ -552,7 +552,7 @@ export function AgentManagement() {
             </div>
           </CardContent>
         </Card>
-      </div>
+          </div>
 
       {/* Agent List Table */}
       <Card>
@@ -704,7 +704,7 @@ export function AgentManagement() {
           <div className="grid grid-cols-3 gap-4">
             <Card 
               className={cn(
-                "cursor-pointer transition-all hover:border-primary/50",
+                "cursor-pointer transition-all border-transparent hover:border-primary/50",
                 myAgentFilterActive === "all" && "ring-2 ring-primary border-primary"
               )}
               onClick={() => setMyAgentFilterActive("all")}
@@ -723,7 +723,7 @@ export function AgentManagement() {
             </Card>
             <Card 
               className={cn(
-                "cursor-pointer transition-all hover:border-primary/50",
+                "cursor-pointer transition-all border-transparent hover:border-primary/50",
                 myAgentFilterActive === "active" && "ring-2 ring-primary border-primary"
               )}
               onClick={() => setMyAgentFilterActive("active")}
@@ -742,7 +742,7 @@ export function AgentManagement() {
             </Card>
             <Card 
               className={cn(
-                "cursor-pointer transition-all hover:border-primary/50",
+                "cursor-pointer transition-all border-transparent hover:border-primary/50",
                 myAgentFilterActive === "inactive" && "ring-2 ring-primary border-primary"
               )}
               onClick={() => setMyAgentFilterActive("inactive")}
