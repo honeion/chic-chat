@@ -216,6 +216,14 @@ export const MCPManagement = () => {
   // Search states
   const [serverSearchQuery, setServerSearchQuery] = useState("");
   const [isServerSelectOpen, setIsServerSelectOpen] = useState(false);
+  
+  // Selected server for tool list display
+  const [selectedServerForTools, setSelectedServerForTools] = useState<string | null>(null);
+  
+  // Get selected server object
+  const selectedServerData = useMemo(() => {
+    return servers.find(s => s.id === selectedServerForTools) || null;
+  }, [servers, selectedServerForTools]);
 
   // Filtered servers based on search
   const filteredServers = useMemo(() => {
@@ -510,7 +518,17 @@ export const MCPManagement = () => {
               </TableHeader>
               <TableBody>
                 {filteredServers.map((server) => (
-                  <TableRow key={server.id} className="hover:bg-muted/30">
+                  <TableRow 
+                    key={server.id} 
+                    className={`hover:bg-muted/30 cursor-pointer transition-colors ${
+                      selectedServerForTools === server.id 
+                        ? "bg-primary/10 border-l-2 border-l-primary" 
+                        : ""
+                    }`}
+                    onClick={() => setSelectedServerForTools(
+                      selectedServerForTools === server.id ? null : server.id
+                    )}
+                  >
                     <TableCell>
                       <div className="font-medium">{server.name}</div>
                       <div className="text-xs text-muted-foreground truncate max-w-[180px]">
@@ -592,67 +610,109 @@ export const MCPManagement = () => {
 
           {/* Tools Section */}
           <div className="space-y-4 mt-8">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <Wrench className="w-5 h-5" />
-              MCP Tool 목록
-            </h3>
-            {filteredServers.map((server) => (
-              server.tools.length > 0 && (
-                <div key={server.id} className="rounded-lg border border-border p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Server className="w-4 h-4 text-primary" />
-                      <span className="font-medium">{server.name}</span>
-                      <Badge variant="outline" className={getConnectionTypeBadge(server.connectionType)}>
-                        {server.connectionType.toUpperCase()}
-                      </Badge>
-                    </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => handleImportTools(server.id)}
-                      className="gap-1"
-                    >
-                      <Download className="w-3 h-3" />
-                      Tool 가져오기
-                    </Button>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <Wrench className="w-5 h-5" />
+                MCP Tool 목록
+                {selectedServerData && (
+                  <Badge variant="secondary" className="ml-2">
+                    {selectedServerData.name}
+                  </Badge>
+                )}
+              </h3>
+              {selectedServerForTools && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedServerForTools(null)}
+                  className="text-muted-foreground"
+                >
+                  <X className="w-4 h-4 mr-1" />
+                  선택 해제
+                </Button>
+              )}
+            </div>
+            
+            {!selectedServerForTools ? (
+              <div className="text-center py-12 border border-dashed border-border rounded-lg bg-muted/20">
+                <Server className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
+                <p className="text-muted-foreground">
+                  위 목록에서 MCP 서버를 선택하면 해당 서버의 Tool 목록이 표시됩니다.
+                </p>
+              </div>
+            ) : selectedServerData && selectedServerData.tools.length > 0 ? (
+              <div className="rounded-lg border border-border p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Server className="w-4 h-4 text-primary" />
+                    <span className="font-medium">{selectedServerData.name}</span>
+                    <Badge variant="outline" className={getConnectionTypeBadge(selectedServerData.connectionType)}>
+                      {selectedServerData.connectionType.toUpperCase()}
+                    </Badge>
+                    {getConnectionStatusBadge(selectedServerData.connectionStatus)}
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                    {server.tools.map((tool) => (
-                      <div 
-                        key={tool.id} 
-                        className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-border/50"
-                      >
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <Wrench className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                          <div className="min-w-0">
-                            <div className="font-medium text-sm truncate">{tool.name}</div>
-                            <div className="text-xs text-muted-foreground truncate">{tool.description}</div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 ml-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6"
-                            onClick={() => {
-                              setSelectedTool(tool);
-                              setIsToolDetailOpen(true);
-                            }}
-                          >
-                            <Info className="w-3 h-3" />
-                          </Button>
-                          <Switch 
-                            checked={tool.isEnabled} 
-                            onCheckedChange={() => toggleToolEnabled(server.id, tool.id)}
-                          />
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => handleImportTools(selectedServerData.id)}
+                    className="gap-1"
+                  >
+                    <Download className="w-3 h-3" />
+                    Tool 가져오기
+                  </Button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                  {selectedServerData.tools.map((tool) => (
+                    <div 
+                      key={tool.id} 
+                      className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-border/50"
+                    >
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <Wrench className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                        <div className="min-w-0">
+                          <div className="font-medium text-sm truncate">{tool.name}</div>
+                          <div className="text-xs text-muted-foreground truncate">{tool.description}</div>
                         </div>
                       </div>
-                    ))}
-                  </div>
+                      <div className="flex items-center gap-2 ml-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedTool(tool);
+                            setIsToolDetailOpen(true);
+                          }}
+                        >
+                          <Info className="w-3 h-3" />
+                        </Button>
+                        <Switch 
+                          checked={tool.isEnabled} 
+                          onCheckedChange={() => toggleToolEnabled(selectedServerData.id, tool.id)}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              )
-            ))}
+              </div>
+            ) : selectedServerData ? (
+              <div className="text-center py-12 border border-dashed border-border rounded-lg bg-muted/20">
+                <Wrench className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
+                <p className="text-muted-foreground mb-4">
+                  이 서버에 등록된 Tool이 없습니다.
+                </p>
+                <Button 
+                  variant="outline"
+                  onClick={() => handleImportTools(selectedServerData.id)}
+                  className="gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  Tool 가져오기
+                </Button>
+              </div>
+            ) : null}
           </div>
         </TabsContent>
 
