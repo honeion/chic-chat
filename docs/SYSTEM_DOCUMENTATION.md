@@ -8,9 +8,9 @@ AI Agent 기반의 IT 운영 관리 시스템으로, 다양한 업무 영역의 
 
 ## 주요 기능
 
-### 1. 다중 Agent 시스템
+### 1. 다중 Agent 시스템 (SKI Agent)
 
-시스템은 7가지 전문 Agent로 구성되어 있습니다:
+시스템은 8가지 전문 Agent로 구성되어 있습니다:
 
 | Agent | 역할 | 주요 기능 |
 |-------|------|----------|
@@ -20,7 +20,8 @@ AI Agent 기반의 IT 운영 관리 시스템으로, 다양한 업무 영역의 
 | **모니터링 Agent** | 시스템 모니터링 | 비정상 감지, 6가지 모니터링 카테고리 |
 | **변경관리 Agent** | 변경 요청 관리 | 개선 요청 처리, 변경 계획 수립 |
 | **보고서 Agent** | 보고서 생성 | 장애보고서, 변경계획서, 테스트시나리오 등 |
-| **Biz.Support Agent** | 현업 지원 | 시스템 관련 문의/응답 |
+| **Biz.Support Agent** | 현업 지원 | 시스템 관련 문의/응답, ITS 요청 등록 |
+| **Infra Agent** | 인프라 관리 | 시스템별 인프라 작업, 서버/네트워크/스토리지 관리 |
 
 ### 2. 다국어 지원
 
@@ -38,20 +39,33 @@ AI Agent 기반의 IT 운영 관리 시스템으로, 다양한 업무 영역의 
 ## 네비게이션 구조
 
 ```
-├── Dashboard          # 대시보드 (최상단 고정)
-├── Worker (SKI Agent) # 운영 Agent 목록
-│   ├── ITS Agent
+├── Worker (SKI Agent)   # 운영 Agent 목록 (기본 랜딩)
+│   ├── ITS Agent        # IT 서비스 요청 (기본 고정)
 │   ├── SOP Agent
 │   ├── DB Agent
 │   ├── 모니터링 Agent
 │   ├── 변경관리 Agent
 │   ├── 보고서 Agent
-│   └── Biz.Support Agent
-├── My Agent           # 사용자 정의 Agent
-│   ├── Agent Market   # Agent 마켓에서 추가
-│   └── 등록된 Agent   # 시스템별 Agent 등록
-└── Assistant          # AI 어시스턴트 채팅
+│   ├── Biz.Support Agent
+│   └── Infra Agent
+├── Workflow             # 워크플로우 및 My Agent 관리
+│   ├── Agent Market     # Agent 마켓에서 추가
+│   └── My Agent         # 사용자 등록 Agent
+├── Assistant            # AI 어시스턴트 채팅
+├── Admin                # 관리자 페이지 (관리자 전용)
+├── My Page              # 개인 설정
+└── Login/Logout         # 인증
 ```
+
+---
+
+## 사용자 역할
+
+| 역할 | 설명 | 권한 |
+|------|------|------|
+| **운영자 (Operator)** | IT 운영 담당자 | Agent 사용, 요청 처리, 승인 |
+| **현업담당자 (Business Owner)** | 비즈니스 사용자 | Biz.Support Agent 사용, 요청 생성 |
+| **관리자 (Administrator)** | 시스템 관리자 | Admin 페이지 접근, 전체 설정 관리 |
 
 ---
 
@@ -94,8 +108,10 @@ graph TD
     F -->|재작성| E
     F -->|완료| G{장애지식 RAG 저장?}
     G -->|예| H[지식 저장 완료]
-    G -->|아니오| I[종료]
-    B -->|아니오| I
+    H --> I{ITS 완료 처리?}
+    I -->|예| J[ITS Agent로 이동, 완료 처리]
+    G -->|아니오| I
+    B -->|아니오| K[종료]
 ```
 
 ### 3. 모니터링 Agent 비정상 감지 플로우
@@ -112,15 +128,22 @@ graph TD
     C -->|아니오| I[정상 완료]
 ```
 
-**모니터링 카테고리:**
-1. HTTP API Check
-2. DB 모니터링
-3. IF 모니터링
-4. BATCH 모니터링
-5. LOG 모니터링
-6. 성능 모니터링
+### 4. Biz.Support Agent → ITS 요청 플로우
 
-### 4. 승인 기반 처리 워크플로우
+```mermaid
+graph TD
+    A[현업 문의] --> B[Biz.Support 상담]
+    B --> C{ITS 요청 필요?}
+    C -->|예| D[ITS 요청 등록하기]
+    D --> E[요청 타입 선택]
+    E --> F[LLM 요약 생성]
+    F --> G{등록 확인?}
+    G -->|등록하기| H[ITS Agent에 대기 등록]
+    G -->|취소| I[취소]
+    C -->|아니오| J[상담 완료]
+```
+
+### 5. 승인 기반 처리 워크플로우
 
 모든 Agent는 인간 승인 기반 워크플로우를 따릅니다:
 
@@ -134,26 +157,39 @@ graph TD
 
 ---
 
+## 운영 대상 시스템
+
+| 시스템 ID | 약칭 | 시스템명 |
+|-----------|------|----------|
+| s1 | e-총무 | E-Governance System |
+| s2 | BiOn | Procurement System |
+| s3 | SATIS | Sales/Logistics System |
+
+모든 Agent 대시보드에서 시스템 필터링 및 배지 표시에 사용됩니다.
+
+---
+
 ## My Agent 시스템
 
 ### 2단계 계층 구조
 
-1. **My Agent Type**: Agent Market에서 추가하는 Agent 유형
+1. **My Agent Type**: Agent Market에서 추가하는 Agent 유형 (시스템 선택 불필요)
 2. **Registered Agent**: My Agent Type 하위에 시스템별로 등록하는 실제 Agent
-
-### 시스템 필터
-
-- e-총무시스템
-- BiOn
-- SATIS
 
 ### Agent 설정 항목
 
 - Agent 이름
 - 설명
+- 시스템 선택 (등록 시)
 - 도구 선택
 - 지식 베이스
 - Instruction (마크다운 지원)
+
+### Worker 지침 설정
+
+각 Agent는 시스템별 Worker 지침을 설정할 수 있습니다:
+- Agent 설정 모달 → Worker 지침 설정 탭
+- 시스템별로 마크다운 형식의 지침 저장
 
 ---
 
@@ -166,7 +202,7 @@ AI 어시스턴트와의 대화형 인터페이스로, 다양한 선택기를 �
 | 선택기 | 타입 | 설명 |
 |--------|------|------|
 | System | 다중 선택 | 시스템 필터링 |
-| Instruction | 단일 선택 | 대화 지침 설정 |
+| Instruction | 단일 선택 | 대화 지침 설정 (설정 모달에서 관리) |
 | Knowledge RAG | 다중 선택 | 지식 베이스 연결 |
 | Knowledge Graph | 다중 선택 | 그래프 지식 연결 |
 | Tool | 다중 선택 | 사용 도구 선택 |
@@ -183,7 +219,11 @@ AI 어시스턴트와의 대화형 인터페이스로, 다양한 선택기를 �
 4. **변경결과보고서**: 변경 후 결과 보고
 5. **취합문서**: 종합 문서
 
-각 보고서 유형별로 실행 및 설정 기능 제공
+### 생성된 보고서 관리
+
+- 보고서 목록에 RAG 저장 상태 배지 표시 (RAG 저장됨 / RAG 미저장)
+- 요청번호 보존: 원본 요청번호 유지 (ITS-XXXX, SOP-XXXX)
+- Report Agent 직접 생성 시에만 RPT-XXXX 형식 부여
 
 ---
 
@@ -218,6 +258,76 @@ AI 어시스턴트와의 대화형 인터페이스로, 다양한 선택기를 �
 6. **성능 모니터링 - Infra (Cloud) Agent 도구**
    - 서버 성능 조회 (CPU, Memory, I/O)
    - Application 성능조회
+
+---
+
+## Infra Agent
+
+### 설정 카테고리
+
+1. **Server**: 서버 구성 (이름, 타입, IP, 포트)
+2. **Network**: 네트워크 설정
+3. **Storage**: 스토리지 구성
+4. **Cloud**: 클라우드 리소스
+5. **Security**: 보안 설정
+
+각 카테고리에서 항목 추가/삭제/토글 및 인라인 편집 가능
+
+---
+
+## Admin 페이지
+
+관리자 전용 페이지로 9개의 관리 모듈을 제공합니다:
+
+### 1. 사용자 관리 (User Management)
+- 사용자 CRUD (부서, 시스템, 권한 정보)
+- 역할 필터링: 운영자, 현업담당자, 관리자
+- 시스템 다중 선택 할당 (SystemMultiSelect)
+
+### 2. 시스템 관리 (System Management)
+- 시스템 메타데이터 관리
+- 시스템 타입: WEB, C/S, API, IF, 기타
+- 환경별 상세 설정 (PROD/DEV/STG/DR)
+  - 접속정보: URL, 접근 유형, Hosts 설정
+  - 인프라정보: K8S/VM 조건부 필드
+  - DB정보: 다중 DB 항목
+  - CI/CD 연결정보: Repo, Pipeline 설정
+
+### 3. 권한 관리 (Permission Management)
+- Agent 사용 권한
+- Tool 접근 권한
+
+### 4. 지침 관리 (Instruction Management)
+- **Worker 지침**: Worker Agent별 지침
+- **공용 지침**: 관리자 생성 전역 지침
+- **시스템별 지침**: 시스템/사용자 생성 지침
+- 마크다운 편집기 + 미리보기 토글
+
+### 5. Agent 마켓 관리 (Agent Market Management)
+- Agent 마켓 (공유 Agent 템플릿)
+- My Agent 마켓 (사용자 매핑 Agent)
+- Agent 프롬프트 마크다운 편집
+- 지침/도구/지식베이스 다중 선택
+
+### 6. Knowledge RAG 관리
+- 시스템별 그룹화
+- 사용량 추적
+
+### 7. Knowledge Graph 관리
+- 시스템별 그룹화
+- 사용량 추적
+
+### 8. MCP 서버/Tool 관리
+- **MCP 서버 탭**: 서버 등록, 연결 테스트, 도구 임포트
+- **시스템별 권한 탭**: 시스템별 MCP 서버/도구 권한
+- **역할별 권한 탭**: 역할별 MCP 서버/도구 권한
+- 3열 선택 패턴 (시스템/역할 → 서버 → 도구)
+
+### 9. 시스템 모니터링 관리
+- 6가지 체크 타입: HTTP, DB, INTERFACE, BATCH, SYSTEM, LOG
+- 조건부 설정 필드 (K8S/VM, Grafana/서버로그)
+- 시스템 DB 연동 (DB 체크 시 등록된 DB 목록 표시)
+- Monitoring Agent 대시보드에 모달로 임베드 가능
 
 ---
 
@@ -273,17 +383,26 @@ AI 어시스턴트와의 대화형 인터페이스로, 다양한 선택기를 �
 ```
 src/
 ├── components/
+│   ├── admin/           # Admin 페이지 컴포넌트
 │   ├── agent/           # Agent 대시보드 컴포넌트
 │   ├── chat/            # 채팅 관련 컴포넌트
 │   ├── ui/              # shadcn/ui 컴포넌트
 │   └── workflow/        # 워크플로우 관련 컴포넌트
 ├── data/
-│   └── instructions.ts  # 공유 Instruction 데이터
+│   ├── instructions.ts  # 공유 Instruction 데이터
+│   └── systems.ts       # 공유 System 데이터
 ├── hooks/               # 커스텀 훅
 ├── i18n/
 │   ├── locales/         # 번역 파일 (en, ko, vi)
 │   └── index.ts         # i18n 설정
 ├── pages/               # 페이지 컴포넌트
+│   ├── Index.tsx        # 메인 (Agent 섹션)
+│   ├── WorkflowPage.tsx # 워크플로우/My Agent
+│   ├── AgentDetail.tsx  # Agent 상세
+│   ├── AdminPage.tsx    # Admin 페이지
+│   ├── MyPage.tsx       # 마이페이지
+│   ├── LoginPage.tsx    # 로그인
+│   └── NotFound.tsx     # 404
 └── lib/                 # 유틸리티 함수
 ```
 
