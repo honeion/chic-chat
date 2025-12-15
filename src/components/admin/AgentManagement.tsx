@@ -275,6 +275,15 @@ export function AgentManagement() {
   const [isMyAgentDetailModalOpen, setIsMyAgentDetailModalOpen] = useState(false);
   const [selectedMyAgent, setSelectedMyAgent] = useState<MyAgentData | null>(null);
   
+  // My Agent 편집 state
+  const [myAgentEditName, setMyAgentEditName] = useState("");
+  const [myAgentEditDescription, setMyAgentEditDescription] = useState("");
+  const [myAgentEditInstructions, setMyAgentEditInstructions] = useState("");
+  const [myAgentEditSelectedInstructionIds, setMyAgentEditSelectedInstructionIds] = useState<string[]>([]);
+  const [myAgentEditSelectedTools, setMyAgentEditSelectedTools] = useState<string[]>([]);
+  const [myAgentEditSelectedKnowledgeBases, setMyAgentEditSelectedKnowledgeBases] = useState<string[]>([]);
+  const [myAgentEditInstructionMode, setMyAgentEditInstructionMode] = useState<"edit" | "preview">("edit");
+  
   // Instruction preview modal state
   const [isInstructionPreviewOpen, setIsInstructionPreviewOpen] = useState(false);
   const [previewInstruction, setPreviewInstruction] = useState<Instruction | null>(null);
@@ -364,7 +373,51 @@ export function AgentManagement() {
 
   const openMyAgentDetailModal = (agent: MyAgentData) => {
     setSelectedMyAgent(agent);
+    setMyAgentEditName(agent.name);
+    setMyAgentEditDescription(agent.description);
+    setMyAgentEditInstructions(agent.instructions);
+    setMyAgentEditSelectedInstructionIds(agent.selectedInstructionIds || []);
+    setMyAgentEditSelectedTools(agent.tools);
+    setMyAgentEditSelectedKnowledgeBases(agent.knowledgeBases);
+    setMyAgentEditInstructionMode("edit");
     setIsMyAgentDetailModalOpen(true);
+  };
+
+  const toggleMyAgentInstruction = (instructionId: string) => {
+    setMyAgentEditSelectedInstructionIds(prev =>
+      prev.includes(instructionId) ? prev.filter(i => i !== instructionId) : [...prev, instructionId]
+    );
+  };
+
+  const toggleMyAgentTool = (toolId: string) => {
+    setMyAgentEditSelectedTools(prev =>
+      prev.includes(toolId) ? prev.filter(t => t !== toolId) : [...prev, toolId]
+    );
+  };
+
+  const toggleMyAgentKnowledgeBase = (kbId: string) => {
+    setMyAgentEditSelectedKnowledgeBases(prev =>
+      prev.includes(kbId) ? prev.filter(k => k !== kbId) : [...prev, kbId]
+    );
+  };
+
+  const handleSaveMyAgent = () => {
+    if (!selectedMyAgent) return;
+    setMyAgents(myAgents.map(a => 
+      a.id === selectedMyAgent.id 
+        ? {
+            ...a,
+            name: myAgentEditName,
+            description: myAgentEditDescription,
+            instructions: myAgentEditInstructions,
+            selectedInstructionIds: myAgentEditSelectedInstructionIds,
+            tools: myAgentEditSelectedTools,
+            knowledgeBases: myAgentEditSelectedKnowledgeBases,
+            updatedAt: new Date().toISOString().split('T')[0],
+          }
+        : a
+    ));
+    setIsMyAgentDetailModalOpen(false);
   };
 
   const openCreateModal = () => {
@@ -1344,97 +1397,220 @@ export function AgentManagement() {
 
       {/* My Agent Detail Modal */}
       <Dialog open={isMyAgentDetailModalOpen} onOpenChange={setIsMyAgentDetailModalOpen}>
-        <DialogContent className="max-w-3xl max-h-[80vh]">
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <User className="w-5 h-5 text-cyan-500" />
-              My Agent 상세 정보
-            </DialogTitle>
+            <div className="flex items-center justify-between">
+              <DialogTitle className="flex items-center gap-2">
+                <User className="w-5 h-5 text-cyan-500" />
+                My Agent 편집
+              </DialogTitle>
+              {selectedMyAgent && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">활성</span>
+                  <Switch
+                    checked={selectedMyAgent.isActive}
+                    onCheckedChange={() => toggleMyAgentActive(selectedMyAgent.id)}
+                  />
+                </div>
+              )}
+            </div>
           </DialogHeader>
           {selectedMyAgent && (
-            <ScrollArea className="max-h-[60vh]">
-              <div className="space-y-4 pr-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">My Agent명</label>
-                    <p className="text-sm font-medium">{selectedMyAgent.name}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">상태</label>
-                    <div className="mt-1">
-                      {selectedMyAgent.isActive ? (
-                        <Badge className="bg-status-online text-white">활성</Badge>
-                      ) : (
-                        <Badge variant="secondary">비활성</Badge>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                
+            <div className="flex gap-6 h-[calc(90vh-180px)]">
+              {/* Left Side - Basic Info & Selections */}
+              <div className="w-[400px] space-y-4 overflow-y-auto pr-4">
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">설명</label>
-                  <p className="text-sm">{selectedMyAgent.description}</p>
+                  <label className="text-sm font-medium mb-1.5 block text-muted-foreground">
+                    My Agent 이름
+                  </label>
+                  <Input 
+                    value={myAgentEditName} 
+                    onChange={(e) => setMyAgentEditName(e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block text-muted-foreground">
+                    설명
+                  </label>
+                  <Textarea 
+                    value={myAgentEditDescription} 
+                    onChange={(e) => setMyAgentEditDescription(e.target.value)}
+                    rows={2} 
+                  />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">원본 Agent</label>
-                    <Badge variant="outline" className="mt-1">{selectedMyAgent.sourceAgentName}</Badge>
+                    <Badge variant="outline" className="mt-1 block w-fit">{selectedMyAgent.sourceAgentName}</Badge>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">매핑 시스템</label>
-                    <Badge className="bg-primary/20 text-primary mt-1">
-                      <Server className="w-3 h-3 mr-1" />
+                    <Badge className="bg-primary/20 text-primary mt-1 block w-fit">
+                      <Server className="w-3 h-3 mr-1 inline" />
                       {selectedMyAgent.systemName}
                     </Badge>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-                      <FileText className="w-3 h-3" /> 지침
-                    </label>
-                    <p className="text-sm">{selectedMyAgent.selectedInstructionIds.length}개</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-                      <Wrench className="w-3 h-3" /> 도구
-                    </label>
-                    <p className="text-sm">{selectedMyAgent.tools.length}개</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-                      <BookOpen className="w-3 h-3" /> 지식
-                    </label>
-                    <p className="text-sm">{selectedMyAgent.knowledgeBases.length}개</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 pt-2 border-t">
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">생성자</label>
-                    <p className="text-sm">{selectedMyAgent.createdBy}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-muted-foreground">생성일</label>
-                    <p className="text-sm">{selectedMyAgent.createdAt}</p>
-                  </div>
-                </div>
-
+                {/* Instruction Selection */}
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Agent 프롬프트</label>
-                  <div className="mt-2 p-3 rounded-lg bg-secondary/50 border">
-                    <pre className="whitespace-pre-wrap text-sm">{selectedMyAgent.instructions}</pre>
+                  <label className="text-sm font-medium mb-1.5 block text-muted-foreground flex items-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    지침 선택 ({myAgentEditSelectedInstructionIds.length}개 선택)
+                  </label>
+                  <ScrollArea className="h-32 border rounded-lg p-2">
+                    <div className="space-y-1">
+                      {mockInstructions.map((instruction) => (
+                        <div
+                          key={instruction.id}
+                          className={cn(
+                            "flex items-center justify-between p-2 rounded-lg cursor-pointer hover:bg-secondary/50 transition-colors",
+                            myAgentEditSelectedInstructionIds.includes(instruction.id) && "bg-primary/10"
+                          )}
+                          onClick={() => toggleMyAgentInstruction(instruction.id)}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Checkbox
+                              checked={myAgentEditSelectedInstructionIds.includes(instruction.id)}
+                              className="pointer-events-none"
+                            />
+                            <span className="text-sm">{instruction.name}</span>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 shrink-0"
+                            onClick={(e) => openInstructionPreview(instruction, e)}
+                          >
+                            <Info className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </div>
+
+                {/* Tool Selection */}
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block text-muted-foreground flex items-center gap-2">
+                    <Wrench className="w-4 h-4" />
+                    Tool 선택 ({myAgentEditSelectedTools.length}개 선택)
+                  </label>
+                  <ScrollArea className="h-32 border rounded-lg p-2">
+                    <div className="space-y-1">
+                      {mockTools.map((tool) => (
+                        <div
+                          key={tool.id}
+                          className={cn(
+                            "flex items-center gap-2 p-2 rounded-lg cursor-pointer hover:bg-secondary/50 transition-colors",
+                            myAgentEditSelectedTools.includes(tool.id) && "bg-primary/10"
+                          )}
+                          onClick={() => toggleMyAgentTool(tool.id)}
+                        >
+                          <Checkbox
+                            checked={myAgentEditSelectedTools.includes(tool.id)}
+                            className="pointer-events-none"
+                          />
+                          <div>
+                            <span className="text-sm font-medium">{tool.name}</span>
+                            <p className="text-xs text-muted-foreground">{tool.description}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </div>
+
+                {/* Knowledge Base Selection */}
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block text-muted-foreground flex items-center gap-2">
+                    <BookOpen className="w-4 h-4" />
+                    지식 선택 ({myAgentEditSelectedKnowledgeBases.length}개 선택)
+                  </label>
+                  <ScrollArea className="h-32 border rounded-lg p-2">
+                    <div className="space-y-1">
+                      {mockKnowledgeBases.map((kb) => (
+                        <div
+                          key={kb.id}
+                          className={cn(
+                            "flex items-center gap-2 p-2 rounded-lg cursor-pointer hover:bg-secondary/50 transition-colors",
+                            myAgentEditSelectedKnowledgeBases.includes(kb.id) && "bg-primary/10"
+                          )}
+                          onClick={() => toggleMyAgentKnowledgeBase(kb.id)}
+                        >
+                          <Checkbox
+                            checked={myAgentEditSelectedKnowledgeBases.includes(kb.id)}
+                            className="pointer-events-none"
+                          />
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium">{kb.name}</span>
+                            <Badge variant="outline" className="text-xs">{kb.type}</Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 pt-2 border-t text-xs text-muted-foreground">
+                  <div>
+                    <span>생성자: {selectedMyAgent.createdBy}</span>
+                  </div>
+                  <div>
+                    <span>생성일: {selectedMyAgent.createdAt}</span>
                   </div>
                 </div>
               </div>
-            </ScrollArea>
+
+              {/* Right Side - Instructions MD Editor */}
+              <div className="flex-1 flex flex-col border-l pl-6">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium text-muted-foreground">
+                    Agent 프롬프트 (Markdown)
+                  </label>
+                  <div className="flex gap-1">
+                    <Button
+                      variant={myAgentEditInstructionMode === "edit" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setMyAgentEditInstructionMode("edit")}
+                    >
+                      편집
+                    </Button>
+                    <Button
+                      variant={myAgentEditInstructionMode === "preview" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setMyAgentEditInstructionMode("preview")}
+                    >
+                      미리보기
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex-1 border rounded-lg overflow-hidden">
+                  {myAgentEditInstructionMode === "edit" ? (
+                    <Textarea
+                      value={myAgentEditInstructions}
+                      onChange={(e) => setMyAgentEditInstructions(e.target.value)}
+                      className="w-full h-full min-h-full resize-none border-0 font-mono text-sm"
+                      placeholder="Markdown 형식으로 Agent 프롬프트를 입력하세요..."
+                    />
+                  ) : (
+                    <ScrollArea className="h-full p-4">
+                      <div className="prose prose-sm dark:prose-invert max-w-none">
+                        <ReactMarkdown>{myAgentEditInstructions}</ReactMarkdown>
+                      </div>
+                    </ScrollArea>
+                  )}
+                </div>
+              </div>
+            </div>
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsMyAgentDetailModalOpen(false)}>
-              닫기
+              취소
             </Button>
+            <Button onClick={handleSaveMyAgent}>저장</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
