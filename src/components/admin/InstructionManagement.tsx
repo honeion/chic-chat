@@ -101,6 +101,18 @@ interface InstructionData {
   selectedKnowledge?: string[];
 }
 
+// Worker 지침 인터페이스
+interface WorkerInstructionData {
+  id: string;
+  name: string;
+  systemId: string;
+  systemName: string;
+  content: string;
+  author: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // Mock Tools
 const mockTools: Tool[] = [
   { id: "t1", name: "Health Check", description: "시스템 헬스 체크 도구" },
@@ -328,9 +340,77 @@ const systems = [
   { id: "s4", name: "ITS" },
 ];
 
+// Worker 지침 mock 데이터
+const mockWorkerInstructions: WorkerInstructionData[] = [
+  {
+    id: "worker1",
+    name: "e-총무 장애처리 Worker 지침",
+    systemId: "s1",
+    systemName: "e-총무",
+    content: `# e-총무 장애처리 Worker 지침
+
+## 1. 장애 감지 시 행동
+- 모니터링 알림 확인
+- 서비스 상태 점검
+- 영향도 분석 수행
+
+## 2. 초기 대응 단계
+1. 장애 유형 분류
+2. 담당자 알림
+3. 긴급 조치 실행
+
+## 3. 보고서 작성
+- 장애 발생 시간
+- 영향 범위
+- 조치 내용`,
+    author: "관리자",
+    createdAt: "2024-06-01",
+    updatedAt: "2024-12-01",
+  },
+  {
+    id: "worker2",
+    name: "BiOn 데이터 처리 Worker 지침",
+    systemId: "s2",
+    systemName: "BiOn",
+    content: `# BiOn 데이터 처리 Worker 지침
+
+## 데이터 검증
+- 입력 데이터 유효성 확인
+- 형식 검증
+
+## 처리 절차
+1. 데이터 수집
+2. 변환 및 정제
+3. 저장 및 로깅`,
+    author: "관리자",
+    createdAt: "2024-07-15",
+    updatedAt: "2024-11-20",
+  },
+  {
+    id: "worker3",
+    name: "SATIS 배치 실행 Worker 지침",
+    systemId: "s3",
+    systemName: "SATIS",
+    content: `# SATIS 배치 실행 Worker 지침
+
+## 배치 실행 전 확인사항
+- 선행 작업 완료 확인
+- 리소스 가용성 점검
+
+## 실행 및 모니터링
+- 배치 시작 로그 기록
+- 진행 상태 모니터링
+- 오류 발생 시 알림`,
+    author: "관리자",
+    createdAt: "2024-08-01",
+    updatedAt: "2024-10-15",
+  },
+];
+
 export function InstructionManagement() {
   const [publicInstructions, setPublicInstructions] = useState<InstructionData[]>(mockPublicInstructions);
   const [systemInstructions, setSystemInstructions] = useState<InstructionData[]>(mockSystemInstructions);
+  const [workerInstructions, setWorkerInstructions] = useState<WorkerInstructionData[]>(mockWorkerInstructions);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSystem, setSelectedSystem] = useState<string>("all");
   const [selectedAuthorRole, setSelectedAuthorRole] = useState<string>("all");
@@ -339,8 +419,8 @@ export function InstructionManagement() {
   const [selectedInstruction, setSelectedInstruction] = useState<InstructionData | null>(null);
   const [isEditMode, setIsEditMode] = useState(true); // 기본값 수정모드
   const [showVersionHistory, setShowVersionHistory] = useState(false);
-  const [activeTab, setActiveTab] = useState<"public" | "system">("public");
-  const [createType, setCreateType] = useState<"public" | "system">("public");
+  const [activeTab, setActiveTab] = useState<"public" | "system" | "worker">("public");
+  const [createType, setCreateType] = useState<"public" | "system" | "worker">("public");
   const [editSelectedTools, setEditSelectedTools] = useState<string[]>([]);
   const [editSelectedKnowledge, setEditSelectedKnowledge] = useState<string[]>([]);
   const [showMarkdownPreview, setShowMarkdownPreview] = useState(false);
@@ -352,6 +432,23 @@ export function InstructionManagement() {
   const [editSystemOpen, setEditSystemOpen] = useState(false);
   const [createSystemOpen, setCreateSystemOpen] = useState(false);
   const [filterSystemOpen, setFilterSystemOpen] = useState(false);
+  
+  // Worker 지침 관련 state
+  const [selectedWorkerInstruction, setSelectedWorkerInstruction] = useState<WorkerInstructionData | null>(null);
+  const [isWorkerDetailModalOpen, setIsWorkerDetailModalOpen] = useState(false);
+  const [isWorkerCreateModalOpen, setIsWorkerCreateModalOpen] = useState(false);
+  const [workerEditContent, setWorkerEditContent] = useState("");
+  const [workerEditName, setWorkerEditName] = useState("");
+  const [workerEditSystem, setWorkerEditSystem] = useState("");
+  const [workerEditSystemOpen, setWorkerEditSystemOpen] = useState(false);
+  const [showWorkerMarkdownPreview, setShowWorkerMarkdownPreview] = useState(false);
+  const [workerCreateName, setWorkerCreateName] = useState("");
+  const [workerCreateSystem, setWorkerCreateSystem] = useState("");
+  const [workerCreateSystemOpen, setWorkerCreateSystemOpen] = useState(false);
+  const [workerCreateContent, setWorkerCreateContent] = useState("");
+  const [showWorkerCreateMarkdownPreview, setShowWorkerCreateMarkdownPreview] = useState(false);
+  const [workerFilterSystemOpen, setWorkerFilterSystemOpen] = useState(false);
+  const [workerSelectedSystem, setWorkerSelectedSystem] = useState<string>("all");
 
   // 공용지침 필터링
   const filteredPublicInstructions = publicInstructions.filter((inst) => {
@@ -371,6 +468,13 @@ export function InstructionManagement() {
     return matchesSearch && matchesSystem && matchesAuthor;
   });
 
+  // Worker 지침 필터링
+  const filteredWorkerInstructions = workerInstructions.filter((inst) => {
+    const matchesSearch = inst.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSystem = workerSelectedSystem === "all" || inst.systemId === workerSelectedSystem;
+    return matchesSearch && matchesSystem;
+  });
+
   const handleDelete = (id: string, isPublic: boolean) => {
     if (isPublic) {
       setPublicInstructions(publicInstructions.filter((i) => i.id !== id));
@@ -379,9 +483,63 @@ export function InstructionManagement() {
     }
   };
 
-  const openCreateModal = (type: "public" | "system") => {
-    setCreateType(type);
-    setIsCreateModalOpen(true);
+  const handleDeleteWorkerInstruction = (id: string) => {
+    setWorkerInstructions(workerInstructions.filter((i) => i.id !== id));
+  };
+
+  const openCreateModal = (type: "public" | "system" | "worker") => {
+    if (type === "worker") {
+      setWorkerCreateName("");
+      setWorkerCreateSystem("");
+      setWorkerCreateContent("");
+      setShowWorkerCreateMarkdownPreview(false);
+      setIsWorkerCreateModalOpen(true);
+    } else {
+      setCreateType(type);
+      setIsCreateModalOpen(true);
+    }
+  };
+
+  const openWorkerDetailModal = (inst: WorkerInstructionData) => {
+    setSelectedWorkerInstruction(inst);
+    setWorkerEditName(inst.name);
+    setWorkerEditSystem(inst.systemId);
+    setWorkerEditContent(inst.content);
+    setShowWorkerMarkdownPreview(false);
+    setIsWorkerDetailModalOpen(true);
+  };
+
+  const handleSaveWorkerInstruction = () => {
+    if (selectedWorkerInstruction) {
+      setWorkerInstructions(workerInstructions.map((i) => 
+        i.id === selectedWorkerInstruction.id 
+          ? {
+              ...i,
+              name: workerEditName,
+              systemId: workerEditSystem,
+              systemName: systems.find(s => s.id === workerEditSystem)?.name || i.systemName,
+              content: workerEditContent,
+              updatedAt: new Date().toISOString().split('T')[0],
+            }
+          : i
+      ));
+      setIsWorkerDetailModalOpen(false);
+    }
+  };
+
+  const handleCreateWorkerInstruction = () => {
+    const newInstruction: WorkerInstructionData = {
+      id: `worker${Date.now()}`,
+      name: workerCreateName,
+      systemId: workerCreateSystem,
+      systemName: systems.find(s => s.id === workerCreateSystem)?.name || "",
+      content: workerCreateContent,
+      author: "관리자",
+      createdAt: new Date().toISOString().split('T')[0],
+      updatedAt: new Date().toISOString().split('T')[0],
+    };
+    setWorkerInstructions([...workerInstructions, newInstruction]);
+    setIsWorkerCreateModalOpen(false);
   };
 
   const getAuthorBadge = (role: "admin" | "user") => {
@@ -395,7 +553,7 @@ export function InstructionManagement() {
   return (
     <div className="space-y-6">
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-5 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -403,7 +561,7 @@ export function InstructionManagement() {
                 <FileText className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{publicInstructions.length + systemInstructions.length}</p>
+                <p className="text-2xl font-bold">{publicInstructions.length + systemInstructions.length + workerInstructions.length}</p>
                 <p className="text-xs text-muted-foreground">전체 지침</p>
               </div>
             </div>
@@ -438,6 +596,19 @@ export function InstructionManagement() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                <Wrench className="w-5 h-5 text-orange-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{workerInstructions.length}</p>
+                <p className="text-xs text-muted-foreground">Worker 지침</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
                 <User className="w-5 h-5 text-purple-500" />
               </div>
@@ -453,7 +624,7 @@ export function InstructionManagement() {
       </div>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "public" | "system")}>
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "public" | "system" | "worker")}>
         <div className="flex items-center justify-between mb-4">
           <TabsList>
             <TabsTrigger value="public" className="gap-2">
@@ -465,6 +636,11 @@ export function InstructionManagement() {
               <Server className="w-4 h-4" />
               시스템별 지침
               <Badge variant="secondary" className="ml-1">{systemInstructions.length}</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="worker" className="gap-2">
+              <Wrench className="w-4 h-4" />
+              Worker 지침
+              <Badge variant="secondary" className="ml-1">{workerInstructions.length}</Badge>
             </TabsTrigger>
           </TabsList>
 
@@ -754,6 +930,158 @@ export function InstructionManagement() {
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleDelete(inst.id, false);
+                              }}
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              삭제
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </Card>
+        </TabsContent>
+
+        {/* Worker 지침 탭 */}
+        <TabsContent value="worker" className="space-y-4">
+          <div className="flex items-center gap-4">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Worker 지침 검색"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Popover open={workerFilterSystemOpen} onOpenChange={setWorkerFilterSystemOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={workerFilterSystemOpen}
+                  className="min-w-[150px] justify-between"
+                >
+                  {workerSelectedSystem === "all"
+                    ? "전체 시스템"
+                    : systems.find((s) => s.id === workerSelectedSystem)?.name}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[200px] p-0 z-50">
+                <Command>
+                  <CommandInput placeholder="시스템 검색..." />
+                  <CommandList>
+                    <CommandEmpty>시스템을 찾을 수 없습니다.</CommandEmpty>
+                    <CommandGroup>
+                      <CommandItem
+                        value="all"
+                        onSelect={() => {
+                          setWorkerSelectedSystem("all");
+                          setWorkerFilterSystemOpen(false);
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            workerSelectedSystem === "all" ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        전체 시스템
+                      </CommandItem>
+                      {systems.map((s) => (
+                        <CommandItem
+                          key={s.id}
+                          value={s.name}
+                          onSelect={() => {
+                            setWorkerSelectedSystem(s.id);
+                            setWorkerFilterSystemOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              workerSelectedSystem === s.id ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {s.name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <Card>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[300px]">지침명</TableHead>
+                  <TableHead className="w-[120px]">시스템</TableHead>
+                  <TableHead className="w-[100px]">작성자</TableHead>
+                  <TableHead className="w-[120px]">수정일</TableHead>
+                  <TableHead className="w-[80px] text-center">관리</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredWorkerInstructions.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                      등록된 Worker 지침이 없습니다.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredWorkerInstructions.map((inst) => (
+                    <TableRow
+                      key={inst.id}
+                      className="cursor-pointer hover:bg-secondary/50"
+                      onClick={() => openWorkerDetailModal(inst)}
+                    >
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Wrench className="w-4 h-4 text-orange-500" />
+                          <span className="font-medium">{inst.name}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="bg-orange-500/10">
+                          {inst.systemName}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {inst.author}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {inst.updatedAt}
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreHorizontal className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="bg-popover border">
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openWorkerDetailModal(inst);
+                              }}
+                            >
+                              <Edit className="w-4 h-4 mr-2" />
+                              편집
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteWorkerInstruction(inst.id);
                               }}
                             >
                               <Trash2 className="w-4 h-4 mr-2" />
@@ -1192,6 +1520,247 @@ export function InstructionManagement() {
               취소
             </Button>
             <Button onClick={() => setIsCreateModalOpen(false)}>추가</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Worker 지침 상세/편집 Modal */}
+      <Dialog open={isWorkerDetailModalOpen} onOpenChange={setIsWorkerDetailModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Wrench className="w-5 h-5 text-orange-500" />
+              Worker 지침 편집
+            </DialogTitle>
+          </DialogHeader>
+
+          {selectedWorkerInstruction && (
+            <div className="flex gap-6 py-4 h-[calc(90vh-200px)]">
+              {/* 좌측: 기본 정보 */}
+              <div className="w-[300px] flex-shrink-0 space-y-4 overflow-y-auto pr-2">
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block text-muted-foreground">
+                    지침명
+                  </label>
+                  <Input 
+                    value={workerEditName}
+                    onChange={(e) => setWorkerEditName(e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block text-muted-foreground">
+                    시스템
+                  </label>
+                  <Popover open={workerEditSystemOpen} onOpenChange={setWorkerEditSystemOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={workerEditSystemOpen}
+                        className="w-full justify-between"
+                      >
+                        {workerEditSystem
+                          ? systems.find((s) => s.id === workerEditSystem)?.name
+                          : "시스템 선택"}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[250px] p-0 z-50">
+                      <Command>
+                        <CommandInput placeholder="시스템 검색..." />
+                        <CommandList>
+                          <CommandEmpty>시스템을 찾을 수 없습니다.</CommandEmpty>
+                          <CommandGroup>
+                            {systems.map((s) => (
+                              <CommandItem
+                                key={s.id}
+                                value={s.name}
+                                onSelect={() => {
+                                  setWorkerEditSystem(s.id);
+                                  setWorkerEditSystemOpen(false);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    workerEditSystem === s.id ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                {s.name}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                <div className="pt-4 border-t border-border space-y-2">
+                  <p className="text-xs text-muted-foreground">
+                    작성자: {selectedWorkerInstruction.author}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    생성일: {selectedWorkerInstruction.createdAt}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    수정일: {selectedWorkerInstruction.updatedAt}
+                  </p>
+                </div>
+              </div>
+
+              {/* 우측: Markdown 편집 영역 */}
+              <div className="flex-1 flex flex-col min-w-0">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium text-muted-foreground">
+                    지침 내용 (Markdown)
+                  </label>
+                  <Button
+                    variant={showWorkerMarkdownPreview ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setShowWorkerMarkdownPreview(!showWorkerMarkdownPreview)}
+                    className="gap-2"
+                  >
+                    <Eye className="w-4 h-4" />
+                    {showWorkerMarkdownPreview ? "편집" : "MD 보기"}
+                  </Button>
+                </div>
+                {showWorkerMarkdownPreview ? (
+                  <div className="flex-1 p-4 bg-secondary/30 rounded-lg overflow-y-auto prose prose-sm dark:prose-invert max-w-none">
+                    <ReactMarkdown>{workerEditContent}</ReactMarkdown>
+                  </div>
+                ) : (
+                  <Textarea
+                    value={workerEditContent}
+                    onChange={(e) => setWorkerEditContent(e.target.value)}
+                    className="flex-1 font-mono text-sm resize-none"
+                  />
+                )}
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsWorkerDetailModalOpen(false)}>
+              닫기
+            </Button>
+            <Button onClick={handleSaveWorkerInstruction}>저장</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Worker 지침 생성 Modal */}
+      <Dialog open={isWorkerCreateModalOpen} onOpenChange={setIsWorkerCreateModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Wrench className="w-5 h-5 text-orange-500" />
+              Worker 지침 추가
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="flex gap-6 py-4 h-[calc(90vh-200px)]">
+            {/* 좌측: 기본 정보 */}
+            <div className="w-[300px] flex-shrink-0 space-y-4 overflow-y-auto pr-2">
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">지침명</label>
+                <Input 
+                  placeholder="Worker 지침명 입력"
+                  value={workerCreateName}
+                  onChange={(e) => setWorkerCreateName(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">시스템</label>
+                <Popover open={workerCreateSystemOpen} onOpenChange={setWorkerCreateSystemOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={workerCreateSystemOpen}
+                      className="w-full justify-between"
+                    >
+                      {workerCreateSystem
+                        ? systems.find((s) => s.id === workerCreateSystem)?.name
+                        : "시스템 선택"}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[250px] p-0 z-50">
+                    <Command>
+                      <CommandInput placeholder="시스템 검색..." />
+                      <CommandList>
+                        <CommandEmpty>시스템을 찾을 수 없습니다.</CommandEmpty>
+                        <CommandGroup>
+                          {systems.map((s) => (
+                            <CommandItem
+                              key={s.id}
+                              value={s.name}
+                              onSelect={() => {
+                                setWorkerCreateSystem(s.id);
+                                setWorkerCreateSystemOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  workerCreateSystem === s.id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {s.name}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+
+            {/* 우측: Markdown 편집 영역 */}
+            <div className="flex-1 flex flex-col min-w-0">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium text-muted-foreground">
+                  지침 내용 (Markdown)
+                </label>
+                <Button
+                  variant={showWorkerCreateMarkdownPreview ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setShowWorkerCreateMarkdownPreview(!showWorkerCreateMarkdownPreview)}
+                  className="gap-2"
+                >
+                  <Eye className="w-4 h-4" />
+                  {showWorkerCreateMarkdownPreview ? "편집" : "MD 보기"}
+                </Button>
+              </div>
+              {showWorkerCreateMarkdownPreview ? (
+                <div className="flex-1 p-4 bg-secondary/30 rounded-lg overflow-y-auto prose prose-sm dark:prose-invert max-w-none">
+                  <ReactMarkdown>{workerCreateContent}</ReactMarkdown>
+                </div>
+              ) : (
+                <Textarea
+                  value={workerCreateContent}
+                  onChange={(e) => setWorkerCreateContent(e.target.value)}
+                  placeholder="Worker 지침 내용을 Markdown 형식으로 입력하세요..."
+                  className="flex-1 font-mono text-sm resize-none"
+                />
+              )}
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsWorkerCreateModalOpen(false)}>
+              취소
+            </Button>
+            <Button 
+              onClick={handleCreateWorkerInstruction}
+              disabled={!workerCreateName || !workerCreateSystem || !workerCreateContent}
+            >
+              추가
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
