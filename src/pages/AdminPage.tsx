@@ -50,7 +50,7 @@ const adminSections = [
   { id: "system-monitoring" as AdminSection, icon: Monitor, label: "시스템 모니터링 관리" },
   { id: "mcp" as AdminSection, icon: Plug, label: "MCP 서버/Tool 관리" },
   { id: "instructions" as AdminSection, icon: FileText, label: "지침관리" },
-  { id: "agents" as AdminSection, icon: Bot, label: "Agent 마켓 관리" },
+  { id: "agents" as AdminSection, icon: Bot, label: "My Agent 관리" },
   { id: "knowledge-rag" as AdminSection, icon: Database, label: "지식 RAG 관리" },
   { id: "knowledge-graph" as AdminSection, icon: GitBranch, label: "지식 Graph 관리" },
   { id: "monitoring" as AdminSection, icon: Activity, label: "모니터링" },
