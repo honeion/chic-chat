@@ -1348,8 +1348,8 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
 
 ---
 
-대화 내용을 기반으로 ITS 요청이 자동 등록되었습니다.
-ITS Agent에서 해당 요청을 확인하고 처리할 수 있습니다.`;
+대화 내용을 기반으로 ITS 요청이 등록되었습니다.
+ITS 담당자의 승인 후 처리가 진행됩니다.`;
 
     // 현재 Biz 세션 업데이트 (완료 상태로)
     setChatSessions(prev => prev.map(s => 
@@ -1359,7 +1359,7 @@ ITS Agent에서 해당 요청을 확인하고 처리할 수 있습니다.`;
             messages: [
               ...s.messages, 
               { role: "user" as const, content: `ITS 요청 등록 (${typeLabel})` },
-              { role: "agent" as const, content: itsRegistrationMessage, link: { label: "ITS Agent로 이동", agentId: "a1" } }
+              { role: "agent" as const, content: itsRegistrationMessage }
             ],
             status: "completed" as const
           } 
