@@ -509,7 +509,7 @@ export function SystemDetailSettings({ systemId, systemName }: SystemDetailSetti
                   ) : (
                     <div className="space-y-2">
                       {envDetails[env].urls.map((urlInfo, index) => (
-                        <div key={urlInfo.id} className="p-2 rounded-lg bg-background/50 border border-border/50 space-y-2">
+                        <div key={urlInfo.id} className="p-2 rounded-lg bg-card border border-border space-y-2">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-1.5">
                               <span className="text-xs text-muted-foreground">#{index + 1}</span>
@@ -569,7 +569,7 @@ export function SystemDetailSettings({ systemId, systemName }: SystemDetailSetti
                   ) : (
                     <div className="space-y-2">
                       {envDetails[env].servers.map((server, index) => (
-                        <div key={server.id} className="p-2 rounded-lg bg-background/50 border border-border/50 space-y-2">
+                        <div key={server.id} className="p-2 rounded-lg bg-card border border-border space-y-2">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-1.5">
                               <span className="text-xs text-muted-foreground">#{index + 1}</span>
@@ -646,7 +646,7 @@ export function SystemDetailSettings({ systemId, systemName }: SystemDetailSetti
                   ) : (
                     <div className="space-y-2">
                       {envDetails[env].databases.map((db, index) => (
-                        <div key={db.id} className="p-2 rounded-lg bg-background/50 border border-border/50 space-y-2">
+                        <div key={db.id} className="p-2 rounded-lg bg-card border border-border space-y-2">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-1.5">
                               <span className="text-xs text-muted-foreground">#{index + 1}</span>
@@ -695,7 +695,7 @@ export function SystemDetailSettings({ systemId, systemName }: SystemDetailSetti
                   ) : (
                     <div className="space-y-2">
                       {envDetails[env].cicds.map((cicd, index) => (
-                        <div key={cicd.id} className="p-2 rounded-lg bg-background/50 border border-border/50 space-y-2">
+                        <div key={cicd.id} className="p-2 rounded-lg bg-card border border-border space-y-2">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-1.5">
                               <span className="text-xs text-muted-foreground">#{index + 1}</span>
