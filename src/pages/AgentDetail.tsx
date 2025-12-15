@@ -49,7 +49,8 @@ export interface ChatSession {
   id: string;
   request: ActiveRequest;
   messages: Message[];
-  status: "pending-approval" | "pending-process-start" | "in-progress" | "completed" | "rejected" | "pending-report-confirm" | "pending-report-start" | "pending-report-review" | "pending-knowledge-save" | "pending-its-navigate" | "pending-its-complete" | "pending-its-type-selection";
+  status: "pending-approval" | "pending-process-start" | "in-progress" | "completed" | "rejected" | "pending-report-confirm" | "pending-report-start" | "pending-report-review" | "pending-knowledge-save" | "pending-its-navigate" | "pending-its-complete" | "pending-its-type-selection" | "pending-its-confirm";
+  pendingITSType?: RequestType; // ITS 요청 유형 임시 저장
   createdAt: string;
   sourceIncidentSession?: string; // Report Agent에서 원본 인시던트 세션 ID 저장
   originalITSRequestNo?: string; // 원본 ITS 요청번호 저장
@@ -1317,9 +1318,25 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
   const handleCancelITSRegistration = (sessionId: string) => {
     setChatSessions(prev => prev.map(s => 
       s.id === sessionId 
-        ? { ...s, status: "in-progress" as const }
+        ? { ...s, status: "in-progress" as const, pendingITSType: undefined }
         : s
     ));
+  };
+
+  // Biz.Support → ITS 요청 유형 선택 후 미리보기 핸들러
+  const handleSelectITSType = (sessionId: string, requestType: RequestType) => {
+    setChatSessions(prev => prev.map(s => 
+      s.id === sessionId 
+        ? { ...s, status: "pending-its-confirm" as const, pendingITSType: requestType }
+        : s
+    ));
+  };
+
+  // Biz.Support → ITS 요청 등록 확인 핸들러
+  const handleConfirmITSRequest = (sessionId: string) => {
+    const session = chatSessions.find(s => s.id === sessionId);
+    if (!session || !session.pendingITSType) return;
+    handleBizRegisterITSRequest(sessionId, session.pendingITSType);
   };
 
   // Biz.Support → ITS 요청 등록 핸들러 (요청 유형 포함)
@@ -2066,10 +2083,14 @@ ${conversationSummary || "(내용 없음)"}
           isPendingITSComplete={activeSession?.status === "pending-its-complete"}
           onCompleteITS={() => activeSessionId && handleCompleteITS(activeSessionId)}
           onSkipITSComplete={() => activeSessionId && handleSkipITSComplete(activeSessionId)}
-          isBizSupportSession={activeSession?.request.requestNo.startsWith("BIZ-") && (activeSession?.status === "in-progress" || activeSession?.status === "pending-its-type-selection")}
+          isBizSupportSession={activeSession?.request.requestNo.startsWith("BIZ-") && (activeSession?.status === "in-progress" || activeSession?.status === "pending-its-type-selection" || activeSession?.status === "pending-its-confirm")}
           isPendingITSTypeSelection={activeSession?.status === "pending-its-type-selection"}
+          isPendingITSConfirm={activeSession?.status === "pending-its-confirm"}
+          pendingITSType={activeSession?.pendingITSType}
+          itsPreviewContent={activeSession ? activeSession.messages.filter(m => m.role === "user").map(m => m.content).join("\n") : ""}
           onStartITSRegistration={() => activeSessionId && handleStartITSRegistration(activeSessionId)}
-          onSelectITSType={(type) => activeSessionId && handleBizRegisterITSRequest(activeSessionId, type)}
+          onSelectITSType={(type) => activeSessionId && handleSelectITSType(activeSessionId, type)}
+          onConfirmITSRequest={() => activeSessionId && handleConfirmITSRequest(activeSessionId)}
           onCancelITSRegistration={() => activeSessionId && handleCancelITSRegistration(activeSessionId)}
                 isExpanded={isChatExpanded}
                 onToggleExpand={() => setIsChatExpanded(!isChatExpanded)}
@@ -2120,10 +2141,14 @@ ${conversationSummary || "(내용 없음)"}
             isPendingITSComplete={activeSession?.status === "pending-its-complete"}
             onCompleteITS={() => activeSessionId && handleCompleteITS(activeSessionId)}
             onSkipITSComplete={() => activeSessionId && handleSkipITSComplete(activeSessionId)}
-            isBizSupportSession={activeSession?.request.requestNo.startsWith("BIZ-") && (activeSession?.status === "in-progress" || activeSession?.status === "pending-its-type-selection")}
+            isBizSupportSession={activeSession?.request.requestNo.startsWith("BIZ-") && (activeSession?.status === "in-progress" || activeSession?.status === "pending-its-type-selection" || activeSession?.status === "pending-its-confirm")}
             isPendingITSTypeSelection={activeSession?.status === "pending-its-type-selection"}
+            isPendingITSConfirm={activeSession?.status === "pending-its-confirm"}
+            pendingITSType={activeSession?.pendingITSType}
+            itsPreviewContent={activeSession ? activeSession.messages.filter(m => m.role === "user").map(m => m.content).join("\n") : ""}
             onStartITSRegistration={() => activeSessionId && handleStartITSRegistration(activeSessionId)}
-            onSelectITSType={(type) => activeSessionId && handleBizRegisterITSRequest(activeSessionId, type)}
+            onSelectITSType={(type) => activeSessionId && handleSelectITSType(activeSessionId, type)}
+            onConfirmITSRequest={() => activeSessionId && handleConfirmITSRequest(activeSessionId)}
             onCancelITSRegistration={() => activeSessionId && handleCancelITSRegistration(activeSessionId)}
             isExpanded={isChatExpanded}
             onToggleExpand={() => setIsChatExpanded(!isChatExpanded)}
