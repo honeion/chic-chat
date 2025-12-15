@@ -15,6 +15,7 @@ import {
   Settings,
   Crown,
   Monitor,
+  Plug,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LanguageSelector } from "@/components/LanguageSelector";
@@ -28,12 +29,14 @@ import { KnowledgeRAGManagement } from "@/components/admin/KnowledgeRAGManagemen
 import { KnowledgeGraphManagement } from "@/components/admin/KnowledgeGraphManagement";
 import { AdminMonitoring } from "@/components/admin/AdminMonitoring";
 import { SystemMonitoringManagement } from "@/components/admin/SystemMonitoringManagement";
+import { MCPManagement } from "@/components/admin/MCPManagement";
 
 type AdminSection =
   | "users"
   | "systems"
   | "permissions"
   | "system-monitoring"
+  | "mcp"
   | "instructions"
   | "agents"
   | "knowledge-rag"
@@ -45,6 +48,7 @@ const adminSections = [
   { id: "systems" as AdminSection, icon: Server, label: "시스템관리" },
   { id: "permissions" as AdminSection, icon: Shield, label: "권한관리" },
   { id: "system-monitoring" as AdminSection, icon: Monitor, label: "시스템 모니터링 관리" },
+  { id: "mcp" as AdminSection, icon: Plug, label: "MCP 서버/Tool 관리" },
   { id: "instructions" as AdminSection, icon: FileText, label: "지침관리" },
   { id: "agents" as AdminSection, icon: Bot, label: "Agent 마켓 관리" },
   { id: "knowledge-rag" as AdminSection, icon: Database, label: "지식 RAG 관리" },
@@ -81,6 +85,8 @@ const AdminPage = () => {
         return <PermissionManagement />;
       case "system-monitoring":
         return <SystemMonitoringManagement />;
+      case "mcp":
+        return <MCPManagement />;
       case "instructions":
         return <InstructionManagement />;
       case "agents":
