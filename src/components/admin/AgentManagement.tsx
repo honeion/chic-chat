@@ -862,67 +862,6 @@ export function AgentManagement() {
             </Button>
           </div>
 
-          {/* Filters */}
-          <div className="grid grid-cols-3 gap-4">
-            <Card 
-              className={cn(
-                "cursor-pointer transition-all border-transparent hover:border-primary/50",
-                myAgentFilterActive === "all" && "ring-2 ring-primary border-primary"
-              )}
-              onClick={() => setMyAgentFilterActive("all")}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Bot className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{myAgents.length}</p>
-                    <p className="text-xs text-muted-foreground">전체 My Agent</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card 
-              className={cn(
-                "cursor-pointer transition-all border-transparent hover:border-primary/50",
-                myAgentFilterActive === "active" && "ring-2 ring-primary border-primary"
-              )}
-              onClick={() => setMyAgentFilterActive("active")}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-status-online/20 flex items-center justify-center">
-                    <Eye className="w-5 h-5 text-status-online" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{myAgents.filter((a) => a.isActive).length}</p>
-                    <p className="text-xs text-muted-foreground">활성</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card 
-              className={cn(
-                "cursor-pointer transition-all border-transparent hover:border-primary/50",
-                myAgentFilterActive === "inactive" && "ring-2 ring-primary border-primary"
-              )}
-              onClick={() => setMyAgentFilterActive("inactive")}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
-                    <EyeOff className="w-5 h-5 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{myAgents.filter((a) => !a.isActive).length}</p>
-                    <p className="text-xs text-muted-foreground">비활성</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
           {/* My Agent List Table */}
           <Card>
             <Table>
