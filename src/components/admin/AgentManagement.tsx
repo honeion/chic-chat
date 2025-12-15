@@ -40,6 +40,14 @@ import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface AgentVersion {
   version: string;
@@ -369,158 +377,135 @@ export function AgentManagement() {
         </Card>
       </div>
 
-      {/* Agent List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredAgents.map((agent) => (
-          <Card
-            key={agent.id}
-            className={cn(
-              "cursor-pointer hover:border-primary/50 transition-colors",
-              !agent.isPublished && "opacity-70"
-            )}
-            onClick={() => openDetailModal(agent)}
-          >
-            <CardHeader className="bg-primary/10 pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                    <Bot className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">{agent.name}</CardTitle>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="outline" className="text-xs">
-                        v{agent.currentVersion}
-                      </Badge>
-                      {agent.isPublished ? (
-                        <Badge className="bg-status-online text-white text-xs">게시됨</Badge>
-                      ) : (
-                        <Badge variant="secondary" className="text-xs">
-                          초안
-                        </Badge>
-                      )}
+      {/* Agent List Table */}
+      <Card>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[250px]">Agent명</TableHead>
+              <TableHead>설명</TableHead>
+              <TableHead className="w-[100px]">지침</TableHead>
+              <TableHead className="w-[100px]">도구</TableHead>
+              <TableHead className="w-[100px]">지식</TableHead>
+              <TableHead className="w-[80px]">버전</TableHead>
+              <TableHead className="w-[80px]">상태</TableHead>
+              <TableHead className="w-[100px]">수정일</TableHead>
+              <TableHead className="w-[80px] text-center">관리</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredAgents.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                  등록된 Agent가 없습니다.
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredAgents.map((agent) => (
+                <TableRow
+                  key={agent.id}
+                  className={cn(
+                    "cursor-pointer hover:bg-secondary/50",
+                    !agent.isPublished && "opacity-70"
+                  )}
+                  onClick={() => openDetailModal(agent)}
+                >
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                        <Bot className="w-4 h-4 text-primary" />
+                      </div>
+                      <span className="font-medium">{agent.name}</span>
                     </div>
-                  </div>
-                </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <MoreHorizontal className="w-4 h-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        togglePublish(agent.id);
-                      }}
-                    >
-                      {agent.isPublished ? (
-                        <>
-                          <EyeOff className="w-4 h-4 mr-2" />
-                          게시 취소
-                        </>
-                      ) : (
-                        <>
-                          <Rocket className="w-4 h-4 mr-2" />
-                          게시
-                        </>
-                      )}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDelete(agent.id);
-                      }}
-                      className="text-destructive"
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      삭제
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-4 space-y-3">
-              <p className="text-sm text-muted-foreground line-clamp-2">{agent.description}</p>
-              
-              {/* Instruction Selection */}
-              <div className="space-y-1">
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <FileText className="w-3 h-3" />
-                  <span>지침 ({agent.selectedInstructionIds?.length || 0})</span>
-                </div>
-                <div className="flex flex-wrap gap-1">
-                  {(agent.selectedInstructionIds || []).slice(0, 2).map((instId) => {
-                    const inst = mockInstructions.find(i => i.id === instId);
-                    return inst ? (
-                      <Badge key={instId} variant="outline" className="text-xs">
-                        {inst.name}
-                      </Badge>
-                    ) : null;
-                  })}
-                  {(agent.selectedInstructionIds?.length || 0) > 2 && (
-                    <Badge variant="outline" className="text-xs">
-                      +{agent.selectedInstructionIds.length - 2}
-                    </Badge>
-                  )}
-                </div>
-              </div>
-
-              {/* Tools */}
-              <div className="space-y-1">
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Wrench className="w-3 h-3" />
-                  <span>도구 ({agent.tools?.length || 0})</span>
-                </div>
-                <div className="flex flex-wrap gap-1">
-                  {(agent.tools || []).slice(0, 3).map((toolId) => {
-                    const tool = mockTools.find(t => t.id === toolId);
-                    return tool ? (
-                      <Badge key={toolId} variant="secondary" className="text-xs">
-                        {tool.name}
-                      </Badge>
-                    ) : null;
-                  })}
-                  {(agent.tools?.length || 0) > 3 && (
-                    <Badge variant="outline" className="text-xs">
-                      +{agent.tools.length - 3}
-                    </Badge>
-                  )}
-                </div>
-              </div>
-
-              {/* Knowledge Bases */}
-              <div className="space-y-1">
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <BookOpen className="w-3 h-3" />
-                  <span>지식 ({agent.knowledgeBases?.length || 0})</span>
-                </div>
-                <div className="flex flex-wrap gap-1">
-                  {(agent.knowledgeBases || []).slice(0, 2).map((kbId) => {
-                    const kb = mockKnowledgeBases.find(k => k.id === kbId);
-                    return kb ? (
-                      <Badge key={kbId} variant="secondary" className="text-xs bg-primary/10">
-                        {kb.name}
-                      </Badge>
-                    ) : null;
-                  })}
-                  {(agent.knowledgeBases?.length || 0) > 2 && (
-                    <Badge variant="outline" className="text-xs">
-                      +{agent.knowledgeBases.length - 2}
-                    </Badge>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between pt-2 border-t border-border text-xs text-muted-foreground">
-                <span>생성: {agent.createdBy}</span>
-                <span>{agent.versions.length}개 버전</span>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-sm truncate max-w-[200px]">
+                    {agent.description}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      <FileText className="w-3 h-3 text-muted-foreground" />
+                      <span className="text-sm">{agent.selectedInstructionIds?.length || 0}개</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      <Wrench className="w-3 h-3 text-muted-foreground" />
+                      <span className="text-sm">{agent.tools?.length || 0}개</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      <BookOpen className="w-3 h-3 text-muted-foreground" />
+                      <span className="text-sm">{agent.knowledgeBases?.length || 0}개</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline">v{agent.currentVersion}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    {agent.isPublished ? (
+                      <Badge className="bg-status-online text-white text-xs">게시됨</Badge>
+                    ) : (
+                      <Badge variant="secondary" className="text-xs">초안</Badge>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {agent.updatedAt}
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreHorizontal className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="bg-popover border">
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openDetailModal(agent);
+                          }}
+                        >
+                          <Edit className="w-4 h-4 mr-2" />
+                          편집
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            togglePublish(agent.id);
+                          }}
+                        >
+                          {agent.isPublished ? (
+                            <>
+                              <EyeOff className="w-4 h-4 mr-2" />
+                              게시 취소
+                            </>
+                          ) : (
+                            <>
+                              <Rocket className="w-4 h-4 mr-2" />
+                              게시
+                            </>
+                          )}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(agent.id);
+                          }}
+                          className="text-destructive"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          삭제
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </Card>
 
       {/* Detail Modal */}
       <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
