@@ -16,7 +16,11 @@ import {
   FileText,
   Check,
   Info,
+  Server,
+  Store,
+  User,
 } from "lucide-react";
+import { mockSystems } from "@/data/systems";
 import ReactMarkdown from "react-markdown";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -118,6 +122,25 @@ interface AgentData {
   createdBy: string;
 }
 
+// My Agent - 사용자가 Agent 마켓에서 시스템과 매핑하여 등록한 Agent
+interface MyAgentData {
+  id: string;
+  name: string;
+  description: string;
+  sourceAgentId: string; // 원본 Agent 마켓 Agent ID
+  sourceAgentName: string;
+  systemId: string;
+  systemName: string;
+  instructions: string;
+  selectedInstructionIds: string[];
+  tools: string[];
+  knowledgeBases: string[];
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+}
+
 const mockAgents: AgentData[] = [
   {
     id: "a1",
@@ -177,7 +200,65 @@ const mockAgents: AgentData[] = [
   },
 ];
 
+const mockMyAgents: MyAgentData[] = [
+  {
+    id: "ma1",
+    name: "e-총무 일일 점검",
+    description: "e-총무 시스템 일일 점검 Agent",
+    sourceAgentId: "a1",
+    sourceAgentName: "일일 점검 루틴 Agent",
+    systemId: "s1",
+    systemName: "e-총무",
+    instructions: "# e-총무 일일 점검\n\n## 목적\ne-총무 시스템을 매일 점검합니다.",
+    selectedInstructionIds: ["i1"],
+    tools: ["t1", "t2", "t4"],
+    knowledgeBases: ["kb1", "kb2"],
+    isActive: true,
+    createdAt: "2024-12-01",
+    updatedAt: "2024-12-10",
+    createdBy: "김철수",
+  },
+  {
+    id: "ma2",
+    name: "BiOn 장애 대응",
+    description: "BiOn 시스템 장애 대응 Agent",
+    sourceAgentId: "a2",
+    sourceAgentName: "장애 대응 플로우 Agent",
+    systemId: "s2",
+    systemName: "BiOn",
+    instructions: "# BiOn 장애 대응\n\n## 목적\nBiOn 시스템 장애 발생 시 대응합니다.",
+    selectedInstructionIds: ["i2"],
+    tools: ["t5", "t3", "t6", "t7"],
+    knowledgeBases: ["kb3", "kb4"],
+    isActive: true,
+    createdAt: "2024-11-15",
+    updatedAt: "2024-12-05",
+    createdBy: "이영희",
+  },
+  {
+    id: "ma3",
+    name: "SATIS DB 백업",
+    description: "SATIS 시스템 DB 백업 Agent",
+    sourceAgentId: "a3",
+    sourceAgentName: "DB 백업 Agent",
+    systemId: "s3",
+    systemName: "SATIS",
+    instructions: "# SATIS DB 백업\n\n## 목적\nSATIS 시스템 DB를 백업합니다.",
+    selectedInstructionIds: ["i3"],
+    tools: ["t2", "t8", "t9"],
+    knowledgeBases: ["kb5"],
+    isActive: false,
+    createdAt: "2024-12-10",
+    updatedAt: "2024-12-12",
+    createdBy: "박민수",
+  },
+];
+
 export function AgentManagement() {
+  // Tab state
+  const [activeTab, setActiveTab] = useState<"market" | "myagent">("market");
+
+  // Agent 마켓 관리 state
   const [agents, setAgents] = useState<AgentData[]>(mockAgents);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterPublished, setFilterPublished] = useState<"all" | "published" | "draft">("all");
@@ -185,6 +266,14 @@ export function AgentManagement() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState<AgentData | null>(null);
   const [showVersionHistory, setShowVersionHistory] = useState(false);
+  
+  // My Agent 관리 state
+  const [myAgents, setMyAgents] = useState<MyAgentData[]>(mockMyAgents);
+  const [myAgentSearchQuery, setMyAgentSearchQuery] = useState("");
+  const [myAgentFilterSystem, setMyAgentFilterSystem] = useState<string>("all");
+  const [myAgentFilterActive, setMyAgentFilterActive] = useState<"all" | "active" | "inactive">("all");
+  const [isMyAgentDetailModalOpen, setIsMyAgentDetailModalOpen] = useState(false);
+  const [selectedMyAgent, setSelectedMyAgent] = useState<MyAgentData | null>(null);
   
   // Instruction preview modal state
   const [isInstructionPreviewOpen, setIsInstructionPreviewOpen] = useState(false);
@@ -226,6 +315,20 @@ export function AgentManagement() {
     return matchesSearch && matchesFilter;
   });
 
+  // My Agent 필터링
+  const filteredMyAgents = myAgents.filter((agent) => {
+    const matchesSearch =
+      agent.name.toLowerCase().includes(myAgentSearchQuery.toLowerCase()) ||
+      agent.description.toLowerCase().includes(myAgentSearchQuery.toLowerCase()) ||
+      agent.systemName.toLowerCase().includes(myAgentSearchQuery.toLowerCase());
+    const matchesSystem = myAgentFilterSystem === "all" || agent.systemId === myAgentFilterSystem;
+    const matchesActive =
+      myAgentFilterActive === "all" ||
+      (myAgentFilterActive === "active" && agent.isActive) ||
+      (myAgentFilterActive === "inactive" && !agent.isActive);
+    return matchesSearch && matchesSystem && matchesActive;
+  });
+
   const togglePublish = (agentId: string) => {
     setAgents(
       agents.map((a) => (a.id === agentId ? { ...a, isPublished: !a.isPublished } : a))
@@ -234,6 +337,16 @@ export function AgentManagement() {
 
   const handleDelete = (agentId: string) => {
     setAgents(agents.filter((a) => a.id !== agentId));
+  };
+
+  const toggleMyAgentActive = (agentId: string) => {
+    setMyAgents(
+      myAgents.map((a) => (a.id === agentId ? { ...a, isActive: !a.isActive } : a))
+    );
+  };
+
+  const handleMyAgentDelete = (agentId: string) => {
+    setMyAgents(myAgents.filter((a) => a.id !== agentId));
   };
 
   const openDetailModal = (agent: AgentData) => {
@@ -247,6 +360,11 @@ export function AgentManagement() {
     setEditInstructionMode("edit");
     setShowVersionHistory(false);
     setIsDetailModalOpen(true);
+  };
+
+  const openMyAgentDetailModal = (agent: MyAgentData) => {
+    setSelectedMyAgent(agent);
+    setIsMyAgentDetailModalOpen(true);
   };
 
   const openCreateModal = () => {
@@ -297,27 +415,86 @@ export function AgentManagement() {
     }
   };
 
+  // 시스템 목록 추출
+  const uniqueSystems = mockSystems.filter(s => s.isActive);
+
   return (
     <div className="space-y-6">
-      {/* Header Actions */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Agent 검색"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <Button onClick={openCreateModal} className="gap-2">
-          <Plus className="w-4 h-4" />
-          Agent 추가
-        </Button>
+      {/* Tab Cards */}
+      <div className="grid grid-cols-2 gap-4">
+        <Card 
+          className={cn(
+            "cursor-pointer transition-all hover:border-primary/50",
+            activeTab === "market" && "ring-2 ring-primary border-primary"
+          )}
+          onClick={() => setActiveTab("market")}
+        >
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                <Store className="w-5 h-5 text-purple-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{agents.length}</p>
+                <p className="text-xs text-muted-foreground">Agent 마켓 관리</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card 
+          className={cn(
+            "cursor-pointer transition-all hover:border-primary/50",
+            activeTab === "myagent" && "ring-2 ring-primary border-primary"
+          )}
+          onClick={() => setActiveTab("myagent")}
+        >
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-cyan-500/10 flex items-center justify-center">
+                <User className="w-5 h-5 text-cyan-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{myAgents.length}</p>
+                <p className="text-xs text-muted-foreground">My Agent 마켓 관리</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Stats with Filter */}
-      <div className="grid grid-cols-3 gap-4">
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "market" | "myagent")}>
+        <TabsList className="w-fit">
+          <TabsTrigger value="market" className="gap-2">
+            <Store className="w-4 h-4" />
+            Agent 마켓 관리
+          </TabsTrigger>
+          <TabsTrigger value="myagent" className="gap-2">
+            <User className="w-4 h-4" />
+            My Agent 마켓 관리
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Agent 마켓 관리 탭 */}
+        <TabsContent value="market" className="space-y-4">
+          {/* Header Actions */}
+          <div className="flex items-center justify-between gap-4">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Agent 검색"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Button onClick={openCreateModal} className="gap-2">
+              <Plus className="w-4 h-4" />
+              Agent 추가
+            </Button>
+          </div>
+
+          {/* Stats with Filter */}
+          <div className="grid grid-cols-3 gap-4">
         <Card 
           className={cn(
             "cursor-pointer transition-all hover:border-primary/50",
@@ -506,6 +683,207 @@ export function AgentManagement() {
           </TableBody>
         </Table>
       </Card>
+        </TabsContent>
+
+        {/* My Agent 마켓 관리 탭 */}
+        <TabsContent value="myagent" className="space-y-4">
+          {/* Header Actions */}
+          <div className="flex items-center justify-between gap-4">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="My Agent 검색"
+                value={myAgentSearchQuery}
+                onChange={(e) => setMyAgentSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
+
+          {/* Filters */}
+          <div className="grid grid-cols-3 gap-4">
+            <Card 
+              className={cn(
+                "cursor-pointer transition-all hover:border-primary/50",
+                myAgentFilterActive === "all" && "ring-2 ring-primary border-primary"
+              )}
+              onClick={() => setMyAgentFilterActive("all")}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Bot className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{myAgents.length}</p>
+                    <p className="text-xs text-muted-foreground">전체 My Agent</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card 
+              className={cn(
+                "cursor-pointer transition-all hover:border-primary/50",
+                myAgentFilterActive === "active" && "ring-2 ring-primary border-primary"
+              )}
+              onClick={() => setMyAgentFilterActive("active")}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-status-online/20 flex items-center justify-center">
+                    <Eye className="w-5 h-5 text-status-online" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{myAgents.filter((a) => a.isActive).length}</p>
+                    <p className="text-xs text-muted-foreground">활성</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card 
+              className={cn(
+                "cursor-pointer transition-all hover:border-primary/50",
+                myAgentFilterActive === "inactive" && "ring-2 ring-primary border-primary"
+              )}
+              onClick={() => setMyAgentFilterActive("inactive")}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
+                    <EyeOff className="w-5 h-5 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{myAgents.filter((a) => !a.isActive).length}</p>
+                    <p className="text-xs text-muted-foreground">비활성</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* My Agent List Table */}
+          <Card>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[200px]">My Agent명</TableHead>
+                  <TableHead>설명</TableHead>
+                  <TableHead className="w-[120px]">원본 Agent</TableHead>
+                  <TableHead className="w-[100px]">시스템</TableHead>
+                  <TableHead className="w-[80px]">상태</TableHead>
+                  <TableHead className="w-[100px]">생성자</TableHead>
+                  <TableHead className="w-[100px]">수정일</TableHead>
+                  <TableHead className="w-[80px] text-center">관리</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredMyAgents.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                      등록된 My Agent가 없습니다.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredMyAgents.map((agent) => (
+                    <TableRow
+                      key={agent.id}
+                      className={cn(
+                        "cursor-pointer hover:bg-secondary/50",
+                        !agent.isActive && "opacity-70"
+                      )}
+                      onClick={() => openMyAgentDetailModal(agent)}
+                    >
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center">
+                            <User className="w-4 h-4 text-cyan-500" />
+                          </div>
+                          <span className="font-medium">{agent.name}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-sm truncate max-w-[200px]">
+                        {agent.description}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-xs">
+                          {agent.sourceAgentName}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className="bg-primary/20 text-primary text-xs">
+                          <Server className="w-3 h-3 mr-1" />
+                          {agent.systemName}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {agent.isActive ? (
+                          <Badge className="bg-status-online text-white text-xs">활성</Badge>
+                        ) : (
+                          <Badge variant="secondary" className="text-xs">비활성</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {agent.createdBy}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {agent.updatedAt}
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreHorizontal className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="bg-popover border">
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openMyAgentDetailModal(agent);
+                              }}
+                            >
+                              <Edit className="w-4 h-4 mr-2" />
+                              상세보기
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleMyAgentActive(agent.id);
+                              }}
+                            >
+                              {agent.isActive ? (
+                                <>
+                                  <EyeOff className="w-4 h-4 mr-2" />
+                                  비활성화
+                                </>
+                              ) : (
+                                <>
+                                  <Eye className="w-4 h-4 mr-2" />
+                                  활성화
+                                </>
+                              )}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleMyAgentDelete(agent.id);
+                              }}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              삭제
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* Detail Modal */}
       <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
@@ -958,6 +1336,103 @@ export function AgentManagement() {
           </ScrollArea>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsInstructionPreviewOpen(false)}>
+              닫기
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* My Agent Detail Modal */}
+      <Dialog open={isMyAgentDetailModalOpen} onOpenChange={setIsMyAgentDetailModalOpen}>
+        <DialogContent className="max-w-3xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <User className="w-5 h-5 text-cyan-500" />
+              My Agent 상세 정보
+            </DialogTitle>
+          </DialogHeader>
+          {selectedMyAgent && (
+            <ScrollArea className="max-h-[60vh]">
+              <div className="space-y-4 pr-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">My Agent명</label>
+                    <p className="text-sm font-medium">{selectedMyAgent.name}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">상태</label>
+                    <div className="mt-1">
+                      {selectedMyAgent.isActive ? (
+                        <Badge className="bg-status-online text-white">활성</Badge>
+                      ) : (
+                        <Badge variant="secondary">비활성</Badge>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">설명</label>
+                  <p className="text-sm">{selectedMyAgent.description}</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">원본 Agent</label>
+                    <Badge variant="outline" className="mt-1">{selectedMyAgent.sourceAgentName}</Badge>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">매핑 시스템</label>
+                    <Badge className="bg-primary/20 text-primary mt-1">
+                      <Server className="w-3 h-3 mr-1" />
+                      {selectedMyAgent.systemName}
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                      <FileText className="w-3 h-3" /> 지침
+                    </label>
+                    <p className="text-sm">{selectedMyAgent.selectedInstructionIds.length}개</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                      <Wrench className="w-3 h-3" /> 도구
+                    </label>
+                    <p className="text-sm">{selectedMyAgent.tools.length}개</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                      <BookOpen className="w-3 h-3" /> 지식
+                    </label>
+                    <p className="text-sm">{selectedMyAgent.knowledgeBases.length}개</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 pt-2 border-t">
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">생성자</label>
+                    <p className="text-sm">{selectedMyAgent.createdBy}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">생성일</label>
+                    <p className="text-sm">{selectedMyAgent.createdAt}</p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Agent 프롬프트</label>
+                  <div className="mt-2 p-3 rounded-lg bg-secondary/50 border">
+                    <pre className="whitespace-pre-wrap text-sm">{selectedMyAgent.instructions}</pre>
+                  </div>
+                </div>
+              </div>
+            </ScrollArea>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsMyAgentDetailModalOpen(false)}>
               닫기
             </Button>
           </DialogFooter>
