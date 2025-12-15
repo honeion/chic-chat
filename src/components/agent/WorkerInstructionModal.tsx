@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
-import { FileText, Save, X, Eye, Edit } from "lucide-react";
+import { FileText, Save, X, Eye, Edit, CheckCircle2, Settings } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -9,9 +9,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 
@@ -129,101 +127,109 @@ export function WorkerInstructionModal({
     setHasChanges(true);
   };
 
-  const activeSystem = systems.find(s => s.id === activeSystemId);
   const currentInstruction = instructions.find(i => i.systemId === activeSystemId);
+  const hasInstruction = (systemId: string) => instructions.some(i => i.systemId === systemId && i.content.trim().length > 0);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
         <DialogHeader className="pb-4 border-b">
           <DialogTitle className="text-lg flex items-center gap-2">
-            <FileText className="w-5 h-5 text-primary" />
-            {agentName} Worker 지침 설정
+            <Settings className="w-5 h-5 text-primary" />
+            {agentName} 설정
           </DialogTitle>
         </DialogHeader>
 
         <div className="flex-1 overflow-hidden flex flex-col gap-4 py-4">
-          {/* 시스템 탭 */}
-          <Tabs value={activeSystemId} onValueChange={handleSystemChange}>
-            <TabsList className="w-full justify-start">
-              {systems.map((system) => {
-                const hasInstruction = instructions.some(i => i.systemId === system.id);
-                return (
-                  <TabsTrigger key={system.id} value={system.id} className="gap-2">
-                    {system.name}
-                    {hasInstruction && (
-                      <Badge variant="secondary" className="text-xs px-1.5 py-0">
-                        설정됨
-                      </Badge>
-                    )}
-                  </TabsTrigger>
-                );
-              })}
+          {/* 메인 설정 탭 - Worker 지침 설정 탭으로 시작, 추후 다른 탭 추가 가능 */}
+          <Tabs defaultValue="worker-instruction" className="flex-1 flex flex-col overflow-hidden">
+            <TabsList className="w-fit">
+              <TabsTrigger value="worker-instruction" className="gap-2">
+                <FileText className="w-4 h-4" />
+                Worker 지침 설정
+              </TabsTrigger>
             </TabsList>
 
-            {systems.map((system) => (
-              <TabsContent key={system.id} value={system.id} className="flex-1 mt-4">
-                <div className="space-y-3">
-                  {/* 편집/미리보기 토글 */}
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-muted-foreground">
-                      {currentInstruction ? (
-                        <span>최종 수정: {currentInstruction.updatedAt}</span>
-                      ) : (
-                        <span>새 지침 작성</span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant={isPreviewMode ? "outline" : "default"}
-                        size="sm"
-                        onClick={() => setIsPreviewMode(false)}
-                        className="gap-1"
-                      >
-                        <Edit className="w-3.5 h-3.5" />
-                        편집
-                      </Button>
-                      <Button
-                        variant={isPreviewMode ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setIsPreviewMode(true)}
-                        className="gap-1"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        미리보기
-                      </Button>
-                    </div>
-                  </div>
+            <TabsContent value="worker-instruction" className="flex-1 overflow-hidden flex flex-col mt-4">
+              {/* 시스템 선택 버튼 */}
+              <div className="flex gap-2 mb-4">
+                {systems.map((system) => (
+                  <Button
+                    key={system.id}
+                    variant={activeSystemId === system.id ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handleSystemChange(system.id)}
+                    className="gap-1.5"
+                  >
+                    {system.name}
+                    {hasInstruction(system.id) && (
+                      <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
+                    )}
+                  </Button>
+                ))}
+              </div>
 
-                  {/* 편집/미리보기 영역 */}
-                  <div className="border rounded-lg overflow-hidden h-[400px]">
-                    {isPreviewMode ? (
-                      <div className="p-4 h-full overflow-y-auto prose prose-sm dark:prose-invert max-w-none">
-                        {editContent ? (
-                          <ReactMarkdown>{editContent}</ReactMarkdown>
-                        ) : (
-                          <p className="text-muted-foreground italic">지침 내용이 없습니다.</p>
-                        )}
-                      </div>
+              {/* 편집 영역 */}
+              <div className="flex-1 overflow-hidden flex flex-col border rounded-lg">
+                {/* 편집/미리보기 토글 */}
+                <div className="flex items-center justify-between p-3 border-b bg-muted/30">
+                  <div className="text-sm text-muted-foreground">
+                    {currentInstruction ? (
+                      <span>최종 수정: {currentInstruction.updatedAt}</span>
                     ) : (
-                      <Textarea
-                        value={editContent}
-                        onChange={(e) => handleContentChange(e.target.value)}
-                        placeholder={`${system.name} 시스템에 대한 ${agentName} Worker 지침을 입력하세요.\n\n마크다운 형식으로 작성할 수 있습니다.\n\n예시:\n# 제목\n## 부제목\n- 항목 1\n- 항목 2`}
-                        className="h-full resize-none border-0 rounded-none font-mono text-sm"
-                      />
+                      <span>새 지침 작성</span>
                     )}
                   </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant={isPreviewMode ? "outline" : "default"}
+                      size="sm"
+                      onClick={() => setIsPreviewMode(false)}
+                      className="gap-1"
+                    >
+                      <Edit className="w-3.5 h-3.5" />
+                      편집
+                    </Button>
+                    <Button
+                      variant={isPreviewMode ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setIsPreviewMode(true)}
+                      className="gap-1"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      미리보기
+                    </Button>
+                  </div>
+                </div>
 
-                  {hasChanges && (
-                    <p className="text-sm text-amber-500 flex items-center gap-1">
-                      <span className="w-2 h-2 rounded-full bg-amber-500" />
-                      저장되지 않은 변경사항이 있습니다.
-                    </p>
+                {/* 편집/미리보기 영역 */}
+                <div className="flex-1 overflow-auto">
+                  {isPreviewMode ? (
+                    <div className="p-4 h-full overflow-y-auto prose prose-sm dark:prose-invert max-w-none">
+                      {editContent ? (
+                        <ReactMarkdown>{editContent}</ReactMarkdown>
+                      ) : (
+                        <p className="text-muted-foreground italic">지침 내용이 없습니다.</p>
+                      )}
+                    </div>
+                  ) : (
+                    <Textarea
+                      value={editContent}
+                      onChange={(e) => handleContentChange(e.target.value)}
+                      placeholder={`${systems.find(s => s.id === activeSystemId)?.name || ''} 시스템에 대한 ${agentName} Worker 지침을 입력하세요.\n\n마크다운 형식으로 작성할 수 있습니다.\n\n예시:\n# 제목\n## 부제목\n- 항목 1\n- 항목 2`}
+                      className="h-full min-h-[350px] resize-none border-0 rounded-none font-mono text-sm"
+                    />
                   )}
                 </div>
-              </TabsContent>
-            ))}
+              </div>
+
+              {hasChanges && (
+                <p className="text-sm text-amber-500 flex items-center gap-1 mt-2">
+                  <span className="w-2 h-2 rounded-full bg-amber-500" />
+                  저장되지 않은 변경사항이 있습니다.
+                </p>
+              )}
+            </TabsContent>
           </Tabs>
         </div>
 
