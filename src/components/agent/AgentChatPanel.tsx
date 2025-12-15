@@ -83,6 +83,9 @@ interface AgentChatPanelProps {
   isPendingITSComplete?: boolean;
   onCompleteITS?: () => void;
   onSkipITSComplete?: () => void;
+  // Biz.Support Agent → ITS 요청 등록 상태
+  isBizSupportSession?: boolean;
+  onRegisterITSRequest?: () => void;
   // Chat panel expansion
   isExpanded?: boolean;
   onToggleExpand?: () => void;
@@ -137,6 +140,8 @@ export function AgentChatPanel({
   isPendingITSComplete,
   onCompleteITS,
   onSkipITSComplete,
+  isBizSupportSession,
+  onRegisterITSRequest,
   isExpanded,
   onToggleExpand
 }: AgentChatPanelProps) {
@@ -528,6 +533,19 @@ export function AgentChatPanel({
               건너뛰기
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Biz.Support Agent ITS 요청 등록 버튼 */}
+      {isBizSupportSession && onRegisterITSRequest && (
+        <div className="px-4 py-2 border-t border-border bg-blue-500/5">
+          <button
+            onClick={onRegisterITSRequest}
+            className="w-full px-4 py-2 rounded-lg bg-blue-500/20 text-blue-600 dark:text-blue-400 text-sm font-medium hover:bg-blue-500/30 transition-colors flex items-center justify-center gap-2 border border-blue-500/30"
+          >
+            <ExternalLink className="w-4 h-4" />
+            ITS 요청 등록하기
+          </button>
         </div>
       )}
 

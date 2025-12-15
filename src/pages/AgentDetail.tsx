@@ -1304,6 +1304,88 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
     setActiveSessionId(newSessionId);
   };
 
+  // Biz.Support → ITS 요청 등록 핸들러
+  const handleBizRegisterITSRequest = (sessionId: string) => {
+    const session = chatSessions.find(s => s.id === sessionId);
+    if (!session) return;
+
+    // 대화 내용 요약 생성
+    const userMessages = session.messages.filter(m => m.role === "user").map(m => m.content);
+    const conversationSummary = userMessages.join("\n");
+    const requestTitle = session.request.title !== "새 문의" 
+      ? session.request.title 
+      : (userMessages[0]?.slice(0, 30) || "시스템 문의") + (userMessages[0]?.length > 30 ? "..." : "");
+
+    // ITS 요청 번호 생성
+    const itsRequestNo = `ITS-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 9000) + 1000)}`;
+
+    // Biz 세션에 ITS 요청 등록 안내 메시지 추가
+    const itsRegistrationMessage = `📋 **ITS 요청 등록 완료**
+
+**요청 번호:** ${itsRequestNo}
+**요청 제목:** ${requestTitle}
+**등록 일시:** ${new Date().toLocaleString('ko-KR')}
+
+---
+
+대화 내용을 기반으로 ITS 요청이 자동 등록되었습니다.
+ITS Agent에서 해당 요청을 확인하고 처리할 수 있습니다.`;
+
+    // 현재 Biz 세션 업데이트 (완료 상태로)
+    setChatSessions(prev => prev.map(s => 
+      s.id === sessionId 
+        ? { 
+            ...s, 
+            messages: [
+              ...s.messages, 
+              { role: "user" as const, content: "ITS 요청 등록하기" },
+              { role: "agent" as const, content: itsRegistrationMessage, link: { label: "ITS Agent로 이동", agentId: "a1" } }
+            ],
+            status: "completed" as const
+          } 
+        : s
+    ));
+
+    // 새 ITS 세션 생성
+    const itsSessionId = `session-its-${Date.now()}`;
+    const itsSession: ChatSession = {
+      id: itsSessionId,
+      request: {
+        id: `its-${Date.now()}`,
+        requestNo: itsRequestNo,
+        type: "S" as const, // 단순 요청으로 기본 설정
+        title: requestTitle,
+        date: new Date().toISOString().split('T')[0],
+        system: "e-총무" // 기본 시스템
+      },
+      messages: [
+        { 
+          role: "agent" as const, 
+          content: `📥 **Biz.Support Agent에서 접수된 요청**
+
+**요청 번호:** ${itsRequestNo}
+**요청 제목:** ${requestTitle}
+**접수 일시:** ${new Date().toLocaleString('ko-KR')}
+**접수 경로:** Biz.Support Agent
+
+---
+
+**문의 내용:**
+${conversationSummary || "(내용 없음)"}
+
+---
+
+해당 요청을 검토하고 접수 여부를 선택해 주세요.`
+        }
+      ],
+      status: "pending-approval" as const,
+      createdAt: new Date().toISOString(),
+      agentType: "its"
+    };
+
+    setChatSessions(prev => [itsSession, ...prev]);
+  };
+
   // 인프라 Agent 새 채팅 핸들러
   const handleInfraNewChat = () => {
     const newSessionId = `session-infra-${Date.now()}`;
@@ -1963,6 +2045,8 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
           isPendingITSComplete={activeSession?.status === "pending-its-complete"}
           onCompleteITS={() => activeSessionId && handleCompleteITS(activeSessionId)}
           onSkipITSComplete={() => activeSessionId && handleSkipITSComplete(activeSessionId)}
+          isBizSupportSession={activeSession?.request.requestNo.startsWith("BIZ-") && activeSession?.status === "in-progress"}
+          onRegisterITSRequest={() => activeSessionId && handleBizRegisterITSRequest(activeSessionId)}
                 isExpanded={isChatExpanded}
                 onToggleExpand={() => setIsChatExpanded(!isChatExpanded)}
               />
@@ -2012,6 +2096,8 @@ ${monitoringItems.map(item => `• ${item}`).join('\n')}
             isPendingITSComplete={activeSession?.status === "pending-its-complete"}
             onCompleteITS={() => activeSessionId && handleCompleteITS(activeSessionId)}
             onSkipITSComplete={() => activeSessionId && handleSkipITSComplete(activeSessionId)}
+            isBizSupportSession={activeSession?.request.requestNo.startsWith("BIZ-") && activeSession?.status === "in-progress"}
+            onRegisterITSRequest={() => activeSessionId && handleBizRegisterITSRequest(activeSessionId)}
             isExpanded={isChatExpanded}
             onToggleExpand={() => setIsChatExpanded(!isChatExpanded)}
           />
