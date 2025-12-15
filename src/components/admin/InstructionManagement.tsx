@@ -552,22 +552,15 @@ export function InstructionManagement() {
 
   return (
     <div className="space-y-6">
-      {/* Stats */}
-      <div className="grid grid-cols-5 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <FileText className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{publicInstructions.length + systemInstructions.length + workerInstructions.length}</p>
-                <p className="text-xs text-muted-foreground">전체 지침</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
+      {/* Stats with Tab Navigation */}
+      <div className="grid grid-cols-4 gap-4">
+        <Card 
+          className={cn(
+            "cursor-pointer transition-all hover:border-primary/50",
+            activeTab === "public" && "ring-2 ring-primary border-primary"
+          )}
+          onClick={() => setActiveTab("public")}
+        >
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
@@ -580,7 +573,13 @@ export function InstructionManagement() {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card 
+          className={cn(
+            "cursor-pointer transition-all hover:border-primary/50",
+            activeTab === "system" && "ring-2 ring-primary border-primary"
+          )}
+          onClick={() => setActiveTab("system")}
+        >
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
@@ -593,7 +592,13 @@ export function InstructionManagement() {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card 
+          className={cn(
+            "cursor-pointer transition-all hover:border-primary/50",
+            activeTab === "worker" && "ring-2 ring-primary border-primary"
+          )}
+          onClick={() => setActiveTab("worker")}
+        >
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
@@ -623,47 +628,28 @@ export function InstructionManagement() {
         </Card>
       </div>
 
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "public" | "system" | "worker")}>
-        <div className="flex items-center justify-between mb-4">
-          <TabsList>
-            <TabsTrigger value="public" className="gap-2">
-              <Globe className="w-4 h-4" />
-              공용 지침
-              <Badge variant="secondary" className="ml-1">{publicInstructions.length}</Badge>
-            </TabsTrigger>
-            <TabsTrigger value="system" className="gap-2">
-              <Server className="w-4 h-4" />
-              시스템별 지침
-              <Badge variant="secondary" className="ml-1">{systemInstructions.length}</Badge>
-            </TabsTrigger>
-            <TabsTrigger value="worker" className="gap-2">
-              <Wrench className="w-4 h-4" />
-              Worker 지침
-              <Badge variant="secondary" className="ml-1">{workerInstructions.length}</Badge>
-            </TabsTrigger>
-          </TabsList>
-
-          <Button onClick={() => openCreateModal(activeTab)} className="gap-2">
-            <Plus className="w-4 h-4" />
-            지침 추가
-          </Button>
+      {/* Header with Search and Add Button */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="지침 검색"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
         </div>
+        <Button onClick={() => openCreateModal(activeTab)} className="gap-2">
+          <Plus className="w-4 h-4" />
+          지침 추가
+        </Button>
+      </div>
+
+      {/* Tabs (hidden, controlled by cards) */}
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "public" | "system" | "worker")}>
 
         {/* 공용 지침 탭 */}
         <TabsContent value="public" className="space-y-4">
-          <div className="flex items-center gap-4">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="지침 검색"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-          </div>
-
           <Card>
             <Table>
               <TableHeader>
@@ -763,15 +749,6 @@ export function InstructionManagement() {
         {/* 시스템별 지침 탭 */}
         <TabsContent value="system" className="space-y-4">
           <div className="flex items-center gap-4">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="지침 검색"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
             <Popover open={filterSystemOpen} onOpenChange={setFilterSystemOpen}>
               <PopoverTrigger asChild>
                 <Button
@@ -949,15 +926,6 @@ export function InstructionManagement() {
         {/* Worker 지침 탭 */}
         <TabsContent value="worker" className="space-y-4">
           <div className="flex items-center gap-4">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Worker 지침 검색"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
             <Popover open={workerFilterSystemOpen} onOpenChange={setWorkerFilterSystemOpen}>
               <PopoverTrigger asChild>
                 <Button
