@@ -107,11 +107,25 @@ interface WorkerInstructionData {
   name: string;
   systemId: string;
   systemName: string;
+  workerId: string;
+  workerName: string;
   content: string;
   author: string;
   createdAt: string;
   updatedAt: string;
 }
+
+// Mock Workers (Agent types that can be assigned)
+const mockWorkers = [
+  { id: "w1", name: "ITS Agent" },
+  { id: "w2", name: "SOP Agent" },
+  { id: "w3", name: "DB Agent" },
+  { id: "w4", name: "모니터링 Agent" },
+  { id: "w5", name: "변경관리 Agent" },
+  { id: "w6", name: "보고서 Agent" },
+  { id: "w7", name: "Biz.Support Agent" },
+  { id: "w8", name: "Infra Agent" },
+];
 
 // Mock Tools
 const mockTools: Tool[] = [
@@ -347,6 +361,8 @@ const mockWorkerInstructions: WorkerInstructionData[] = [
     name: "e-총무 장애처리 Worker 지침",
     systemId: "s1",
     systemName: "e-총무",
+    workerId: "w2",
+    workerName: "SOP Agent",
     content: `# e-총무 장애처리 Worker 지침
 
 ## 1. 장애 감지 시 행동
@@ -372,6 +388,8 @@ const mockWorkerInstructions: WorkerInstructionData[] = [
     name: "BiOn 데이터 처리 Worker 지침",
     systemId: "s2",
     systemName: "BiOn",
+    workerId: "w3",
+    workerName: "DB Agent",
     content: `# BiOn 데이터 처리 Worker 지침
 
 ## 데이터 검증
@@ -391,6 +409,8 @@ const mockWorkerInstructions: WorkerInstructionData[] = [
     name: "SATIS 배치 실행 Worker 지침",
     systemId: "s3",
     systemName: "SATIS",
+    workerId: "w4",
+    workerName: "모니터링 Agent",
     content: `# SATIS 배치 실행 Worker 지침
 
 ## 배치 실행 전 확인사항
@@ -441,14 +461,20 @@ export function InstructionManagement() {
   const [workerEditName, setWorkerEditName] = useState("");
   const [workerEditSystem, setWorkerEditSystem] = useState("");
   const [workerEditSystemOpen, setWorkerEditSystemOpen] = useState(false);
+  const [workerEditWorker, setWorkerEditWorker] = useState("");
+  const [workerEditWorkerOpen, setWorkerEditWorkerOpen] = useState(false);
   const [showWorkerMarkdownPreview, setShowWorkerMarkdownPreview] = useState(false);
   const [workerCreateName, setWorkerCreateName] = useState("");
   const [workerCreateSystem, setWorkerCreateSystem] = useState("");
   const [workerCreateSystemOpen, setWorkerCreateSystemOpen] = useState(false);
+  const [workerCreateWorker, setWorkerCreateWorker] = useState("");
+  const [workerCreateWorkerOpen, setWorkerCreateWorkerOpen] = useState(false);
   const [workerCreateContent, setWorkerCreateContent] = useState("");
   const [showWorkerCreateMarkdownPreview, setShowWorkerCreateMarkdownPreview] = useState(false);
   const [workerFilterSystemOpen, setWorkerFilterSystemOpen] = useState(false);
   const [workerSelectedSystem, setWorkerSelectedSystem] = useState<string>("all");
+  const [workerFilterWorkerOpen, setWorkerFilterWorkerOpen] = useState(false);
+  const [workerSelectedWorker, setWorkerSelectedWorker] = useState<string>("all");
 
   // 공용지침 필터링
   const filteredPublicInstructions = publicInstructions.filter((inst) => {
@@ -472,7 +498,8 @@ export function InstructionManagement() {
   const filteredWorkerInstructions = workerInstructions.filter((inst) => {
     const matchesSearch = inst.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesSystem = workerSelectedSystem === "all" || inst.systemId === workerSelectedSystem;
-    return matchesSearch && matchesSystem;
+    const matchesWorker = workerSelectedWorker === "all" || inst.workerId === workerSelectedWorker;
+    return matchesSearch && matchesSystem && matchesWorker;
   });
 
   const handleDelete = (id: string, isPublic: boolean) => {
@@ -504,6 +531,7 @@ export function InstructionManagement() {
     setSelectedWorkerInstruction(inst);
     setWorkerEditName(inst.name);
     setWorkerEditSystem(inst.systemId);
+    setWorkerEditWorker(inst.workerId);
     setWorkerEditContent(inst.content);
     setShowWorkerMarkdownPreview(false);
     setIsWorkerDetailModalOpen(true);
@@ -518,6 +546,8 @@ export function InstructionManagement() {
               name: workerEditName,
               systemId: workerEditSystem,
               systemName: systems.find(s => s.id === workerEditSystem)?.name || i.systemName,
+              workerId: workerEditWorker,
+              workerName: mockWorkers.find(w => w.id === workerEditWorker)?.name || i.workerName,
               content: workerEditContent,
               updatedAt: new Date().toISOString().split('T')[0],
             }
@@ -533,6 +563,8 @@ export function InstructionManagement() {
       name: workerCreateName,
       systemId: workerCreateSystem,
       systemName: systems.find(s => s.id === workerCreateSystem)?.name || "",
+      workerId: workerCreateWorker,
+      workerName: mockWorkers.find(w => w.id === workerCreateWorker)?.name || "",
       content: workerCreateContent,
       author: "관리자",
       createdAt: new Date().toISOString().split('T')[0],
@@ -926,6 +958,64 @@ export function InstructionManagement() {
         {/* Worker 지침 탭 */}
         <TabsContent value="worker" className="space-y-4">
           <div className="flex items-center gap-4">
+            <Popover open={workerFilterWorkerOpen} onOpenChange={setWorkerFilterWorkerOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={workerFilterWorkerOpen}
+                  className="min-w-[150px] justify-between"
+                >
+                  {workerSelectedWorker === "all"
+                    ? "전체 Worker"
+                    : mockWorkers.find((w) => w.id === workerSelectedWorker)?.name}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[200px] p-0 z-50">
+                <Command>
+                  <CommandInput placeholder="Worker 검색..." />
+                  <CommandList>
+                    <CommandEmpty>Worker를 찾을 수 없습니다.</CommandEmpty>
+                    <CommandGroup>
+                      <CommandItem
+                        value="all"
+                        onSelect={() => {
+                          setWorkerSelectedWorker("all");
+                          setWorkerFilterWorkerOpen(false);
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            workerSelectedWorker === "all" ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        전체 Worker
+                      </CommandItem>
+                      {mockWorkers.map((w) => (
+                        <CommandItem
+                          key={w.id}
+                          value={w.name}
+                          onSelect={() => {
+                            setWorkerSelectedWorker(w.id);
+                            setWorkerFilterWorkerOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              workerSelectedWorker === w.id ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {w.name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
             <Popover open={workerFilterSystemOpen} onOpenChange={setWorkerFilterSystemOpen}>
               <PopoverTrigger asChild>
                 <Button
@@ -990,17 +1080,18 @@ export function InstructionManagement() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[300px]">지침명</TableHead>
-                  <TableHead className="w-[120px]">시스템</TableHead>
+                  <TableHead className="w-[250px]">지침명</TableHead>
+                  <TableHead className="w-[140px]">Worker</TableHead>
+                  <TableHead className="w-[100px]">시스템</TableHead>
                   <TableHead className="w-[100px]">작성자</TableHead>
-                  <TableHead className="w-[120px]">수정일</TableHead>
+                  <TableHead className="w-[100px]">수정일</TableHead>
                   <TableHead className="w-[80px] text-center">관리</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredWorkerInstructions.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                       등록된 Worker 지침이 없습니다.
                     </TableCell>
                   </TableRow>
@@ -1016,6 +1107,11 @@ export function InstructionManagement() {
                           <Wrench className="w-4 h-4 text-orange-500" />
                           <span className="font-medium">{inst.name}</span>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="default" className="bg-primary/80">
+                          {inst.workerName}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className="bg-orange-500/10">
@@ -1518,6 +1614,55 @@ export function InstructionManagement() {
 
                 <div>
                   <label className="text-sm font-medium mb-1.5 block text-muted-foreground">
+                    Worker
+                  </label>
+                  <Popover open={workerEditWorkerOpen} onOpenChange={setWorkerEditWorkerOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={workerEditWorkerOpen}
+                        className="w-full justify-between"
+                      >
+                        {workerEditWorker
+                          ? mockWorkers.find((w) => w.id === workerEditWorker)?.name
+                          : "Worker 선택"}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[250px] p-0 z-50">
+                      <Command>
+                        <CommandInput placeholder="Worker 검색..." />
+                        <CommandList>
+                          <CommandEmpty>Worker를 찾을 수 없습니다.</CommandEmpty>
+                          <CommandGroup>
+                            {mockWorkers.map((w) => (
+                              <CommandItem
+                                key={w.id}
+                                value={w.name}
+                                onSelect={() => {
+                                  setWorkerEditWorker(w.id);
+                                  setWorkerEditWorkerOpen(false);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    workerEditWorker === w.id ? "opacity-100" : "opacity-0"
+                                  )}
+                                />
+                                {w.name}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block text-muted-foreground">
                     시스템
                   </label>
                   <Popover open={workerEditSystemOpen} onOpenChange={setWorkerEditSystemOpen}>
@@ -1641,6 +1786,53 @@ export function InstructionManagement() {
               </div>
 
               <div>
+                <label className="text-sm font-medium mb-1.5 block">Worker</label>
+                <Popover open={workerCreateWorkerOpen} onOpenChange={setWorkerCreateWorkerOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={workerCreateWorkerOpen}
+                      className="w-full justify-between"
+                    >
+                      {workerCreateWorker
+                        ? mockWorkers.find((w) => w.id === workerCreateWorker)?.name
+                        : "Worker 선택"}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[250px] p-0 z-50">
+                    <Command>
+                      <CommandInput placeholder="Worker 검색..." />
+                      <CommandList>
+                        <CommandEmpty>Worker를 찾을 수 없습니다.</CommandEmpty>
+                        <CommandGroup>
+                          {mockWorkers.map((w) => (
+                            <CommandItem
+                              key={w.id}
+                              value={w.name}
+                              onSelect={() => {
+                                setWorkerCreateWorker(w.id);
+                                setWorkerCreateWorkerOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  workerCreateWorker === w.id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {w.name}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div>
                 <label className="text-sm font-medium mb-1.5 block">시스템</label>
                 <Popover open={workerCreateSystemOpen} onOpenChange={setWorkerCreateSystemOpen}>
                   <PopoverTrigger asChild>
@@ -1725,7 +1917,7 @@ export function InstructionManagement() {
             </Button>
             <Button 
               onClick={handleCreateWorkerInstruction}
-              disabled={!workerCreateName || !workerCreateSystem || !workerCreateContent}
+              disabled={!workerCreateName || !workerCreateWorker || !workerCreateSystem || !workerCreateContent}
             >
               추가
             </Button>
