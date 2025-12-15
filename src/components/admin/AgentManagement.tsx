@@ -287,6 +287,7 @@ export function AgentManagement() {
   const [myAgentFilterSystem, setMyAgentFilterSystem] = useState<string>("all");
   const [myAgentFilterActive, setMyAgentFilterActive] = useState<"all" | "active" | "inactive">("all");
   const [isMyAgentDetailModalOpen, setIsMyAgentDetailModalOpen] = useState(false);
+  const [isMyAgentCreateModalOpen, setIsMyAgentCreateModalOpen] = useState(false);
   const [selectedMyAgent, setSelectedMyAgent] = useState<MyAgentData | null>(null);
   
   // My Agent 편집 state
@@ -301,6 +302,19 @@ export function AgentManagement() {
   const [myAgentEditSystemName, setMyAgentEditSystemName] = useState("");
   const [isSystemSelectOpen, setIsSystemSelectOpen] = useState(false);
   const [systemSearchQuery, setSystemSearchQuery] = useState("");
+  
+  // My Agent 생성 state
+  const [myAgentCreateName, setMyAgentCreateName] = useState("");
+  const [myAgentCreateDescription, setMyAgentCreateDescription] = useState("");
+  const [myAgentCreateInstructions, setMyAgentCreateInstructions] = useState("");
+  const [myAgentCreateSelectedInstructionIds, setMyAgentCreateSelectedInstructionIds] = useState<string[]>([]);
+  const [myAgentCreateSelectedTools, setMyAgentCreateSelectedTools] = useState<string[]>([]);
+  const [myAgentCreateSelectedKnowledgeBases, setMyAgentCreateSelectedKnowledgeBases] = useState<string[]>([]);
+  const [myAgentCreateInstructionMode, setMyAgentCreateInstructionMode] = useState<"edit" | "preview">("edit");
+  const [myAgentCreateSystemId, setMyAgentCreateSystemId] = useState("");
+  const [myAgentCreateSystemName, setMyAgentCreateSystemName] = useState("");
+  const [isCreateSystemSelectOpen, setIsCreateSystemSelectOpen] = useState(false);
+  const [createSystemSearchQuery, setCreateSystemSearchQuery] = useState("");
   
   // Instruction preview modal state
   const [isInstructionPreviewOpen, setIsInstructionPreviewOpen] = useState(false);
@@ -449,6 +463,67 @@ export function AgentManagement() {
     s.name.toLowerCase().includes(systemSearchQuery.toLowerCase()) ||
     s.shortName.toLowerCase().includes(systemSearchQuery.toLowerCase())
   );
+  const filteredCreateSystemsList = activeSystemsList.filter(s => 
+    s.name.toLowerCase().includes(createSystemSearchQuery.toLowerCase()) ||
+    s.shortName.toLowerCase().includes(createSystemSearchQuery.toLowerCase())
+  );
+
+  const openMyAgentCreateModal = () => {
+    setMyAgentCreateName("");
+    setMyAgentCreateDescription("");
+    setMyAgentCreateInstructions("");
+    setMyAgentCreateSelectedInstructionIds([]);
+    setMyAgentCreateSelectedTools([]);
+    setMyAgentCreateSelectedKnowledgeBases([]);
+    setMyAgentCreateInstructionMode("edit");
+    setMyAgentCreateSystemId("");
+    setMyAgentCreateSystemName("");
+    setCreateSystemSearchQuery("");
+    setIsMyAgentCreateModalOpen(true);
+  };
+
+  const toggleMyAgentCreateInstruction = (instructionId: string) => {
+    setMyAgentCreateSelectedInstructionIds(prev =>
+      prev.includes(instructionId) ? prev.filter(i => i !== instructionId) : [...prev, instructionId]
+    );
+  };
+
+  const toggleMyAgentCreateTool = (toolId: string) => {
+    setMyAgentCreateSelectedTools(prev =>
+      prev.includes(toolId) ? prev.filter(t => t !== toolId) : [...prev, toolId]
+    );
+  };
+
+  const toggleMyAgentCreateKnowledgeBase = (kbId: string) => {
+    setMyAgentCreateSelectedKnowledgeBases(prev =>
+      prev.includes(kbId) ? prev.filter(k => k !== kbId) : [...prev, kbId]
+    );
+  };
+
+  const handleCreateMyAgent = () => {
+    if (!myAgentCreateName.trim() || !myAgentCreateSystemId) return;
+    
+    const newMyAgent: MyAgentData = {
+      id: `ma${Date.now()}`,
+      name: myAgentCreateName.trim(),
+      description: myAgentCreateDescription.trim(),
+      sourceAgentId: "",
+      sourceAgentName: "직접 생성",
+      systemId: myAgentCreateSystemId,
+      systemName: myAgentCreateSystemName,
+      instructions: myAgentCreateInstructions,
+      selectedInstructionIds: myAgentCreateSelectedInstructionIds,
+      tools: myAgentCreateSelectedTools,
+      knowledgeBases: myAgentCreateSelectedKnowledgeBases,
+      isActive: true,
+      createdAt: new Date().toISOString().split('T')[0],
+      updatedAt: new Date().toISOString().split('T')[0],
+      createdBy: "현재 사용자",
+    };
+    
+    setMyAgents([...myAgents, newMyAgent]);
+    setIsMyAgentCreateModalOpen(false);
+  };
 
   const openCreateModal = () => {
     setCreateName("");
@@ -781,6 +856,10 @@ export function AgentManagement() {
                 className="pl-10"
               />
             </div>
+            <Button onClick={openMyAgentCreateModal} className="gap-2">
+              <Plus className="w-4 h-4" />
+              My Agent 추가
+            </Button>
           </div>
 
           {/* Filters */}
@@ -1690,6 +1769,256 @@ export function AgentManagement() {
               취소
             </Button>
             <Button onClick={handleSaveMyAgent}>저장</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* My Agent Create Modal */}
+      <Dialog open={isMyAgentCreateModalOpen} onOpenChange={setIsMyAgentCreateModalOpen}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <User className="w-5 h-5 text-cyan-500" />
+              새 My Agent 추가
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex gap-6 h-[calc(90vh-180px)]">
+            {/* Left Side - Basic Info & Selections */}
+            <div className="w-[400px] space-y-4 overflow-y-auto pr-4">
+              <div>
+                <label className="text-sm font-medium mb-1.5 block text-muted-foreground">
+                  My Agent 이름 <span className="text-destructive">*</span>
+                </label>
+                <Input 
+                  value={myAgentCreateName} 
+                  onChange={(e) => setMyAgentCreateName(e.target.value)}
+                  placeholder="My Agent 이름을 입력하세요"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-1.5 block text-muted-foreground">
+                  설명
+                </label>
+                <Textarea 
+                  value={myAgentCreateDescription} 
+                  onChange={(e) => setMyAgentCreateDescription(e.target.value)}
+                  rows={2} 
+                  placeholder="My Agent 설명을 입력하세요"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-1.5 block text-muted-foreground">
+                  매핑 시스템 <span className="text-destructive">*</span>
+                </label>
+                <Popover open={isCreateSystemSelectOpen} onOpenChange={setIsCreateSystemSelectOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={isCreateSystemSelectOpen}
+                      className="w-full justify-between"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Server className="w-4 h-4 text-primary" />
+                        <span>{myAgentCreateSystemName || "시스템 선택"}</span>
+                      </div>
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[280px] p-0 bg-popover border z-50" align="start">
+                    <Command>
+                      <CommandInput 
+                        placeholder="시스템 검색..." 
+                        value={createSystemSearchQuery}
+                        onValueChange={setCreateSystemSearchQuery}
+                      />
+                      <CommandList>
+                        <CommandEmpty>검색 결과가 없습니다.</CommandEmpty>
+                        <CommandGroup>
+                          {filteredCreateSystemsList.map((system) => (
+                            <CommandItem
+                              key={system.id}
+                              value={system.name}
+                              onSelect={() => {
+                                setMyAgentCreateSystemId(system.id);
+                                setMyAgentCreateSystemName(system.shortName);
+                                setIsCreateSystemSelectOpen(false);
+                                setCreateSystemSearchQuery("");
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  myAgentCreateSystemId === system.id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              <div className="flex flex-col">
+                                <span className="font-medium">{system.shortName}</span>
+                                <span className="text-xs text-muted-foreground">{system.name}</span>
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              {/* Instruction Selection */}
+              <div>
+                <label className="text-sm font-medium mb-1.5 block text-muted-foreground flex items-center gap-2">
+                  <FileText className="w-4 h-4" />
+                  지침 선택 ({myAgentCreateSelectedInstructionIds.length}개 선택)
+                </label>
+                <ScrollArea className="h-32 border rounded-lg p-2">
+                  <div className="space-y-1">
+                    {mockInstructions.map((instruction) => (
+                      <div
+                        key={instruction.id}
+                        className={cn(
+                          "flex items-center justify-between p-2 rounded-lg cursor-pointer hover:bg-secondary/50 transition-colors",
+                          myAgentCreateSelectedInstructionIds.includes(instruction.id) && "bg-primary/10"
+                        )}
+                        onClick={() => toggleMyAgentCreateInstruction(instruction.id)}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            checked={myAgentCreateSelectedInstructionIds.includes(instruction.id)}
+                            className="pointer-events-none"
+                          />
+                          <span className="text-sm">{instruction.name}</span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 shrink-0"
+                          onClick={(e) => openInstructionPreview(instruction, e)}
+                        >
+                          <Info className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
+
+              {/* Tool Selection */}
+              <div>
+                <label className="text-sm font-medium mb-1.5 block text-muted-foreground flex items-center gap-2">
+                  <Wrench className="w-4 h-4" />
+                  Tool 선택 ({myAgentCreateSelectedTools.length}개 선택)
+                </label>
+                <ScrollArea className="h-32 border rounded-lg p-2">
+                  <div className="space-y-1">
+                    {mockTools.map((tool) => (
+                      <div
+                        key={tool.id}
+                        className={cn(
+                          "flex items-center gap-2 p-2 rounded-lg cursor-pointer hover:bg-secondary/50 transition-colors",
+                          myAgentCreateSelectedTools.includes(tool.id) && "bg-primary/10"
+                        )}
+                        onClick={() => toggleMyAgentCreateTool(tool.id)}
+                      >
+                        <Checkbox
+                          checked={myAgentCreateSelectedTools.includes(tool.id)}
+                          className="pointer-events-none"
+                        />
+                        <div>
+                          <span className="text-sm font-medium">{tool.name}</span>
+                          <p className="text-xs text-muted-foreground">{tool.description}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
+
+              {/* Knowledge Base Selection */}
+              <div>
+                <label className="text-sm font-medium mb-1.5 block text-muted-foreground flex items-center gap-2">
+                  <BookOpen className="w-4 h-4" />
+                  지식 선택 ({myAgentCreateSelectedKnowledgeBases.length}개 선택)
+                </label>
+                <ScrollArea className="h-32 border rounded-lg p-2">
+                  <div className="space-y-1">
+                    {mockKnowledgeBases.map((kb) => (
+                      <div
+                        key={kb.id}
+                        className={cn(
+                          "flex items-center gap-2 p-2 rounded-lg cursor-pointer hover:bg-secondary/50 transition-colors",
+                          myAgentCreateSelectedKnowledgeBases.includes(kb.id) && "bg-primary/10"
+                        )}
+                        onClick={() => toggleMyAgentCreateKnowledgeBase(kb.id)}
+                      >
+                        <Checkbox
+                          checked={myAgentCreateSelectedKnowledgeBases.includes(kb.id)}
+                          className="pointer-events-none"
+                        />
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">{kb.name}</span>
+                          <Badge variant="outline" className="text-xs">{kb.type}</Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
+            </div>
+
+            {/* Right Side - Instructions MD Editor */}
+            <div className="flex-1 flex flex-col border-l pl-6">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium text-muted-foreground">
+                  Agent 프롬프트 (Markdown)
+                </label>
+                <div className="flex gap-1">
+                  <Button
+                    variant={myAgentCreateInstructionMode === "edit" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setMyAgentCreateInstructionMode("edit")}
+                  >
+                    편집
+                  </Button>
+                  <Button
+                    variant={myAgentCreateInstructionMode === "preview" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setMyAgentCreateInstructionMode("preview")}
+                  >
+                    미리보기
+                  </Button>
+                </div>
+              </div>
+              <div className="flex-1 border rounded-lg overflow-hidden">
+                {myAgentCreateInstructionMode === "edit" ? (
+                  <Textarea
+                    value={myAgentCreateInstructions}
+                    onChange={(e) => setMyAgentCreateInstructions(e.target.value)}
+                    className="w-full h-full min-h-full resize-none border-0 font-mono text-sm"
+                    placeholder="Markdown 형식으로 Agent 프롬프트를 입력하세요..."
+                  />
+                ) : (
+                  <ScrollArea className="h-full p-4">
+                    <div className="prose prose-sm dark:prose-invert max-w-none">
+                      <ReactMarkdown>{myAgentCreateInstructions}</ReactMarkdown>
+                    </div>
+                  </ScrollArea>
+                )}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsMyAgentCreateModalOpen(false)}>
+              취소
+            </Button>
+            <Button 
+              onClick={handleCreateMyAgent}
+              disabled={!myAgentCreateName.trim() || !myAgentCreateSystemId}
+            >
+              추가
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
