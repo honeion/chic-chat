@@ -15,7 +15,12 @@ import {
   Users,
   Info,
   Search,
-  ChevronDown
+  ChevronDown,
+  Zap,
+  Loader2,
+  CheckCircle2,
+  XCircle,
+  AlertCircle
 } from "lucide-react";
 import {
   Popover,
@@ -88,6 +93,8 @@ interface MCPServer {
   tools: MCPTool[];
   createdAt: string;
   updatedAt: string;
+  connectionStatus?: "unknown" | "testing" | "connected" | "failed";
+  lastTestedAt?: string;
 }
 
 interface SystemMCPPermission {
@@ -119,6 +126,8 @@ const mockMCPServers: MCPServer[] = [
     ],
     createdAt: "2024-01-15",
     updatedAt: "2024-01-20",
+    connectionStatus: "connected",
+    lastTestedAt: "2024-01-20 14:30",
   },
   {
     id: "mcp2",
@@ -136,6 +145,8 @@ const mockMCPServers: MCPServer[] = [
     ],
     createdAt: "2024-01-18",
     updatedAt: "2024-01-25",
+    connectionStatus: "connected",
+    lastTestedAt: "2024-01-25 10:15",
   },
   {
     id: "mcp3",
@@ -148,6 +159,7 @@ const mockMCPServers: MCPServer[] = [
     tools: [],
     createdAt: "2024-01-20",
     updatedAt: "2024-01-20",
+    connectionStatus: "unknown",
   },
 ];
 
@@ -295,6 +307,71 @@ export const MCPManagement = () => {
     alert("Tool을 성공적으로 가져왔습니다.");
   };
 
+  const handleTestConnection = async (serverId: string) => {
+    // Set testing status
+    setServers(servers.map(s => 
+      s.id === serverId ? { ...s, connectionStatus: "testing" as const } : s
+    ));
+
+    // Mock connection test - simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 1000));
+
+    // Mock result - randomly succeed or fail for demo
+    const success = Math.random() > 0.3;
+    const now = new Date();
+    const timeStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    
+    setServers(servers.map(s => 
+      s.id === serverId 
+        ? { 
+            ...s, 
+            connectionStatus: success ? "connected" as const : "failed" as const,
+            lastTestedAt: timeStr
+          } 
+        : s
+    ));
+  };
+
+  const handleTestAllConnections = async () => {
+    const activeServerIds = servers.filter(s => s.isActive).map(s => s.id);
+    for (const serverId of activeServerIds) {
+      await handleTestConnection(serverId);
+    }
+  };
+
+  const getConnectionStatusBadge = (status?: string) => {
+    switch (status) {
+      case "connected":
+        return (
+          <Badge variant="outline" className="bg-green-500/20 text-green-400 border-green-500/30 gap-1">
+            <CheckCircle2 className="w-3 h-3" />
+            연결됨
+          </Badge>
+        );
+      case "failed":
+        return (
+          <Badge variant="outline" className="bg-red-500/20 text-red-400 border-red-500/30 gap-1">
+            <XCircle className="w-3 h-3" />
+            연결실패
+          </Badge>
+        );
+      case "testing":
+        return (
+          <Badge variant="outline" className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 gap-1">
+            <Loader2 className="w-3 h-3 animate-spin" />
+            테스트중
+          </Badge>
+        );
+      default:
+        return (
+          <Badge variant="outline" className="bg-muted text-muted-foreground gap-1">
+            <AlertCircle className="w-3 h-3" />
+            미확인
+          </Badge>
+        );
+    }
+  };
+
   const toggleServerActive = (serverId: string) => {
     setServers(servers.map(s => 
       s.id === serverId ? { ...s, isActive: !s.isActive } : s
@@ -402,22 +479,33 @@ export const MCPManagement = () => {
                 {serverSearchQuery ? `${filteredServers.length}개 검색됨 / ` : ""}총 {servers.length}개의 MCP 서버
               </div>
             </div>
-            <Button onClick={openCreateModal} className="gap-2">
-              <Plus className="w-4 h-4" />
-              MCP 서버 추가
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                onClick={handleTestAllConnections}
+                className="gap-2"
+              >
+                <Zap className="w-4 h-4" />
+                전체 연결 테스트
+              </Button>
+              <Button onClick={openCreateModal} className="gap-2">
+                <Plus className="w-4 h-4" />
+                MCP 서버 추가
+              </Button>
+            </div>
           </div>
 
           <div className="rounded-lg border border-border overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
-                  <TableHead className="w-[200px]">서버명</TableHead>
+                  <TableHead className="w-[180px]">서버명</TableHead>
                   <TableHead>설명</TableHead>
-                  <TableHead className="w-[100px]">연결방식</TableHead>
-                  <TableHead className="w-[100px]">Tool 수</TableHead>
-                  <TableHead className="w-[80px]">상태</TableHead>
-                  <TableHead className="w-[100px] text-right">작업</TableHead>
+                  <TableHead className="w-[90px]">연결방식</TableHead>
+                  <TableHead className="w-[80px]">Tool 수</TableHead>
+                  <TableHead className="w-[120px]">연결상태</TableHead>
+                  <TableHead className="w-[70px]">활성</TableHead>
+                  <TableHead className="w-[140px] text-right">작업</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -441,36 +529,60 @@ export const MCPManagement = () => {
                       <Badge variant="secondary">{server.tools.length}개</Badge>
                     </TableCell>
                     <TableCell>
+                      <div className="flex flex-col gap-1">
+                        {getConnectionStatusBadge(server.connectionStatus)}
+                        {server.lastTestedAt && (
+                          <span className="text-[10px] text-muted-foreground">{server.lastTestedAt}</span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
                       <Switch 
                         checked={server.isActive} 
                         onCheckedChange={() => toggleServerActive(server.id)}
                       />
                     </TableCell>
                     <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreVertical className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => openEditModal(server)}>
-                            <Pencil className="w-4 h-4 mr-2" />
-                            수정
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleImportTools(server.id)}>
-                            <Download className="w-4 h-4 mr-2" />
-                            Tool 가져오기
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => handleDeleteServer(server.id)}
-                            className="text-destructive"
-                          >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            삭제
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <div className="flex items-center justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => handleTestConnection(server.id)}
+                          disabled={server.connectionStatus === "testing"}
+                          title="연결 테스트"
+                        >
+                          {server.connectionStatus === "testing" ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Zap className="w-4 h-4" />
+                          )}
+                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreVertical className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => openEditModal(server)}>
+                              <Pencil className="w-4 h-4 mr-2" />
+                              수정
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleImportTools(server.id)}>
+                              <Download className="w-4 h-4 mr-2" />
+                              Tool 가져오기
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => handleDeleteServer(server.id)}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              삭제
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
