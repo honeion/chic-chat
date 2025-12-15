@@ -22,6 +22,8 @@ import {
   Code,
   List,
   FileText,
+  GitBranch,
+  Workflow,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -149,6 +151,38 @@ const defaultDBInfo: DBInfo = {
   keyVaultKey: "",
 };
 
+// CI/CD 연결정보 타입
+type RepoType = "GitHub" | "GitLab" | "Bitbucket" | "Azure DevOps" | "기타";
+type PipelineType = "Jenkins" | "Azure DevOps" | "GitHub Actions" | "GitLab CI" | "ArgoCD" | "기타";
+
+interface CICDInfo {
+  id: string;
+  // 소스 Repo 정보
+  repoType: RepoType;
+  repoUrl: string;
+  repoBranch: string;
+  repoAuth: string; // 인증 Key name
+  // DevOps Pipeline 정보
+  pipelineType: PipelineType;
+  pipelineUrl: string;
+  pipelineName: string;
+  pipelineAuth: string; // 인증 Key name
+  description: string;
+}
+
+const defaultCICDInfo: CICDInfo = {
+  id: "",
+  repoType: "GitHub",
+  repoUrl: "",
+  repoBranch: "main",
+  repoAuth: "",
+  pipelineType: "Jenkins",
+  pipelineUrl: "",
+  pipelineName: "",
+  pipelineAuth: "",
+  description: "",
+};
+
 interface EnvDetail {
   isEnabled: boolean;
   // 접속정보 (URL 목록)
@@ -157,6 +191,8 @@ interface EnvDetail {
   servers: ServerInfo[];
   // DB 정보 (DB 목록)
   databases: DBInfo[];
+  // CI/CD 연결정보 (CICD 목록)
+  cicds: CICDInfo[];
   // 모니터링 정보
   monitoringUrl: string;
   logPath: string;
@@ -168,6 +204,7 @@ const defaultEnvDetail: EnvDetail = {
   urls: [],
   servers: [],
   databases: [],
+  cicds: [],
   monitoringUrl: "",
   logPath: "",
   alertEmail: "",
@@ -415,12 +452,27 @@ export function SystemManagement() {
         keyVaultKey: "kv-" + system.shortName.toLowerCase() + "-db",
       },
     ];
+    const initialCICDs: CICDInfo[] = [
+      {
+        id: crypto.randomUUID(),
+        repoType: "GitHub",
+        repoUrl: "https://github.com/example/" + system.shortName.toLowerCase(),
+        repoBranch: "main",
+        repoAuth: "github-token-" + system.shortName.toLowerCase(),
+        pipelineType: "Jenkins",
+        pipelineUrl: "https://jenkins.example.com/job/" + system.shortName.toLowerCase(),
+        pipelineName: system.shortName + "-deploy",
+        pipelineAuth: "jenkins-token-" + system.shortName.toLowerCase(),
+        description: "운영 배포 파이프라인",
+      },
+    ];
     setEnvDetails({
       PROD: {
         isEnabled: true,
         urls: initialUrls,
         servers: initialServers,
         databases: initialDatabases,
+        cicds: initialCICDs,
         monitoringUrl: "https://monitor.example.com/" + system.shortName.toLowerCase(),
         logPath: "/var/log/" + system.shortName.toLowerCase(),
         alertEmail: system.manager + "@example.com",
@@ -544,6 +596,84 @@ export function SystemManagement() {
         ...prev[env],
         databases: prev[env].databases.map(d => 
           d.id === dbId ? { ...d, [field]: value } : d
+        ),
+      },
+    }));
+  };
+
+  // CI/CD 추가
+  const addCICD = (env: EnvType) => {
+    const newCICD: CICDInfo = {
+      ...defaultCICDInfo,
+      id: crypto.randomUUID(),
+    };
+    setEnvDetails(prev => ({
+      ...prev,
+      [env]: {
+        ...prev[env],
+        cicds: [...prev[env].cicds, newCICD],
+      },
+    }));
+  };
+
+  // CI/CD 삭제
+  const removeCICD = (env: EnvType, cicdId: string) => {
+    setEnvDetails(prev => ({
+      ...prev,
+      [env]: {
+        ...prev[env],
+        cicds: prev[env].cicds.filter(c => c.id !== cicdId),
+      },
+    }));
+  };
+
+  // CI/CD 정보 업데이트
+  const updateCICDInfo = (env: EnvType, cicdId: string, field: keyof CICDInfo, value: string) => {
+    setEnvDetails(prev => ({
+      ...prev,
+      [env]: {
+        ...prev[env],
+        cicds: prev[env].cicds.map(c => 
+          c.id === cicdId ? { ...c, [field]: value } : c
+        ),
+      },
+    }));
+  };
+
+  // Create modal CI/CD 추가
+  const addCreateCICD = (env: EnvType) => {
+    const newCICD: CICDInfo = {
+      ...defaultCICDInfo,
+      id: crypto.randomUUID(),
+    };
+    setCreateEnvDetails(prev => ({
+      ...prev,
+      [env]: {
+        ...prev[env],
+        cicds: [...prev[env].cicds, newCICD],
+      },
+    }));
+  };
+
+  // Create modal CI/CD 삭제
+  const removeCreateCICD = (env: EnvType, cicdId: string) => {
+    setCreateEnvDetails(prev => ({
+      ...prev,
+      [env]: {
+        ...prev[env],
+        cicds: prev[env].cicds.filter(c => c.id !== cicdId),
+      },
+    }));
+  };
+
+  // Create modal CI/CD 정보 업데이트
+  const updateCreateCICDInfo = (env: EnvType, cicdId: string, field: keyof CICDInfo, value: string) => {
+    setCreateEnvDetails(prev => ({
+      ...prev,
+      [env]: {
+        ...prev[env],
+        cicds: prev[env].cicds.map(c => 
+          c.id === cicdId ? { ...c, [field]: value } : c
         ),
       },
     }));
@@ -1690,6 +1820,182 @@ export function SystemManagement() {
                           )}
                         </div>
 
+                        {/* CI/CD 연결정보 */}
+                        <div className="p-4 rounded-lg bg-secondary/30 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-medium text-sm flex items-center gap-2">
+                              <GitBranch className="w-4 h-4" />
+                              CI/CD 연결정보
+                            </h4>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => addCICD(env)}
+                              className="h-7 text-xs"
+                            >
+                              <Plus className="w-3 h-3 mr-1" />
+                              CI/CD 추가
+                            </Button>
+                          </div>
+                          
+                          {envDetails[env].cicds.length === 0 ? (
+                            <div className="text-center py-4 text-muted-foreground text-sm">
+                              등록된 CI/CD 연결정보가 없습니다. CI/CD를 추가해주세요.
+                            </div>
+                          ) : (
+                            <div className="space-y-3">
+                              {envDetails[env].cicds.map((cicd, index) => (
+                                <div key={cicd.id} className="p-3 rounded-lg bg-background/50 border border-border/50 space-y-3">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs font-medium text-muted-foreground">#{index + 1}</span>
+                                      <Badge variant="outline" className="text-xs bg-green-500/20 text-green-400 border-green-500/30">
+                                        {cicd.repoType}
+                                      </Badge>
+                                      <Badge variant="outline" className="text-xs bg-blue-500/20 text-blue-400 border-blue-500/30">
+                                        {cicd.pipelineType}
+                                      </Badge>
+                                    </div>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-6 w-6 text-destructive hover:text-destructive"
+                                      onClick={() => removeCICD(env, cicd.id)}
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                    </Button>
+                                  </div>
+                                  
+                                  {/* 소스 Repo 정보 */}
+                                  <div className="p-2 rounded-lg bg-green-500/5 border border-green-500/20 space-y-2">
+                                    <div className="flex items-center gap-2 text-xs font-medium text-green-400">
+                                      <GitBranch className="w-3 h-3" />
+                                      소스 Repo 정보
+                                    </div>
+                                    <div className="grid grid-cols-4 gap-2">
+                                      <div>
+                                        <label className="text-xs text-muted-foreground">Repo Type</label>
+                                        <Select
+                                          value={cicd.repoType}
+                                          onValueChange={(value: RepoType) => 
+                                            updateCICDInfo(env, cicd.id, "repoType", value)
+                                          }
+                                        >
+                                          <SelectTrigger className="h-8 text-xs mt-1">
+                                            <SelectValue />
+                                          </SelectTrigger>
+                                          <SelectContent className="bg-popover">
+                                            <SelectItem value="GitHub">GitHub</SelectItem>
+                                            <SelectItem value="GitLab">GitLab</SelectItem>
+                                            <SelectItem value="Bitbucket">Bitbucket</SelectItem>
+                                            <SelectItem value="Azure DevOps">Azure DevOps</SelectItem>
+                                            <SelectItem value="기타">기타</SelectItem>
+                                          </SelectContent>
+                                        </Select>
+                                      </div>
+                                      <div className="col-span-2">
+                                        <label className="text-xs text-muted-foreground">Repo URL</label>
+                                        <Input 
+                                          value={cicd.repoUrl}
+                                          onChange={(e) => updateCICDInfo(env, cicd.id, "repoUrl", e.target.value)}
+                                          placeholder="https://github.com/org/repo"
+                                          className="h-8 text-xs mt-1" 
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="text-xs text-muted-foreground">Branch</label>
+                                        <Input 
+                                          value={cicd.repoBranch}
+                                          onChange={(e) => updateCICDInfo(env, cicd.id, "repoBranch", e.target.value)}
+                                          placeholder="main"
+                                          className="h-8 text-xs mt-1" 
+                                        />
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <label className="text-xs text-muted-foreground">인증 Key Name (TBD)</label>
+                                      <Input 
+                                        value={cicd.repoAuth}
+                                        onChange={(e) => updateCICDInfo(env, cicd.id, "repoAuth", e.target.value)}
+                                        placeholder="github-token-key"
+                                        className="h-8 text-xs mt-1" 
+                                      />
+                                    </div>
+                                  </div>
+                                  
+                                  {/* DevOps Pipeline 정보 */}
+                                  <div className="p-2 rounded-lg bg-blue-500/5 border border-blue-500/20 space-y-2">
+                                    <div className="flex items-center gap-2 text-xs font-medium text-blue-400">
+                                      <Workflow className="w-3 h-3" />
+                                      DevOps Pipeline 정보
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-2">
+                                      <div>
+                                        <label className="text-xs text-muted-foreground">Pipeline Type</label>
+                                        <Select
+                                          value={cicd.pipelineType}
+                                          onValueChange={(value: PipelineType) => 
+                                            updateCICDInfo(env, cicd.id, "pipelineType", value)
+                                          }
+                                        >
+                                          <SelectTrigger className="h-8 text-xs mt-1">
+                                            <SelectValue />
+                                          </SelectTrigger>
+                                          <SelectContent className="bg-popover">
+                                            <SelectItem value="Jenkins">Jenkins</SelectItem>
+                                            <SelectItem value="Azure DevOps">Azure DevOps</SelectItem>
+                                            <SelectItem value="GitHub Actions">GitHub Actions</SelectItem>
+                                            <SelectItem value="GitLab CI">GitLab CI</SelectItem>
+                                            <SelectItem value="ArgoCD">ArgoCD</SelectItem>
+                                            <SelectItem value="기타">기타</SelectItem>
+                                          </SelectContent>
+                                        </Select>
+                                      </div>
+                                      <div>
+                                        <label className="text-xs text-muted-foreground">Pipeline Name</label>
+                                        <Input 
+                                          value={cicd.pipelineName}
+                                          onChange={(e) => updateCICDInfo(env, cicd.id, "pipelineName", e.target.value)}
+                                          placeholder="deploy-pipeline"
+                                          className="h-8 text-xs mt-1" 
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="text-xs text-muted-foreground">인증 Key Name (TBD)</label>
+                                        <Input 
+                                          value={cicd.pipelineAuth}
+                                          onChange={(e) => updateCICDInfo(env, cicd.id, "pipelineAuth", e.target.value)}
+                                          placeholder="jenkins-token-key"
+                                          className="h-8 text-xs mt-1" 
+                                        />
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <label className="text-xs text-muted-foreground">Pipeline URL</label>
+                                      <Input 
+                                        value={cicd.pipelineUrl}
+                                        onChange={(e) => updateCICDInfo(env, cicd.id, "pipelineUrl", e.target.value)}
+                                        placeholder="https://jenkins.example.com/job/project"
+                                        className="h-8 text-xs mt-1" 
+                                      />
+                                    </div>
+                                  </div>
+                                  
+                                  <div>
+                                    <label className="text-xs text-muted-foreground">설명</label>
+                                    <Input 
+                                      value={cicd.description}
+                                      onChange={(e) => updateCICDInfo(env, cicd.id, "description", e.target.value)}
+                                      placeholder="CI/CD 연결정보 설명"
+                                      className="h-8 text-sm mt-1" 
+                                    />
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
                       </div>
                     </TabsContent>
                   ))}
@@ -2259,6 +2565,155 @@ export function SystemManagement() {
                                     className="h-8 text-xs mt-1" 
                                   />
                                 </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* CI/CD 연결정보 */}
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                              <GitBranch className="w-3.5 h-3.5" />
+                              CI/CD 연결정보
+                            </h4>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 text-xs"
+                              onClick={() => addCreateCICD(env)}
+                            >
+                              <Plus className="w-3 h-3 mr-1" />
+                              CI/CD 추가
+                            </Button>
+                          </div>
+                          {createEnvDetails[env].cicds.map((cicd, index) => (
+                            <div key={cicd.id} className="p-3 rounded-lg bg-background/50 border border-border/50 space-y-3">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs font-medium text-muted-foreground">#{index + 1}</span>
+                                  <Badge variant="outline" className="text-xs bg-green-500/20 text-green-400 border-green-500/30">
+                                    {cicd.repoType}
+                                  </Badge>
+                                  <Badge variant="outline" className="text-xs bg-blue-500/20 text-blue-400 border-blue-500/30">
+                                    {cicd.pipelineType}
+                                  </Badge>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6 text-destructive hover:text-destructive"
+                                  onClick={() => removeCreateCICD(env, cicd.id)}
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              </div>
+                              
+                              {/* 소스 Repo 정보 */}
+                              <div className="p-2 rounded-lg bg-green-500/5 border border-green-500/20 space-y-2">
+                                <div className="flex items-center gap-2 text-xs font-medium text-green-400">
+                                  <GitBranch className="w-3 h-3" />
+                                  소스 Repo 정보
+                                </div>
+                                <div className="grid grid-cols-4 gap-2">
+                                  <div>
+                                    <label className="text-xs text-muted-foreground">Repo Type</label>
+                                    <Select
+                                      value={cicd.repoType}
+                                      onValueChange={(value: RepoType) => 
+                                        updateCreateCICDInfo(env, cicd.id, "repoType", value)
+                                      }
+                                    >
+                                      <SelectTrigger className="h-8 text-xs mt-1">
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent className="bg-popover">
+                                        <SelectItem value="GitHub">GitHub</SelectItem>
+                                        <SelectItem value="GitLab">GitLab</SelectItem>
+                                        <SelectItem value="Bitbucket">Bitbucket</SelectItem>
+                                        <SelectItem value="Azure DevOps">Azure DevOps</SelectItem>
+                                        <SelectItem value="기타">기타</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  <div className="col-span-2">
+                                    <label className="text-xs text-muted-foreground">Repo URL</label>
+                                    <Input 
+                                      value={cicd.repoUrl}
+                                      onChange={(e) => updateCreateCICDInfo(env, cicd.id, "repoUrl", e.target.value)}
+                                      placeholder="https://github.com/org/repo"
+                                      className="h-8 text-xs mt-1" 
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="text-xs text-muted-foreground">Branch</label>
+                                    <Input 
+                                      value={cicd.repoBranch}
+                                      onChange={(e) => updateCreateCICDInfo(env, cicd.id, "repoBranch", e.target.value)}
+                                      placeholder="main"
+                                      className="h-8 text-xs mt-1" 
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {/* DevOps Pipeline 정보 */}
+                              <div className="p-2 rounded-lg bg-blue-500/5 border border-blue-500/20 space-y-2">
+                                <div className="flex items-center gap-2 text-xs font-medium text-blue-400">
+                                  <Workflow className="w-3 h-3" />
+                                  DevOps Pipeline 정보
+                                </div>
+                                <div className="grid grid-cols-3 gap-2">
+                                  <div>
+                                    <label className="text-xs text-muted-foreground">Pipeline Type</label>
+                                    <Select
+                                      value={cicd.pipelineType}
+                                      onValueChange={(value: PipelineType) => 
+                                        updateCreateCICDInfo(env, cicd.id, "pipelineType", value)
+                                      }
+                                    >
+                                      <SelectTrigger className="h-8 text-xs mt-1">
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent className="bg-popover">
+                                        <SelectItem value="Jenkins">Jenkins</SelectItem>
+                                        <SelectItem value="Azure DevOps">Azure DevOps</SelectItem>
+                                        <SelectItem value="GitHub Actions">GitHub Actions</SelectItem>
+                                        <SelectItem value="GitLab CI">GitLab CI</SelectItem>
+                                        <SelectItem value="ArgoCD">ArgoCD</SelectItem>
+                                        <SelectItem value="기타">기타</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  <div>
+                                    <label className="text-xs text-muted-foreground">Pipeline Name</label>
+                                    <Input 
+                                      value={cicd.pipelineName}
+                                      onChange={(e) => updateCreateCICDInfo(env, cicd.id, "pipelineName", e.target.value)}
+                                      placeholder="deploy-pipeline"
+                                      className="h-8 text-xs mt-1" 
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="text-xs text-muted-foreground">Pipeline URL</label>
+                                    <Input 
+                                      value={cicd.pipelineUrl}
+                                      onChange={(e) => updateCreateCICDInfo(env, cicd.id, "pipelineUrl", e.target.value)}
+                                      placeholder="https://jenkins.example.com/job/project"
+                                      className="h-8 text-xs mt-1" 
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div>
+                                <label className="text-xs text-muted-foreground">설명</label>
+                                <Input 
+                                  value={cicd.description}
+                                  onChange={(e) => updateCreateCICDInfo(env, cicd.id, "description", e.target.value)}
+                                  placeholder="CI/CD 연결정보 설명"
+                                  className="h-8 text-xs mt-1" 
+                                />
                               </div>
                             </div>
                           ))}
