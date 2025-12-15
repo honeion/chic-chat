@@ -578,57 +578,15 @@ export function AgentManagement() {
 
   return (
     <div className="space-y-6">
-      {/* Tab Cards */}
-      <div className="grid grid-cols-2 gap-4">
-        <Card 
-          className={cn(
-            "cursor-pointer transition-all border-transparent hover:border-primary/50",
-            activeTab === "market" && "ring-2 ring-primary border-primary"
-          )}
-          onClick={() => setActiveTab("market")}
-        >
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                <Store className="w-5 h-5 text-purple-500" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{agents.length}</p>
-                <p className="text-xs text-muted-foreground">Agent 마켓 관리</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card 
-          className={cn(
-            "cursor-pointer transition-all border-transparent hover:border-primary/50",
-            activeTab === "myagent" && "ring-2 ring-primary border-primary"
-          )}
-          onClick={() => setActiveTab("myagent")}
-        >
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-cyan-500/10 flex items-center justify-center">
-                <User className="w-5 h-5 text-cyan-500" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{myAgents.length}</p>
-                <p className="text-xs text-muted-foreground">My Agent 마켓 관리</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "market" | "myagent")}>
         <TabsList className="w-fit">
           <TabsTrigger value="market" className="gap-2">
             <Store className="w-4 h-4" />
-            Agent 마켓 관리
+            Agent 마켓 관리 ({agents.length})
           </TabsTrigger>
           <TabsTrigger value="myagent" className="gap-2">
             <User className="w-4 h-4" />
-            My Agent 마켓 관리
+            My Agent 마켓 관리 ({myAgents.length})
           </TabsTrigger>
         </TabsList>
 
