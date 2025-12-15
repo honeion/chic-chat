@@ -8,7 +8,6 @@ import {
   Search,
   Bot,
   Workflow,
-  LayoutDashboard,
   ChevronDown,
   ChevronRight,
   Store,
@@ -221,8 +220,6 @@ export function ChatSidebar({
     }
   };
 
-  const isDashboard = location.pathname === "/dashboard";
-
   return (
     <aside className="w-80 h-full bg-sidebar flex flex-col border-r border-border">
       {/* Header */}
@@ -240,20 +237,6 @@ export function ChatSidebar({
             </button>
           </div>
         </div>
-        
-        {/* Dashboard Navigation */}
-        <button
-          onClick={() => navigate("/dashboard")}
-          className={cn(
-            "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all mb-3",
-            isDashboard 
-              ? "bg-primary/20 text-primary" 
-              : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-          )}
-        >
-          <LayoutDashboard className="w-5 h-5" />
-          <span className="font-medium">{t("sidebar.dashboard")}</span>
-        </button>
 
         {/* Search */}
         <div className="relative">
@@ -285,7 +268,7 @@ export function ChatSidebar({
             }}
             className={cn(
               "flex-1 flex items-center justify-center gap-2 py-4 text-sm font-semibold transition-colors border-b-3",
-              currentView === view && !isDashboard
+              currentView === view
                 ? "border-primary text-primary bg-primary/5"
                 : "border-transparent text-muted-foreground hover:text-foreground hover:bg-secondary/50"
             )}
@@ -319,7 +302,7 @@ export function ChatSidebar({
                     className={cn(
                       "w-full p-3 rounded-xl text-left transition-all duration-200 flex items-center gap-3",
                       "hover:bg-secondary/80",
-                      isSelected && !isDashboard
+                      isSelected
                         ? "bg-primary/20 border border-primary/30" 
                         : "bg-transparent"
                     )}
@@ -373,7 +356,7 @@ export function ChatSidebar({
                       className={cn(
                         "w-full p-3 rounded-xl text-left transition-all duration-200 flex items-center gap-3",
                         "hover:bg-secondary/80",
-                        isSelected && !isDashboard
+                        isSelected
                           ? "bg-primary/30 border border-primary/50 shadow-md" 
                           : "bg-transparent"
                       )}
@@ -511,7 +494,7 @@ export function ChatSidebar({
                   className={cn(
                     "w-full p-2.5 rounded-lg text-left transition-all duration-200",
                     "hover:bg-secondary/80",
-                    selectedChat === room.id && !isDashboard
+                    selectedChat === room.id
                       ? "bg-secondary shadow-card border border-primary/20" 
                       : "bg-transparent"
                   )}

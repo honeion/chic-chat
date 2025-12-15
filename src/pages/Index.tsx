@@ -1,11 +1,9 @@
 import { useState } from "react";
-import { useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ChatSidebar } from "@/components/chat/ChatSidebar";
 import { ChatArea } from "@/components/chat/ChatArea";
 import { AgentDetail } from "./AgentDetail";
 import { WorkflowPage } from "./WorkflowPage";
-import Dashboard from "./Dashboard";
 import { AgentDetailModal } from "@/components/workflow/AgentDetailModal";
 
 type ViewType = "agent" | "workflow" | "assistant";
@@ -182,8 +180,6 @@ const Index = () => {
   const [myAgents, setMyAgents] = useState<WorkflowItem[]>(initialMyAgents);
   const [selectedWorkflowAgent, setSelectedWorkflowAgent] = useState<WorkflowItem | null>(null);
   const [selectedMarketAgent, setSelectedMarketAgent] = useState<WorkflowItem | null>(null);
-  const location = useLocation();
-  const isDashboard = location.pathname === "/dashboard";
   const { t } = useTranslation();
 
   const agentNames: Record<string, string> = {
@@ -253,10 +249,6 @@ const Index = () => {
   };
 
   const renderContent = () => {
-    if (isDashboard) {
-      return <Dashboard />;
-    }
-
     switch (currentView) {
       case "agent":
         return selectedAgent ? (
