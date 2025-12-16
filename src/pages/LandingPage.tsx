@@ -47,23 +47,27 @@ const getTypeIcon = (type: string) => {
   return icons[type] || icons.S;
 };
 
-// Expandable Item Component
-function ExpandableItem({ 
-  id, 
-  title, 
-  system, 
-  detail, 
-  icon: Icon, 
-  iconColor,
+// Collapsible Status Section Component
+function CollapsibleStatusSection({ 
+  label,
+  count,
+  items,
+  labelColor,
+  bgColor,
+  borderColor,
+  icon: StatusIcon,
+  getItemIcon,
   idColor = "text-primary",
   showPlay = false 
 }: { 
-  id: string; 
-  title: string; 
-  system: string; 
-  detail: string;
+  label: string;
+  count: number;
+  items: Array<{ id: string; title: string; system: string; detail: string; type?: string; severity?: string }>;
+  labelColor: string;
+  bgColor: string;
+  borderColor: string;
   icon: typeof AlertTriangle;
-  iconColor: string;
+  getItemIcon: (item: any) => { icon: typeof AlertTriangle; color: string };
   idColor?: string;
   showPlay?: boolean;
 }) {
@@ -72,22 +76,34 @@ function ExpandableItem({
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <CollapsibleTrigger asChild>
-        <div className="flex items-center justify-between text-xs bg-background/30 rounded px-2 py-1.5 cursor-pointer hover:bg-background/50 transition-colors">
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            <Icon className={`w-3 h-3 ${iconColor} shrink-0`} />
-            <span className="truncate text-foreground">{title}</span>
-            <span className={`${idColor} text-[10px] shrink-0`}>{id}</span>
-            <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 shrink-0">{system}</Badge>
-          </div>
-          <div className="flex items-center gap-1 shrink-0 ml-2">
-            <ChevronDown className={`w-3 h-3 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-            {showPlay && <Play className="w-3 h-3 text-primary cursor-pointer hover:text-primary/80" />}
+        <div className={`${bgColor} border ${borderColor} rounded-lg px-3 py-2 cursor-pointer hover:opacity-90 transition-opacity`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <StatusIcon className={`w-3 h-3 ${labelColor}`} />
+              <span className={`text-xs ${labelColor}`}>{label}</span>
+              <span className="text-sm font-bold text-foreground">{count}</span>
+            </div>
+            <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`} />
           </div>
         </div>
       </CollapsibleTrigger>
       <CollapsibleContent>
-        <div className="mt-1 ml-5 p-2 text-xs text-muted-foreground bg-background/20 rounded border-l-2 border-primary/30">
-          {detail}
+        <div className={`mt-1 ${bgColor} border ${borderColor} rounded-lg p-3 space-y-1.5`}>
+          {items.map((item) => {
+            const typeInfo = getItemIcon(item);
+            const Icon = typeInfo.icon;
+            return (
+              <div key={item.id} className="flex items-center justify-between text-xs bg-background/30 rounded px-2 py-1.5">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <Icon className={`w-3 h-3 ${typeInfo.color} shrink-0`} />
+                  <span className="truncate text-foreground">{item.title}</span>
+                  <span className={`${idColor} text-[10px] shrink-0`}>{item.id}</span>
+                  <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 shrink-0">{item.system}</Badge>
+                </div>
+                {showPlay && <Play className="w-3 h-3 text-primary cursor-pointer hover:text-primary/80 shrink-0 ml-2" />}
+              </div>
+            );
+          })}
         </div>
       </CollapsibleContent>
     </Collapsible>
@@ -239,57 +255,29 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              <div className="space-y-3">
-                {/* 미접수 - Row */}
-                <div className="bg-red-950/20 border border-red-900/30 rounded-lg p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Clock className="w-3 h-3 text-red-400" />
-                    <span className="text-xs text-red-400">미접수</span>
-                    <span className="text-sm font-bold text-foreground">{mockITSRequests.unreceived.length}</span>
-                  </div>
-                  <div className="space-y-1.5">
-                    {mockITSRequests.unreceived.map((req) => {
-                      const typeInfo = getTypeIcon(req.type);
-                      return (
-                        <ExpandableItem
-                          key={req.id}
-                          id={req.id}
-                          title={req.title}
-                          system={req.system}
-                          detail={req.detail}
-                          icon={typeInfo.icon}
-                          iconColor={typeInfo.color}
-                          showPlay
-                        />
-                      );
-                    })}
-                  </div>
-                </div>
+              <div className="space-y-2">
+                <CollapsibleStatusSection
+                  label="미접수"
+                  count={mockITSRequests.unreceived.length}
+                  items={mockITSRequests.unreceived}
+                  labelColor="text-red-400"
+                  bgColor="bg-red-950/20"
+                  borderColor="border-red-900/30"
+                  icon={Clock}
+                  getItemIcon={(item) => getTypeIcon(item.type)}
+                  showPlay
+                />
 
-                {/* 접수/처리중 - Row */}
-                <div className="bg-yellow-950/20 border border-yellow-900/30 rounded-lg p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Clock className="w-3 h-3 text-yellow-400" />
-                    <span className="text-xs text-yellow-400">접수/처리중</span>
-                    <span className="text-sm font-bold text-foreground">{mockITSRequests.inProgress.length}</span>
-                  </div>
-                  <div className="space-y-1.5">
-                    {mockITSRequests.inProgress.map((req) => {
-                      const typeInfo = getTypeIcon(req.type);
-                      return (
-                        <ExpandableItem
-                          key={req.id}
-                          id={req.id}
-                          title={req.title}
-                          system={req.system}
-                          detail={req.detail}
-                          icon={typeInfo.icon}
-                          iconColor={typeInfo.color}
-                        />
-                      );
-                    })}
-                  </div>
-                </div>
+                <CollapsibleStatusSection
+                  label="접수/처리중"
+                  count={mockITSRequests.inProgress.length}
+                  items={mockITSRequests.inProgress}
+                  labelColor="text-yellow-400"
+                  bgColor="bg-yellow-950/20"
+                  borderColor="border-yellow-900/30"
+                  icon={Clock}
+                  getItemIcon={(item) => getTypeIcon(item.type)}
+                />
 
                 {/* 완료 - Compact */}
                 <div className="flex items-center justify-between bg-emerald-950/20 border border-emerald-900/30 rounded-lg px-3 py-2">
@@ -309,53 +297,31 @@ export default function LandingPage() {
                 <h3 className="text-sm font-medium">비정상 감지 현황</h3>
               </div>
 
-              <div className="space-y-3">
-                {/* 감지 - Row */}
-                <div className="bg-red-950/20 border border-red-900/30 rounded-lg p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <AlertTriangle className="w-3 h-3 text-red-400" />
-                    <span className="text-xs text-red-400">감지</span>
-                    <span className="text-sm font-bold text-foreground">{mockMonitoringAlerts.detected.length}</span>
-                  </div>
-                  <div className="space-y-1.5">
-                    {mockMonitoringAlerts.detected.map((alert) => (
-                      <ExpandableItem
-                        key={alert.id}
-                        id={alert.id}
-                        title={alert.title}
-                        system={alert.system}
-                        detail={alert.detail}
-                        icon={AlertTriangle}
-                        iconColor={alert.severity === 'critical' ? 'text-red-400' : 'text-yellow-400'}
-                        idColor="text-orange-400"
-                        showPlay
-                      />
-                    ))}
-                  </div>
-                </div>
+              <div className="space-y-2">
+                <CollapsibleStatusSection
+                  label="감지"
+                  count={mockMonitoringAlerts.detected.length}
+                  items={mockMonitoringAlerts.detected}
+                  labelColor="text-red-400"
+                  bgColor="bg-red-950/20"
+                  borderColor="border-red-900/30"
+                  icon={AlertTriangle}
+                  getItemIcon={(item) => ({ icon: AlertTriangle, color: item.severity === 'critical' ? 'text-red-400' : 'text-yellow-400' })}
+                  idColor="text-orange-400"
+                  showPlay
+                />
 
-                {/* 처리중 - Row */}
-                <div className="bg-yellow-950/20 border border-yellow-900/30 rounded-lg p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Clock className="w-3 h-3 text-yellow-400" />
-                    <span className="text-xs text-yellow-400">처리중</span>
-                    <span className="text-sm font-bold text-foreground">{mockMonitoringAlerts.inProgress.length}</span>
-                  </div>
-                  <div className="space-y-1.5">
-                    {mockMonitoringAlerts.inProgress.map((alert) => (
-                      <ExpandableItem
-                        key={alert.id}
-                        id={alert.id}
-                        title={alert.title}
-                        system={alert.system}
-                        detail={alert.detail}
-                        icon={AlertTriangle}
-                        iconColor={alert.severity === 'critical' ? 'text-red-400' : 'text-yellow-400'}
-                        idColor="text-orange-400"
-                      />
-                    ))}
-                  </div>
-                </div>
+                <CollapsibleStatusSection
+                  label="처리중"
+                  count={mockMonitoringAlerts.inProgress.length}
+                  items={mockMonitoringAlerts.inProgress}
+                  labelColor="text-yellow-400"
+                  bgColor="bg-yellow-950/20"
+                  borderColor="border-yellow-900/30"
+                  icon={Clock}
+                  getItemIcon={(item) => ({ icon: AlertTriangle, color: item.severity === 'critical' ? 'text-red-400' : 'text-yellow-400' })}
+                  idColor="text-orange-400"
+                />
 
                 {/* 완료 - Compact */}
                 <div className="flex items-center justify-between bg-emerald-950/20 border border-emerald-900/30 rounded-lg px-3 py-2">
