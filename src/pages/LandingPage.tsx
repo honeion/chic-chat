@@ -147,6 +147,7 @@ function CollapsibleStatusSection({
   getItemIcon,
   idColor = "text-primary",
   showPlay = false,
+  defaultOpen = false,
 }: {
   label: string;
   count: number;
@@ -158,8 +159,9 @@ function CollapsibleStatusSection({
   getItemIcon: (item: any) => { icon: typeof AlertTriangle; color: string };
   idColor?: string;
   showPlay?: boolean;
+  defaultOpen?: boolean;
 }) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
@@ -374,6 +376,7 @@ export default function LandingPage() {
                   icon={Clock}
                   getItemIcon={(item) => getTypeIcon(item.type)}
                   showPlay
+                  defaultOpen
                 />
 
                 <CollapsibleStatusSection
@@ -420,6 +423,7 @@ export default function LandingPage() {
                   })}
                   idColor="text-orange-400"
                   showPlay
+                  defaultOpen
                 />
 
                 <CollapsibleStatusSection
