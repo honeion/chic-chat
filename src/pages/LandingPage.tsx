@@ -405,7 +405,7 @@ export default function LandingPage() {
             <div className="bg-card/30 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-4">
                 <AlertTriangle className="w-4 h-4 text-primary" />
-                <h3 className="text-sm font-medium">비정상 감지 현황</h3>
+                <h3 className="text-sm font-medium">모니터링 감지 현황</h3>
               </div>
 
               <div className="space-y-2">
