@@ -210,6 +210,7 @@ function CollapsibleStatusSection({
 }
 
 export default function LandingPage() {
+  // Force refresh
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [currentTime, setCurrentTime] = useState(new Date());
