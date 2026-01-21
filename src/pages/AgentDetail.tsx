@@ -2038,17 +2038,24 @@ ${conversationSummary || "(내용 없음)"}
   };
 
   return (
-    <div className="flex-1 h-full overflow-hidden flex relative">
-      {/* Resizable layout when not expanded */}
+    <div className="flex-1 h-full overflow-hidden flex flex-col relative">
+      {/* 통합 뷰 - 상하 레이아웃 */}
       {!isChatExpanded ? (
-        <ResizablePanelGroup direction="horizontal" className="h-full">
-          <ResizablePanel defaultSize={70} minSize={40}>
-            <div className="flex flex-col h-full">
+        <ResizablePanelGroup direction="vertical" className="h-full">
+          {/* 상단: 대시보드 영역 */}
+          <ResizablePanel defaultSize={55} minSize={30}>
+            <div className="flex flex-col h-full overflow-hidden">
               <div className="flex-1 p-6 overflow-y-auto">
+                {/* 헤더 */}
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center"><Bot className="w-6 h-6 text-primary" /></div>
-                    <div><h1 className="text-2xl font-bold">{agentName}</h1><p className="text-sm text-muted-foreground">Agent ID: {agentId}</p></div>
+                    <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
+                      <Bot className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <h1 className="text-2xl font-bold">{agentName}</h1>
+                      <p className="text-sm text-muted-foreground">Agent ID: {agentId}</p>
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     <button 
@@ -2069,56 +2076,59 @@ ${conversationSummary || "(내용 없음)"}
               </div>
             </div>
           </ResizablePanel>
+          
           <ResizableHandle withHandle />
-          <ResizablePanel defaultSize={30} minSize={20}>
-            <div className="flex flex-col h-full border-l border-border bg-sidebar">
+          
+          {/* 하단: 채팅 영역 */}
+          <ResizablePanel defaultSize={45} minSize={25}>
+            <div className="flex flex-col h-full border-t border-border bg-sidebar">
               <AgentChatPanel
-          agentName={agentName} 
-          messages={currentMessages} 
-          onSendMessage={handleSendMessage} 
-          onQuickAction={handleQuickAction} 
-          quickActions={quickActions}
-          activeRequest={activeRequest}
-          onCloseRequest={handleCloseRequest}
-          isPendingApproval={activeSession?.status === "pending-approval"}
-          onApproveRequest={() => activeSessionId && handleApproveRequest(activeSessionId)}
-          onRejectRequest={() => activeSessionId && handleRejectRequest(activeSessionId)}
-          onNavigateToAgent={onNavigateToAgent}
-          isPendingProcessStart={activeSession?.status === "pending-process-start"}
-          onStartProcess={() => activeSessionId && handleStartProcess(activeSessionId)}
-          onCancelProcess={() => activeSessionId && handleCancelProcess(activeSessionId)}
-          isPendingMonitoringResult={(activeSession?.status as string) === "pending-monitoring-result"}
-          onRegisterDetection={() => activeSessionId && handleRegisterDetection(activeSessionId)}
-          onCompleteNormal={() => activeSessionId && handleCompleteNormal(activeSessionId)}
-          isPendingDetectionAction={(activeSession?.status as string) === "pending-detection-action"}
-          onRouteToSOP={() => activeSessionId && handleRouteToSOP(activeSessionId)}
-          onDirectProcess={() => activeSessionId && handleDirectProcess(activeSessionId)}
-          isPendingDirectComplete={(activeSession?.status as string) === "pending-direct-complete"}
-          onDirectProcessComplete={() => activeSessionId && handleDirectProcessComplete(activeSessionId)}
-          isPendingReportConfirm={activeSession?.status === "pending-report-confirm"}
-          onCreateReport={() => activeSessionId && handleCreateReport(activeSessionId)}
-          onSkipReport={() => activeSessionId && handleSkipReport(activeSessionId)}
-          isPendingReportStart={activeSession?.status === "pending-report-start"}
-          onStartReportWriting={() => activeSessionId && handleStartReportWriting(activeSessionId)}
-          isPendingReportReview={activeSession?.status === "pending-report-review"}
-          onRewriteReport={() => activeSessionId && handleRewriteReport(activeSessionId)}
-          onCompleteReport={() => activeSessionId && handleCompleteReport(activeSessionId)}
-          isPendingKnowledgeSave={activeSession?.status === "pending-knowledge-save"}
-          onSaveToKnowledge={() => activeSessionId && handleSaveToKnowledge(activeSessionId)}
-          onSkipKnowledgeSave={() => activeSessionId && handleSkipKnowledgeSave(activeSessionId)}
-          isPendingITSNavigate={activeSession?.status === "pending-its-navigate"}
-          onNavigateToITS={() => activeSessionId && handleNavigateToITS(activeSessionId)}
-          onSkipITSNavigate={() => activeSessionId && handleSkipITSNavigate(activeSessionId)}
-          isPendingITSComplete={activeSession?.status === "pending-its-complete"}
-          onCompleteITS={() => activeSessionId && handleCompleteITS(activeSessionId)}
-          onSkipITSComplete={() => activeSessionId && handleSkipITSComplete(activeSessionId)}
-          isBizSupportSession={activeSession?.request.requestNo.startsWith("BIZ-") && (activeSession?.status === "in-progress" || activeSession?.status === "pending-its-type-selection" || activeSession?.status === "pending-its-confirm")}
-          isPendingITSTypeSelection={activeSession?.status === "pending-its-type-selection"}
-          isPendingITSConfirm={activeSession?.status === "pending-its-confirm"}
-          onStartITSRegistration={() => activeSessionId && handleStartITSRegistration(activeSessionId)}
-          onSelectITSType={(type) => activeSessionId && handleSelectITSType(activeSessionId, type)}
-          onConfirmITSRequest={() => activeSessionId && handleConfirmITSRequest(activeSessionId)}
-          onCancelITSRegistration={() => activeSessionId && handleCancelITSRegistration(activeSessionId)}
+                agentName={agentName} 
+                messages={currentMessages} 
+                onSendMessage={handleSendMessage} 
+                onQuickAction={handleQuickAction} 
+                quickActions={quickActions}
+                activeRequest={activeRequest}
+                onCloseRequest={handleCloseRequest}
+                isPendingApproval={activeSession?.status === "pending-approval"}
+                onApproveRequest={() => activeSessionId && handleApproveRequest(activeSessionId)}
+                onRejectRequest={() => activeSessionId && handleRejectRequest(activeSessionId)}
+                onNavigateToAgent={onNavigateToAgent}
+                isPendingProcessStart={activeSession?.status === "pending-process-start"}
+                onStartProcess={() => activeSessionId && handleStartProcess(activeSessionId)}
+                onCancelProcess={() => activeSessionId && handleCancelProcess(activeSessionId)}
+                isPendingMonitoringResult={(activeSession?.status as string) === "pending-monitoring-result"}
+                onRegisterDetection={() => activeSessionId && handleRegisterDetection(activeSessionId)}
+                onCompleteNormal={() => activeSessionId && handleCompleteNormal(activeSessionId)}
+                isPendingDetectionAction={(activeSession?.status as string) === "pending-detection-action"}
+                onRouteToSOP={() => activeSessionId && handleRouteToSOP(activeSessionId)}
+                onDirectProcess={() => activeSessionId && handleDirectProcess(activeSessionId)}
+                isPendingDirectComplete={(activeSession?.status as string) === "pending-direct-complete"}
+                onDirectProcessComplete={() => activeSessionId && handleDirectProcessComplete(activeSessionId)}
+                isPendingReportConfirm={activeSession?.status === "pending-report-confirm"}
+                onCreateReport={() => activeSessionId && handleCreateReport(activeSessionId)}
+                onSkipReport={() => activeSessionId && handleSkipReport(activeSessionId)}
+                isPendingReportStart={activeSession?.status === "pending-report-start"}
+                onStartReportWriting={() => activeSessionId && handleStartReportWriting(activeSessionId)}
+                isPendingReportReview={activeSession?.status === "pending-report-review"}
+                onRewriteReport={() => activeSessionId && handleRewriteReport(activeSessionId)}
+                onCompleteReport={() => activeSessionId && handleCompleteReport(activeSessionId)}
+                isPendingKnowledgeSave={activeSession?.status === "pending-knowledge-save"}
+                onSaveToKnowledge={() => activeSessionId && handleSaveToKnowledge(activeSessionId)}
+                onSkipKnowledgeSave={() => activeSessionId && handleSkipKnowledgeSave(activeSessionId)}
+                isPendingITSNavigate={activeSession?.status === "pending-its-navigate"}
+                onNavigateToITS={() => activeSessionId && handleNavigateToITS(activeSessionId)}
+                onSkipITSNavigate={() => activeSessionId && handleSkipITSNavigate(activeSessionId)}
+                isPendingITSComplete={activeSession?.status === "pending-its-complete"}
+                onCompleteITS={() => activeSessionId && handleCompleteITS(activeSessionId)}
+                onSkipITSComplete={() => activeSessionId && handleSkipITSComplete(activeSessionId)}
+                isBizSupportSession={activeSession?.request.requestNo.startsWith("BIZ-") && (activeSession?.status === "in-progress" || activeSession?.status === "pending-its-type-selection" || activeSession?.status === "pending-its-confirm")}
+                isPendingITSTypeSelection={activeSession?.status === "pending-its-type-selection"}
+                isPendingITSConfirm={activeSession?.status === "pending-its-confirm"}
+                onStartITSRegistration={() => activeSessionId && handleStartITSRegistration(activeSessionId)}
+                onSelectITSType={(type) => activeSessionId && handleSelectITSType(activeSessionId, type)}
+                onConfirmITSRequest={() => activeSessionId && handleConfirmITSRequest(activeSessionId)}
+                onCancelITSRegistration={() => activeSessionId && handleCancelITSRegistration(activeSessionId)}
                 isExpanded={isChatExpanded}
                 onToggleExpand={() => setIsChatExpanded(!isChatExpanded)}
               />
